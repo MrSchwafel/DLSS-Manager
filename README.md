@@ -1,4 +1,4 @@
-**Language / Sprache:** [Deutsch](README.md) · **English**
+**Language / Sprache:** [Deutsch](/readmes/README.de.md) · **English**
 
 <sub>Additional languages — not yet available: Español · Français · Português (Brasil) · Italiano · Polski · Русский · 简体中文 · 日本語</sub>
 
