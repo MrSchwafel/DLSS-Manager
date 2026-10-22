@@ -1,9 +1,9 @@
-**Sprache / Language:** **Deutsch** · [English](README.en.md)
+**Sprache / Language:** **Deutsch** · [English](../README.md)
 
 <sub>Weitere Sprachen — noch nicht verfügbar: Español · Français · Português (Brasil) · Italiano · Polski · Русский · 简体中文 · 日本語</sub>
 
 <p align="center">
-  <img src="src/logo.png" alt="DLSS Manager Logo" width="200">
+  <img src="../src/logo.png" alt="DLSS Manager Logo" width="200">
 </p>
 
 # DLSS Manager
