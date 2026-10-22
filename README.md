@@ -1,226 +1,232 @@
+**Language / Sprache:** [Deutsch](README.md) · **English**
+
+<sub>Additional languages — not yet available: Español · Français · Português (Brasil) · Italiano · Polski · Русский · 简体中文 · 日本語</sub>
+
 <p align="center">
-  <img src="src/logo.png" alt="DLSS Manager Logo" width="200">
+  <img src="src/logo.png" alt="DLSS Manager logo" width="200">
 </p>
 
 # DLSS Manager
 
-**DLSS-DLLs verwalten, Spiele finden und die SM86-FrameGen-Mod installieren — in einer Windows-Oberfläche.**
+**Manage DLSS DLLs, discover games, and install the SM86 FrameGen mod from a Windows interface.**
 
-DLSS Manager ist ein mit AutoHotkey v2 entwickeltes Community-Tool. Es erkennt lokale DLSS-Dateien, zeigt ihre Versionen an und kann sie gegen andere verfügbare Versionen austauschen. Zusätzlich verwaltet es die FrameGen-Mod aus [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86), einschließlich Updates und spielbezogener Fallbacks.
+DLSS Manager is a community tool built with AutoHotkey v2. It detects local DLSS files, displays their versions, and lets you replace them with other available versions. It also manages the FrameGen mod from [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86), including updates and per-game rollback options.
 
-Das Logo nimmt künstliche Hardware-Grenzen aufs Korn. Der Manager ist ein unabhängiges Projekt und steht in keiner Verbindung zu NVIDIA.
+The logo pokes fun at artificial hardware restrictions. This is an independent project with no affiliation with NVIDIA.
+
+**The application interface is currently in German.** This guide keeps the original German control labels alongside English descriptions so you can find the corresponding buttons and settings. Translating this README does not change the application's language.
 
 > [!WARNING]
-> **Nur für Singleplayer-Spiele verwenden.** DLL-Austausch und Proxy-Mods können Anti-Cheat-Systeme auslösen und zu Sperren führen. Ein gefundener DLSS-Eintrag bedeutet nicht, dass ein Spiel bedenkenlos verändert werden kann. Multiplayer- und Anti-Cheat-Spiele sollten ausgeschlossen werden; die Erkennung ist keine Garantie für eine vollständige Anti-Cheat-Prüfung.
+> **Use only with single-player games.** DLL replacements and proxy mods can trigger anti-cheat systems and lead to bans. A detected DLSS file does not mean a game is safe to modify. Exclude multiplayer and anti-cheat games; game detection does not guarantee a complete anti-cheat check.
 
-## Funktionen
+## Features
 
-### Spielebibliothek und Suche
+### Game library and scanning
 
-- Spieleordner nach DLSS Super Resolution, Frame Generation und Ray Reconstruction durchsuchen.
-- Exakte DLL-Pfade und installierte Dateiversionen erfassen.
-- Einzelne Spiele manuell hinzufügen sowie Namen, EXE-Pfad und Icon anpassen.
-- Scan-Ordner verwalten oder ausgewählte lokale Laufwerke vollständig durchsuchen.
-- Unsichere EXE-Zuordnungen nach dem Scan prüfen.
-- EXE-Dateinamen global blockieren und Spielordner samt Unterordnern ausschließen.
-- Spiele über Suche und Filter eingrenzen; weitere Aktionen stehen per Rechtsklick bereit.
+- Scan game directories for DLSS Super Resolution, Frame Generation, and Ray Reconstruction.
+- Record exact DLL paths and installed file versions.
+- Add games manually and customize their names, executable paths, and icons.
+- Manage scan folders or scan selected local drives.
+- Review uncertain executable matches after a scan.
+- Block executable filenames globally and exclude game directories with their subdirectories.
+- Search and filter games; access additional actions through the right-click menu.
 
-### DLSS-DLLs
+### DLSS DLLs
 
-| Typ | Datei |
+| Type | File |
 | --- | --- |
 | Super Resolution / SR | `nvngx_dlss.dll` |
 | Frame Generation / FG | `nvngx_dlssg.dll` |
 | Ray Reconstruction / RR | `nvngx_dlssd.dll` |
 
-- Verfügbare Versionen aus dem öffentlichen DLSS-Swapper-Manifest laden.
-- DLL-Versionen bei Bedarf herunterladen und lokal vorhalten.
-- Einzelne DLL-Typen auf eine ausgewählte Version wechseln.
-- Alle vorhandenen DLL-Typen eines Spiels gemeinsam auf die jeweils neueste Manifest-Version aktualisieren.
-- DLLs aller berücksichtigten, geschlossenen Spiele aktualisieren.
-- Original-DLLs vor dem ersten Austausch als `.bak` sichern und wiederherstellen.
+- Load available versions from the public DLSS Swapper manifest.
+- Download DLL versions on demand and keep them in a local repository.
+- Switch individual DLL types to a selected version.
+- Update every existing DLL type in one game to its latest manifest version in a single operation.
+- Update DLLs across eligible games that are not running.
+- Back up original DLLs as `.bak` files before their first replacement and restore them when needed.
 
-Die drei DLL-Typen werden unabhängig verwaltet. Ihre neuesten Versionsnummern müssen nicht identisch sein. Manifest-Einträge ohne gültig gemeldete Signatur sowie als Entwicklungsversion markierte Dateien werden aussortiert; vorhandene Manifest-Prüfsummen werden für die Dateiprüfung verwendet.
+The three DLL types are managed independently. Their latest version numbers do not have to match. Manifest entries not marked as having a valid signature, as well as development builds, are excluded. Available manifest checksums are used to check downloaded files.
 
-### FrameGen-Mod
+### FrameGen mod
 
-- SM86-Mod aus dem GitHub-Release-Cache installieren und aktualisieren.
-- Installation nur bei erkannter nativer `nvngx_dlssg.dll` freigeben.
-- Bereits installierte Mods automatisch auf einen neueren Release-Stand bringen.
-- Vorhandene Mod-Versionen für einen spielbezogenen Fallback sichern.
-- Nach einem Fallback automatische Mod-Updates für dieses Spiel pausieren.
-- Mod-INI bearbeiten und spielbezogene Einstellungen verwalten.
-- MFG-Empfehlungen anhand der unterstützten NVIDIA-Datenbankinformationen in die Mod-Konfiguration übernehmen.
+- Install and update the SM86 mod from the GitHub release cache.
+- Allow installation only when a native `nvngx_dlssg.dll` has been detected.
+- Automatically update already installed mods to a newer release.
+- Back up existing mod versions for per-game rollback.
+- Pause automatic mod updates for a game after a rollback.
+- Edit the mod INI and manage per-game settings.
+- Apply MFG recommendations to the mod configuration using supported NVIDIA database information.
 
-**Das Austauschen einer DLSS-DLL und die Installation der FrameGen-Mod sind getrennte Funktionen.** Ein Spiel mit ausschließlich Super Resolution kann seine SR-DLL aktualisieren, erhält dadurch aber keine native FrameGen-Unterstützung.
+**Replacing a DLSS DLL and installing the FrameGen mod are separate features.** A game with Super Resolution alone can have its SR DLL updated, but that does not add native FrameGen support.
 
-## Voraussetzungen
+## Requirements
 
-- Windows 10/11, 64 Bit, mit Schreibzugriff auf den Manager-Ordner und die bearbeiteten Spielordner.
-- Für das Quellskript: **AutoHotkey v2**. AutoHotkey v1 ist nicht kompatibel.
-- Für den DLL-Hintergrunddownload: Windows PowerShell mit `Expand-Archive` sowie die mitgelieferte Datei `dll_repo/PreloadLatestDlls.ps1`.
-- Für das Entpacken bei einzelnen DLL-Downloads: `tar.exe` im Suchpfad, üblicherweise Bestandteil aktueller Windows-Installationen.
-- Internetzugang für Manifest-, Datenbank-, Mod- und DLL-Downloads.
-- Für die FrameGen-Mod eine vom jeweiligen Mod-Projekt unterstützte Kombination aus GPU, Treiber und Spiel.
+- 64-bit Windows 10/11, with write access to the manager directory and the game directories you modify.
+- To run the source script: **AutoHotkey v2**. AutoHotkey v1 is not compatible.
+- For background DLL downloads: Windows PowerShell with `Expand-Archive`, plus the included `dll_repo/PreloadLatestDlls.ps1` file.
+- For extracting individual DLL downloads: `tar.exe` available on the system path, normally included with current Windows installations.
+- Internet access for manifest, database, mod, and DLL downloads.
+- For the FrameGen mod: a GPU, driver, and game combination supported by the upstream mod project.
 
-Die neueste DLL ist nicht automatisch die beste Version für jedes Spiel. Kompatibilität und Verhalten hängen vom Spiel und der verwendeten Mod ab.
+The newest DLL is not necessarily the best version for every game. Compatibility and behavior depend on the game and mod being used.
 
-## Starten
+## Running the manager
 
-### Quellskript
+### Source script
 
-1. Die Projektdateien in einen beschreibbaren Ordner entpacken.
-2. AutoHotkey v2 installieren.
-3. `DLSSG Manager.ahk` starten.
+1. Extract the project files into a writable directory.
+2. Install AutoHotkey v2.
+3. Run `DLSSG Manager.ahk`.
 
-Alternativ aus PowerShell im Projektordner:
+Alternatively, run this from PowerShell in the project directory:
 
 ```powershell
 & "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe" ".\DLSSG Manager.ahk"
 ```
 
-Die Ordner `src` und `dll_repo` mit ihren mitgelieferten Dateien beim Skript belassen. Cache-, Backup- und Datendateien werden relativ zum Skriptordner verwaltet.
+Keep the `src` and `dll_repo` folders and their included files alongside the script. Cache, backup, and data files are managed relative to the script directory.
 
-### Kompilierte Version
+### Compiled version
 
-`DLSSG Manager.exe` ausführen und die zugehörigen Ressourcenordner im selben Verzeichnis belassen. Für eine kompilierte Version wird keine separate AutoHotkey-Installation zum Ausführen benötigt; PowerShell und die Hintergrunddownload-Datei werden weiterhin benötigt.
+Run `DLSSG Manager.exe` and keep its resource folders in the same directory. A compiled version does not require a separate AutoHotkey installation to run. PowerShell and the background downloader file are still required.
 
-## Erste Einrichtung
+## Initial setup
 
-1. **Einstellungen → Spiele suchen → Scan-Ordner verwalten** öffnen.
-2. Gezielt die eigenen Spielebibliotheken hinzufügen, etwa die Bibliotheksordner von Steam, Epic oder Ubisoft. Nach dem Hinzufügen eines Scan-Ordners wird die Suche gestartet.
-3. Gefundene Spiele prüfen und unsichere EXE-Zuordnungen nach dem Scan bearbeiten. Ungeeignete Spiele oder Ordner ausschließen.
-4. Unter **Einstellungen → Updates & Daten** bei Bedarf die NVIDIA-Datenbank abgleichen und den FrameGen-Mod-Cache aktualisieren.
-5. Ein Spiel in der Liste auswählen und die gewünschten Aktionen im Detailbereich ausführen.
+1. Open **Einstellungen → Spiele suchen → Scan-Ordner verwalten** — Settings → Find games → Manage scan folders.
+2. Add your game library directories, such as your Steam, Epic, or Ubisoft library folders. Adding a scan folder starts a scan.
+3. Review discovered games and uncertain executable matches after scanning. Exclude unsuitable games or directories.
+4. Under **Einstellungen → Updates & Daten** — Settings → Updates & data — sync the NVIDIA database and update the FrameGen mod cache as needed.
+5. Select a game in the list and use the actions in its details panel.
 
-Beim Programmstart wird das DLL-Manifest im Hintergrund geprüft und die jeweils neueste verfügbare Version von SR, FG und RR im lokalen Repository bereitgestellt. **Dieser Download in den Cache ist noch kein Austausch der Spiel-DLLs.**
+At startup, the manager checks the DLL manifest in the background and prepares the latest available SR, FG, and RR versions in the local repository. **Downloading files into the cache does not replace any game DLLs.**
 
-## Bedienung
+## Usage
 
-Ein Doppelklick auf ein Spiel startet dessen hinterlegte EXE. Das Rechtsklick-Menü bietet die wichtigsten Spielaktionen unabhängig vom gerade geöffneten Reiter.
+Double-clicking a game launches its saved executable. The right-click menu provides the main game actions regardless of the currently selected details tab.
 
-### DLL-Versionen
+### DLL versions — DLL-Versionen
 
-- Über das Dropdown eine Version auswählen und mit **SR tauschen**, **FG tauschen** oder **RR tauschen** gezielt diesen DLL-Typ wechseln.
-- **Alle DLLs aktualisieren** aktualisiert die vorhandenen DLL-Typen des ausgewählten Spiels auf die jeweils neueste Manifest-Version. Die einzelnen Dropdown-Auswahlen bestimmen diesen Sammel-Updatevorgang nicht.
-- **Original-DLLs wiederherstellen** spielt die vorhandenen `.bak`-Dateien zurück.
+- Choose a version from a dropdown, then use **SR tauschen**, **FG tauschen**, or **RR tauschen** to replace that individual DLL type.
+- **Alle DLLs aktualisieren** — Update all DLLs — updates the existing DLL types in the selected game to their latest manifest versions. The individual dropdown selections do not determine the target versions for this bulk operation.
+- **Original-DLLs wiederherstellen** — Restore original DLLs — restores the available `.bak` files.
 
-Der Knopf **Alle DLLs aktualisieren** oben im Hauptfenster führt den Sammelvorgang für alle berücksichtigten Spiele aus. Laufende und ignorierte beziehungsweise ausgeschlossene Spiele werden dabei übersprungen.
+The **Alle DLLs aktualisieren** button at the top of the main window performs a bulk update across all eligible games. Running, ignored, and excluded games are skipped.
 
-### FrameGen-Mod
+### FrameGen mod — FrameGen-Mod
 
-Hier stehen Proxy-Auswahl, Mod-Installation, Mod-Einstellungen, Deinstallation und Fallback bereit.
+This tab provides proxy selection, mod installation, settings, removal, and rollback.
 
-Für die Installation muss im Spiel eine native `nvngx_dlssg.dll` vorhanden sein. Ist nur `nvngx_dlss.dll` vorhanden, bleibt die Mod-Installation gesperrt.
+Installation requires a native `nvngx_dlssg.dll` in the game. If only `nvngx_dlss.dll` is present, mod installation remains disabled.
 
-Bei einem verfügbaren Fallback lässt sich eine vorherige Mod-Version auswählen und wiederherstellen. Danach sind automatische **Mod-Updates** für dieses Spiel pausiert. Eine erneute manuelle Installation beziehungsweise Aktualisierung hebt diese Pause auf. Diese Pause ist keine Sperre für separate DLSS-DLL-Updates.
+When a rollback backup is available, you can select and restore a previous mod version. Automatic **mod updates** are then paused for that game. A manual mod installation or update clears this pause. The pause does not prevent separate DLSS DLL updates.
 
-### Spiel & Dateien
+### Game and files — Spiel & Dateien
 
-Hier lassen sich Spiel- und Log-Ordner öffnen, die EXE im Explorer anzeigen, Name, Pfad und Icon anpassen oder das Spiel beim Auto-Scan ignorieren. **Aus Liste entfernen** entfernt den Verwaltungseintrag und deinstalliert keine Spieldateien.
+Open the game and log directories, locate the executable in Explorer, change the name, path, or icon, or ignore the game during automatic scans. **Aus Liste entfernen** — Remove from list — removes the management entry without uninstalling game files.
 
-## Status und Filter
+## Status and filters
 
-| Status | Bedeutung |
+| Displayed status | Meaning |
 | --- | --- |
-| Nicht installiert | Native FG-DLL erkannt, aber keine aktive SM86-Mod festgestellt. |
-| Nicht verfügbar | Keine native FG-DLL erkannt; die FrameGen-Mod kann nicht installiert werden. Vorhandene SR-/RR-DLLs lassen sich weiterhin verwalten. |
-| Aktiv (SM86) | Mod-Ordner und ausgewählte Proxy-DLL sind vorhanden. Der Status ist keine Funktionsprüfung im laufenden Spiel. |
-| Update verfügbar | Der erkannte Mod-Stand unterscheidet sich vom lokalen Release-Cache. |
-| Fallback-Version, Updates pausiert | Eine ältere Mod-Version ist aktiv und für automatische Mod-Updates gesperrt. |
-| Pfad, DLL oder Ordner fehlt | Der Eintrag oder die Mod-Installation ist unvollständig und sollte geprüft werden. |
+| Nicht installiert | Not installed: a native FG DLL was detected, but no active SM86 mod was found. |
+| Nicht verfügbar | Unavailable: no native FG DLL was detected, so the FrameGen mod cannot be installed. Existing SR/RR DLLs can still be managed. |
+| Aktiv (SM86) | Active: the mod directory and selected proxy DLL are present. This status does not verify that the mod works in the running game. |
+| Update verfügbar | Update available: the detected mod version differs from the local release cache. |
+| Fallback-Version, Updates pausiert | A previous mod version is active, and automatic mod updates are paused for that game. |
+| Pfad, DLL oder Ordner fehlt | A path, DLL, or directory is missing. The entry or mod installation is incomplete and should be checked. |
 
-Bestehende Mod- und Fehlerzustände bleiben sichtbar, auch wenn eine native FG-Datei später fehlt.
+Existing mod and error states remain visible even if a native FG file later goes missing.
 
-Die Filter unterscheiden unter anderem alle DLSS-Spiele, Spiele mit FG, SR-Spiele ohne FG, bereits angepasste Spiele, aktive Mods, verfügbare Updates und Probleme. **Bereits gemoddet / angepasst** berücksichtigt auch vorhandene Original-DLL-Backups.
+Filters include all DLSS games, games with FG, SR games without FG, modified games, active mods, available updates, and problems. **Bereits gemoddet / angepasst** — Already modded / modified — also includes games with original DLL backups.
 
-## Einstellungen und Automatik
+## Settings and automation
 
-| Option / Vorgang | Verhalten |
+| Setting / process | Behavior |
 | --- | --- |
-| Mit Windows starten | Legt beim Einschalten eine Autostart-Verknüpfung für den aktuellen Benutzer an. Der Manager startet minimiert im Tray. |
-| Manager immer im Vordergrund halten | Schaltbare, gespeicherte Einstellung für Hauptfenster und Einstellungen; standardmäßig aus. |
-| Automatische Spielsuche | Bei Aktivierung zum Start und anschließend alle fünf Minuten in den konfigurierten Scan-Ordnern suchen. |
-| Automatische DLL-Updates | Optional jede Minute berücksichtigte, geschlossene Spiele anhand des verfügbaren Manifest-Standes prüfen und bei Bedarf aktualisieren. |
-| Mod-Updateprüfung | Beim Start und anschließend alle 30 Minuten den GitHub-Release-Stand prüfen; bereits installierte, nicht pausierte Mods können aktualisiert werden. |
+| Mit Windows starten | Start with Windows: creates a startup shortcut for the current user when enabled. The manager starts minimized to the system tray. |
+| Manager immer im Vordergrund halten | Always on top: a saved, optional setting for the main and settings windows. Disabled by default. |
+| Automatic game scanning | When enabled, scans configured folders at startup and every five minutes. |
+| Automatic DLL updates | Optionally checks eligible, closed games every minute against the available manifest and updates them when needed. |
+| Mod update check | Checks the GitHub release at startup and every 30 minutes. Already installed mods that are not paused may be updated. |
 
-Bereits aktuelle DLL-Dateien werden beim Sammel-Update anhand ihrer Prüfsumme erkannt und nicht erneut ersetzt. Die Minutenprüfung ist keine erneute Online-Manifest-Abfrage pro Spiel; neue Versionslisten werden beim Start oder über die manuelle Manifest-Aktualisierung geladen.
+Bulk updates identify already current DLL files by checksum and do not replace them again. The one-minute check does not fetch an online manifest separately for every game. New version lists are loaded at startup or through a manual manifest refresh.
 
-Minimieren legt den Manager im Tray ab. Über das Tray-Menü lässt sich das Fenster wieder öffnen oder das Programm beenden. Das Schließen des Hauptfensters beendet den Manager.
+Minimizing sends the manager to the system tray. Use the tray menu to reopen the window or quit the application. Closing the main window exits the manager.
 
-## Backups und Wiederherstellung
+## Backups and restoration
 
-### Originale DLSS-DLLs
+### Original DLSS DLLs
 
-Vor dem ersten Austausch wird neben der jeweiligen Spiel-DLL eine Sicherung angelegt, zum Beispiel:
+Before the first replacement, a backup is created beside the game DLL, for example:
 
 ```text
 nvngx_dlss.dll
 nvngx_dlss.dll.bak
 ```
 
-Weitere Updates überschreiben dieses ursprüngliche Backup nicht. Nach erfolgreicher Wiederherstellung über **Original-DLLs wiederherstellen** werden die zurückgespielten `.bak`-Dateien entfernt.
+Subsequent updates do not overwrite this original backup. After a successful restore using **Original-DLLs wiederherstellen**, the restored `.bak` files are removed.
 
-### Mod-Fallbacks
+### Mod rollback backups
 
-Mod-Sicherungen liegen strukturiert unter `ModBackups`. Sie enthalten den gesicherten Mod-Ordner, seine INI und die zugehörige Proxy-DLL. Der Verlauf wird auf bis zu fünf Sicherungen pro Spiel begrenzt.
+Mod backups are organized under `ModBackups`. Each contains the backed-up mod directory, its INI, and the associated proxy DLL. History is limited to up to five backups per game.
 
-Mod-Fallbacks und Original-DLL-Backups erfüllen unterschiedliche Aufgaben. **Mod entfernen** setzt ausgetauschte SR-/FG-/RR-DLLs nicht auf ihre Originalversion zurück. Dafür die separate Original-Wiederherstellung verwenden.
+Mod rollback backups and original DLL backups serve different purposes. **Mod entfernen** — Remove mod — does not restore replaced SR/FG/RR DLLs to their original versions. Use the separate original DLL restoration action for those files.
 
-## Dateien und Ordner
+## Files and directories
 
-| Pfad | Inhalt |
+| Path | Contents |
 | --- | --- |
-| `DLSSG Manager.ahk` | AutoHotkey-v2-Quellskript. |
-| `src/logo.png` | GUI-Logo mit DLSS-Schriftzug. |
-| `src/app-icon.png` | Vereinfachte Icon-Vorlage ohne Schrift. |
-| `src/logo.ico`, `src/favicon.ico` | Icons in mehreren Auflösungen. |
-| `games.json` | Spieleliste, DLL-Pfade, Metadaten und spielbezogene Einstellungen. |
-| `manager_config.ini` | Allgemeine Einstellungen, Scan-Ordner und Scan-Regeln. |
-| `ModCache/` | Heruntergeladener FrameGen-Mod und Datenbank-Cache. |
-| `ModBackups/` | Spielbezogene Mod-Sicherungen. |
-| `dll_repo/PreloadLatestDlls.ps1` | Mitgelieferter Hintergrund-Downloader. |
-| `dll_repo/manifest.json` | Lokal gespeichertes DLL-Manifest. |
-| `dll_repo/dlss/`, `dll_repo/dlssg/`, `dll_repo/dlssd/` | Lokal vorgehaltene DLL-Versionen. |
-| `dll_repo/preload.log` | Protokoll der DLL-Bereitstellung. |
-| `dll_repo/dll_update.log` | Fehlerprotokoll der Sammel-DLL-Updates. |
-| `scan_debug.log` | Diagnoseprotokoll der Spielsuche. |
+| `DLSSG Manager.ahk` | AutoHotkey v2 source script. |
+| `src/logo.png` | GUI logo with DLSS lettering. |
+| `src/app-icon.png` | Simplified icon source without lettering. |
+| `src/logo.ico`, `src/favicon.ico` | Icons in multiple resolutions. |
+| `games.json` | Game list, DLL paths, metadata, and per-game settings. |
+| `manager_config.ini` | General settings, scan folders, and scan rules. |
+| `ModCache/` | Downloaded FrameGen mod and database cache. |
+| `ModBackups/` | Per-game mod backups. |
+| `dll_repo/PreloadLatestDlls.ps1` | Included background downloader. |
+| `dll_repo/manifest.json` | Locally saved DLL manifest. |
+| `dll_repo/dlss/`, `dll_repo/dlssg/`, `dll_repo/dlssd/` | Locally stored DLL versions. |
+| `dll_repo/preload.log` | DLL preparation log. |
+| `dll_repo/dll_update.log` | Bulk DLL update error log. |
+| `scan_debug.log` | Game scan diagnostic log. |
 
-Spielepfade und lokale Einstellungen gehören zur eigenen Installation. Vor einem Upload auf GitHub persönliche `games.json`-, INI-, Log- und Backup-Dateien prüfen und aus dem Repository ausschließen. Heruntergeladene DLLs und Mod-Caches nicht ohne Prüfung ihrer jeweiligen Weitergabebedingungen veröffentlichen.
+Game paths and local settings belong to your installation. Before uploading to GitHub, review and exclude personal `games.json`, INI, log, and backup files. Check the redistribution terms of downloaded DLLs and mod caches before publishing them.
 
-## Fehlerbehebung
+## Troubleshooting
 
-**Ein Spiel wird nicht gefunden**
+**A game is not detected**
 
-Den tatsächlichen Installationsordner als Scan-Ordner hinterlegen und erneut suchen. Anschließend unsichere Zuordnungen, ausgeschlossene Ordner und die EXE-Blockliste prüfen. Ein Spiel ohne eine der drei unterstützten DLL-Dateien wird durch diese DLL-Suche nicht automatisch erkannt. Bei Bedarf manuell hinzufügen und `scan_debug.log` prüfen.
+Add its actual installation directory as a scan folder and scan again. Check uncertain matches, excluded folders, and the executable blocklist. This DLL-based scan does not automatically discover games without any of the three supported DLL files. Add the game manually if needed and inspect `scan_debug.log`.
 
-**„Nicht verfügbar“, obwohl DLSS im Spiel vorhanden ist**
+**The status says “Nicht verfügbar” even though the game supports DLSS**
 
-Super Resolution und Frame Generation verwenden unterschiedliche Dateien. Für die SM86-Mod wird die native `nvngx_dlssg.dll` benötigt. Eine SR-DLL allein reicht nicht.
+Super Resolution and Frame Generation use different files. The SM86 mod requires the native `nvngx_dlssg.dll`. An SR DLL alone is not sufficient.
 
-**Downloads oder Versionslisten fehlen**
+**Downloads or version lists are missing**
 
-Unter **Einstellungen → Updates & Daten** die Versionsliste aktualisieren. Prüfen, ob `dll_repo/PreloadLatestDlls.ps1` mitgeliefert wurde, PowerShell verfügbar ist und der Manager-Ordner beschreibbar ist. Weitere Hinweise stehen in `dll_repo/preload.log`.
+Refresh the version list under **Einstellungen → Updates & Daten**. Check that `dll_repo/PreloadLatestDlls.ps1` is included, PowerShell is available, and the manager directory is writable. See `dll_repo/preload.log` for more details.
 
-**Ein Spiel funktioniert nach einer Änderung nicht mehr richtig**
+**A game stops working correctly after a change**
 
-Das Spiel schließen. Bei einem DLL-Tausch die Original-DLLs wiederherstellen oder eine andere verfügbare DLL-Version wählen. Bei einem Mod-Update einen vorhandenen Mod-Fallback verwenden. Mod und Original-DLLs bei Bedarf getrennt zurücksetzen.
+Close the game. After a DLL replacement, restore the original DLLs or choose another available version. After a mod update, use an available mod rollback backup. Restore the mod and original DLLs separately as needed.
 
-**Für einen Fehlerbericht hilfreich**
+**Useful information for bug reports**
 
-Spielname, GPU, Treiberversion, betroffene DLL-/Mod-Version, ausgeführte Aktion und relevante Log-Auszüge angeben. Persönliche Pfade vor dem Veröffentlichen entfernen.
+Include the game name, GPU, driver version, affected DLL/mod version, the action you performed, and relevant log excerpts. Remove personal paths before publishing them.
 
-## Selbst kompilieren
+## Building an executable
 
-Mit **Ahk2Exe** das Skript `DLSSG Manager.ahk` auswählen, eine AutoHotkey-v2-64-Bit-Basis verwenden und `src/logo.ico` als Icon setzen. Die Ressourcenordner werden weiterhin neben der erzeugten EXE benötigt.
+In **Ahk2Exe**, select `DLSSG Manager.ahk`, use an AutoHotkey v2 64-bit base, and set `src/logo.ico` as the icon. Resource folders are still required alongside the resulting executable.
 
-Die mitgelieferte `Compiler.ahk` enthält lokale absolute Pfade. Diese vor der Verwendung an die eigene Umgebung anpassen. Änderungen am Quellskript oder am eingebetteten EXE-Icon werden erst nach erneutem Kompilieren Bestandteil der EXE.
+The included `Compiler.ahk` contains local absolute paths. Adjust them to your environment before use. Source changes and changes to the embedded executable icon take effect in the EXE only after rebuilding it.
 
-## Datenquellen und Credits
+## Data sources and credits
 
-- [AutoHotkey](https://www.autohotkey.com/) — Skriptsprache und Windows-Oberfläche.
-- [sdli1995/dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) — verwaltete FrameGen-Mod.
-- [beeradmoore/dlss-swapper](https://github.com/beeradmoore/dlss-swapper) und [DLSS-Swapper Manifest Builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder) — DLL-Versionsinformationen und Downloadreferenzen. Der Manager benötigt keine laufende DLSS-Swapper-Installation.
-- [JZ6/DLSSdb](https://github.com/JZ6/DLSSdb) — verwendete RTX-/DLSS-Datenbankinformationen.
+- [AutoHotkey](https://www.autohotkey.com/) — scripting language and Windows interface.
+- [sdli1995/dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) — the managed FrameGen mod.
+- [beeradmoore/dlss-swapper](https://github.com/beeradmoore/dlss-swapper) and [DLSS Swapper Manifest Builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder) — DLL version information and download references. The manager does not require a running DLSS Swapper installation.
+- [JZ6/DLSSdb](https://github.com/JZ6/DLSSdb) — the RTX/DLSS database information used by the manager.
 
-Der Manager ist keine offizielle NVIDIA-Anwendung. Fremde DLLs, Mods und Datenquellen unterliegen den Bedingungen ihrer jeweiligen Rechteinhaber und Projekte.
+The manager is not an official NVIDIA application. Third-party DLLs, mods, and data sources remain subject to the terms of their respective rights holders and projects.
