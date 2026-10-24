@@ -293,27 +293,18 @@ Spielname, GPU, Treiberversion, betroffene DLL-/Mod-Version, ausgeführte Aktion
 
 ## Selbst kompilieren
 
-Kompilieren ist optional. Bei einem vorbereiteten Release genügt `DLSS Manager.exe` zusammen mit dem mitgelieferten Ordner `resources/`. Zum Selbstkompilieren werden das privat gepflegte Quellskript `DLSS Manager.ahk`, AutoHotkey v2 x64 und Ahk2Exe benötigt. Die AHK-Quelldateien und Compiler-Helfer sind nicht Bestandteil dieses öffentlichen Repositorys.
+Selbstkompilieren ist optional und setzt das separat vorhandene Quellskript `DLSS Manager.ahk` voraus. Der Manager-Quellcode ist weder im öffentlichen Repository noch im fertigen Release enthalten. Nutzer eines vorbereiteten Releases können `DLSS Manager.exe` mit dem mitgelieferten Ordner `resources/` starten.
 
-| Möglichkeit | Verwendung | Ergebnis |
-| --- | --- | --- |
-| Ahk2Exe direkt | Quellskript auswählen und manuell kompilieren | EXE |
-| Allgemeiner AHK v2 Compiler (optional, separat bereitgestellt) | Skript, Ausgabe, Laufzeit und Icon per Oberfläche wählen; auch für andere AHK-v2-Projekte nutzbar | EXE |
-| Lokale `release/Compiler.ahk` | Manager kompilieren und Release-Dateien in einem Ablauf vorbereiten | EXE, ZIP, SHA-256-Prüfsumme und Release-Texte |
+Verwende den offiziellen [Ahk2Exe-Konverter](https://github.com/AutoHotkey/Ahk2Exe) mit einer installierten **AutoHotkey-v2-64-Bit-Laufzeit**:
 
-### Optional: allgemeiner AHK v2 Compiler
+1. Eine laufende kompilierte Manager-Instanz schließen und **Ahk2Exe** öffnen.
+2. Unter **Source** das Skript `DLSS Manager.ahk` auswählen.
+3. Unter **Destination** die Ausgabe `DLSS Manager.exe` im Hauptordner des Managers festlegen.
+4. Die AutoHotkey-v2-64-Bit-Basis beziehungsweise Laufzeit wählen, üblicherweise `AutoHotkey64.exe`.
+5. Optional `resources/logo.ico` als eigenes Icon auswählen und **Convert** anklicken.
+6. Den vollständigen Ordner `resources/` neben der erzeugten EXE beibehalten. Externe Ressourcen werden nicht automatisch eingebettet.
 
-Wenn dir die eigenständige `AHK Compiler.ahk` vorliegt, kannst du sie als Oberfläche für Ahk2Exe verwenden:
-
-1. Eine laufende kompilierte Manager-Instanz schließen und `AHK Compiler.ahk` mit AutoHotkey v2 starten.
-2. `DLSS Manager.ahk` als Quellskript auswählen.
-3. Als Ausgabe `DLSS Manager.exe` im Hauptordner des Managers festlegen.
-4. Die installierte **AutoHotkey-v2-64-Bit-Laufzeit**, üblicherweise `AutoHotkey64.exe`, und optional `resources/logo.ico` als Icon wählen.
-5. **EXE erstellen** anklicken. Den vollständigen Ordner `resources/` neben der erzeugten EXE beibehalten.
-
-Der allgemeine Compiler benötigt ein installiertes Ahk2Exe. Er erzeugt die EXE; externe Ressourcen werden nicht automatisch eingebettet. Release-ZIPs, Prüfsummen und GitHub-Releases erstellt er nicht. Diese neue eigenständige Variante wurde noch nicht mit einem Build-Durchlauf getestet.
-
-Für den vollständigen lokalen Release-Ablauf des Managers dient `release/Compiler.ahk`. Nach manuellem Kompilieren kann alternativ die lokale `release/Prepare-Release.ps1` das Veröffentlichungspaket separat erstellen. Beide Helfer veröffentlichen keinen Release automatisch. Änderungen am Quellskript oder eingebetteten Icon erfordern erneutes Kompilieren.
+Änderungen am Quellskript oder eingebetteten Icon erfordern erneutes Kompilieren. Ahk2Exe und AutoHotkey müssen separat installiert werden; dem Nutzer-Release liegt kein Compiler bei.
 
 ## Datenquellen und Credits
 
