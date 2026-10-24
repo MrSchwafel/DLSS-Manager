@@ -1,10 +1,12 @@
+**Language:** English · [Deutsch](README.de.md)
+
 # DLSS Manager language files
 
 This directory contains the **application interface translations**. README translations are separate.
 
 ```text
 resources/languages/
-├── de-de.ini     Deutsch
+├── de-de.ini     German
 ├── en-en.ini     English (fallback)
 └── README.md     Format and contribution guide
 ```
@@ -13,7 +15,7 @@ Keep this directory inside resources, next to the other application resources. L
 
 ## Selecting a language
 
-Open **Settings → General → Language** (German: **Einstellungen → Allgemein → Sprache**).
+Open **Settings → General → Language**.
 
 - The default setting is **System language (automatic)**.
 - The manager reads the Windows display language, tries an exact match, then an available pack from the same language family. For example, `de-AT` can use `de-de.ini` and `en-US` can use `en-en.ini`.
@@ -67,15 +69,3 @@ Native Windows dialog buttons and operating-system error messages may follow the
 7. Check the main window, settings tabs, context menus, scan review, mod settings, and update messages. Confirm that dropdown values still save the intended technical values.
 
 Please contribute complete translations based on the current English pack. The English fallback makes partial packs usable, but a complete pack provides a more consistent interface.
-
----
-
-## Deutsch
-
-Dieser Ordner enthält die **Übersetzungen der Programmoberfläche**, unabhängig von den README-Sprachen. Er liegt im Ordner resources neben den weiteren Programmressourcen.
-
-Standardmäßig verwendet der Manager die Windows-Anzeigesprache. Ist sie nicht vorhanden, wird eine passende regionale Sprachfamilie oder andernfalls Englisch geladen. Unter **Einstellungen → Allgemein → Sprache** kann eine feste Sprache gewählt werden. Die Auswahl wird gespeichert; zum Anwenden wird der Manager neu gestartet. Laufende Updates und Scans müssen vorher abgeschlossen sein.
-
-Für weitere Sprachen `en-en.ini` kopieren, Dateiname sowie `[meta]` anpassen und ausschließlich die Werte unter `[strings]` übersetzen. Schlüssel, technische Dateinamen und Konfigurationswerte, Escape-Sequenzen sowie Leerzeichen am Anfang und Ende beibehalten. Als UTF-8 speichern. Fehlende Einträge werden auf Englisch ergänzt.
-
-Die Sprachdateien benötigen den lokal vorbereiteten mehrsprachigen Manager-Code. Das Hinzufügen dieser Dateien allein aktualisiert keine ältere Manager-Version.

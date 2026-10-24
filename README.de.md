@@ -27,14 +27,14 @@ Die Aufnahmen zeigen die deutsche Oberfläche des Entwicklungsstands **0.9.0-bet
 
 ### Spielebibliothek und DLSS-Versionen
 
-![Spieleübersicht mit Suche, Filtern, DLL-Versionen und gemeinsamem DLL-Update](resources/previews/library-de.png)
+![Spieleübersicht mit Suche, Filtern, DLL-Versionen und gemeinsamem DLL-Update](https://raw.githubusercontent.com/MrSchwafel/DLSS-Manager/main/resources/previews/library-de.png)
 
 *DLSS SR, Frame Generation und Ray Reconstruction lassen sich direkt beim ausgewählten Spiel verwalten.*
 
 <details>
 <summary><strong>FrameGen-Mod und Fallback ansehen</strong></summary>
 
-![FrameGen-Mod mit Installationsaktionen, Proxy-Auswahl und Wiederherstellung einer vorherigen Mod-Version](resources/previews/framegen-de.png)
+![FrameGen-Mod mit Installationsaktionen, Proxy-Auswahl und Wiederherstellung einer vorherigen Mod-Version](https://raw.githubusercontent.com/MrSchwafel/DLSS-Manager/main/resources/previews/framegen-de.png)
 
 *Mod-Verwaltung und DLL-Austausch haben getrennte Aktionsbereiche.*
 
@@ -43,7 +43,7 @@ Die Aufnahmen zeigen die deutsche Oberfläche des Entwicklungsstands **0.9.0-bet
 <details>
 <summary><strong>Manager-Updates und Beta-Kanal ansehen</strong></summary>
 
-![Update-Einstellungen mit installierter Manager-Version, Beta-Kanal und Release-Anzeige](resources/previews/updates-de.png)
+![Update-Einstellungen mit installierter Manager-Version, Beta-Kanal und Release-Anzeige](https://raw.githubusercontent.com/MrSchwafel/DLSS-Manager/main/resources/previews/updates-de.png)
 
 *Update-Kanal wählen, Release-Änderungen lesen und verfügbare Manager-Updates nach Bestätigung installieren.*
 
@@ -111,7 +111,7 @@ Die neueste DLL ist nicht automatisch die beste Version für jedes Spiel. Kompat
 
 ### Lokales Quellskript
 
-Die `.ahk`-Dateien einschließlich `Compiler.ahk` werden privat gehalten und sind nicht Bestandteil dieses Repositorys. Die folgenden Schritte gelten nur, wenn das lokale Quellskript bereits vorliegt.
+Die folgenden Schritte benötigen die Quellcode-Ausgabe mit `DLSS Manager.ahk` und den zugehörigen Ressourcen. Die Veröffentlichung des Quellcodes wird getrennt vom kompilierten Release vorbereitet.
 
 1. Die Projektdateien in einen beschreibbaren Ordner entpacken.
 2. AutoHotkey v2 installieren.
