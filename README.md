@@ -295,9 +295,27 @@ Include the game name, GPU, driver version, affected DLL/mod version, the action
 
 ## Building an executable
 
-In **Ahk2Exe**, select `DLSS Manager.ahk`, use an AutoHotkey v2 64-bit base, and set `resources/logo.ico` as the icon. Resource folders are still required alongside the resulting executable.
+Compiling is optional. Users of a prepared release can run `DLSS Manager.exe` with its supplied `resources/` folder. Building requires the privately maintained `DLSS Manager.ahk` source, AutoHotkey v2 x64 and Ahk2Exe. The AHK source files and compiler helpers are not included in this public repository.
 
-The privately maintained local `resources/Compiler.ahk` resolves project paths relative to its own location and creates the executable in the main directory. Source changes and changes to the embedded executable icon take effect in the EXE only after rebuilding it.
+| Method | Use | Result |
+| --- | --- | --- |
+| Ahk2Exe directly | Select the source and compile manually | Executable |
+| General AHK v2 Compiler (optional, supplied separately) | Choose the source, output, runtime and icon in a GUI; also usable for other AHK v2 projects | Executable |
+| Local `release/Compiler.ahk` | Build the manager and prepare release assets in one workflow | Executable, ZIP, SHA-256 checksum and release notes |
+
+### Optional: general AHK v2 Compiler
+
+If you have received the standalone `AHK Compiler.ahk`, you can use it instead of configuring Ahk2Exe directly:
+
+1. Close any running compiled manager and start `AHK Compiler.ahk` with AutoHotkey v2.
+2. Select `DLSS Manager.ahk` as the source.
+3. Set the output to `DLSS Manager.exe` in the manager's main folder.
+4. Select the installed **AutoHotkey v2 64-bit** runtime, usually `AutoHotkey64.exe`, and optionally `resources/logo.ico` as the icon.
+5. Click **EXE erstellen**. Keep the complete `resources/` folder beside the resulting executable.
+
+The general compiler requires an installed Ahk2Exe. It creates the executable only; external resources are not automatically bundled. It does not prepare release ZIPs, checksums or GitHub releases. This new standalone helper has not yet been tested with a build run.
+
+For the manager's full local release workflow, use `release/Compiler.ahk`. If you compiled manually, the local `release/Prepare-Release.ps1` can prepare the release package separately. Neither helper publishes a release automatically. Source or embedded icon changes require a rebuild.
 
 ## Data sources and credits
 
