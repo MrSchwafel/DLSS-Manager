@@ -1,0 +1,9 @@
+# Local application source and compiled application
+*.[aA][hH][kK]
+*.[aA][hH][kK].*
+*.[eE][xX][eE]
+
+# User settings, game paths, downloaded DLLs, logs and backups
+/data/
+*.bak
+*.log
