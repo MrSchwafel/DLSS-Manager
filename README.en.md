@@ -8,6 +8,10 @@
 
 # DLSS Manager
 
+**Development version: 0.9.0-beta.1** · Windows 10/11 x64 · German & English
+
+[Preview](#preview) · [Features](#features) · [Getting started](#running-the-manager) · [Manager updates](#manager-updates-beta-and-stable-releases) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
+
 **Manage DLSS DLLs, discover games, and install the SM86 FrameGen mod from a Windows interface.**
 
 DLSS Manager is a community tool built with AutoHotkey v2. It detects local DLSS files, displays their versions, and lets you replace them with other available versions. It also manages the FrameGen mod from [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86), including updates and per-game rollback options.
@@ -18,6 +22,34 @@ The application supports German and English through separate language files. Som
 
 > [!WARNING]
 > **Use only with single-player games.** DLL replacements and proxy mods can trigger anti-cheat systems and lead to bans. A detected DLSS file does not mean a game is safe to modify. Exclude multiplayer and anti-cheat games; game detection does not guarantee a complete anti-cheat check.
+
+## Preview
+
+These screenshots show the English interface of development version **0.9.0-beta.1** in a separate preview. Game paths, version numbers and status values are sample data.
+
+### Game library and DLSS versions
+
+![Game library with search, filters, DLL versions and a combined DLL update action](resources/previews/library-en.png)
+
+*Manage DLSS SR, Frame Generation and Ray Reconstruction for the selected game.*
+
+<details>
+<summary><strong>View the FrameGen mod and rollback controls</strong></summary>
+
+![FrameGen mod controls with installation actions, proxy selection and previous-version restoration](resources/previews/framegen-en.png)
+
+*Mod management and DLL swapping have separate action areas.*
+
+</details>
+
+<details>
+<summary><strong>View manager updates and the Beta channel</strong></summary>
+
+![Update settings showing the installed manager version, Beta channel and release information](resources/previews/updates-en.png)
+
+*Choose an update channel, read release notes and install available manager updates after confirmation.*
+
+</details>
 
 ## Language
 
@@ -161,6 +193,23 @@ Filters include all DLSS games, games with FG, SR games without FG, modified gam
 Bulk updates identify already current DLL files by checksum and do not replace them again. The one-minute check does not fetch an online manifest separately for every game. New version lists are loaded at startup or through a manual manifest refresh.
 
 Minimizing sends the manager to the system tray. Use the tray menu to reopen the window or quit the application. Closing the main window exits the manager.
+
+## Manager updates: Beta and stable releases
+
+Under **Settings → Manager update**, the manager displays its installed version and available releases. Startup checks can be disabled; installing an update still requires your confirmation.
+
+| Update channel | Included releases |
+| --- | --- |
+| Stable | Stable releases only |
+| Beta | Stable releases plus beta and RC versions |
+
+New beta installations default to the Beta channel. A saved selection is preserved. The updater compares release versions and does not automatically downgrade when you switch channels.
+
+The first planned tag is **`v0.9.0-beta.1`**. Background downloading, SHA-256 verification, backups of affected program files and restarting are prepared. If file replacement fails, the helper attempts to restore the previous files. **Previous version** can also restore an existing program backup manually.
+
+**In AHK script mode, only update checking is enabled.** Program replacement is intended for the compiled `DLSS Manager.exe`. Personal files under `data/`, game DLLs and private AHK files are preserved.
+
+A complete update and restoration run using compiled releases still needs to be checked before publication.
 
 ## Backups and restoration
 

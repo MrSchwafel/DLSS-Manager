@@ -8,6 +8,10 @@
 
 # DLSS Manager
 
+**Entwicklungsstand: 0.9.0-beta.1** · Windows 10/11 x64 · Deutsch & Englisch
+
+[Vorschau](#vorschau) · [Funktionen](#funktionen) · [Starten](#starten) · [Manager-Updates](#manager-updates-beta-und-stabile-versionen) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
+
 **DLSS-DLLs verwalten, Spiele finden und die SM86-FrameGen-Mod installieren — in einer Windows-Oberfläche.**
 
 DLSS Manager ist ein mit AutoHotkey v2 entwickeltes Community-Tool. Es erkennt lokale DLSS-Dateien, zeigt ihre Versionen an und kann sie gegen andere verfügbare Versionen austauschen. Zusätzlich verwaltet es die FrameGen-Mod aus [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86), einschließlich Updates und spielbezogener Fallbacks.
@@ -16,6 +20,34 @@ Das Logo nimmt künstliche Hardware-Grenzen aufs Korn. Der Manager ist ein unabh
 
 > [!WARNING]
 > **Nur für Singleplayer-Spiele verwenden.** DLL-Austausch und Proxy-Mods können Anti-Cheat-Systeme auslösen und zu Sperren führen. Ein gefundener DLSS-Eintrag bedeutet nicht, dass ein Spiel bedenkenlos verändert werden kann. Multiplayer- und Anti-Cheat-Spiele sollten ausgeschlossen werden; die Erkennung ist keine Garantie für eine vollständige Anti-Cheat-Prüfung.
+
+## Vorschau
+
+Die Aufnahmen zeigen die deutsche Oberfläche des Entwicklungsstands **0.9.0-beta.1** in einer separaten Vorschau. Spielpfade, Versionsnummern und Statusanzeigen sind Beispieldaten.
+
+### Spielebibliothek und DLSS-Versionen
+
+![Spieleübersicht mit Suche, Filtern, DLL-Versionen und gemeinsamem DLL-Update](resources/previews/library-de.png)
+
+*DLSS SR, Frame Generation und Ray Reconstruction lassen sich direkt beim ausgewählten Spiel verwalten.*
+
+<details>
+<summary><strong>FrameGen-Mod und Fallback ansehen</strong></summary>
+
+![FrameGen-Mod mit Installationsaktionen, Proxy-Auswahl und Wiederherstellung einer vorherigen Mod-Version](resources/previews/framegen-de.png)
+
+*Mod-Verwaltung und DLL-Austausch haben getrennte Aktionsbereiche.*
+
+</details>
+
+<details>
+<summary><strong>Manager-Updates und Beta-Kanal ansehen</strong></summary>
+
+![Update-Einstellungen mit installierter Manager-Version, Beta-Kanal und Release-Anzeige](resources/previews/updates-de.png)
+
+*Update-Kanal wählen, Release-Änderungen lesen und verfügbare Manager-Updates nach Bestätigung installieren.*
+
+</details>
 
 ## Sprache
 
@@ -159,6 +191,23 @@ Die Filter unterscheiden unter anderem alle DLSS-Spiele, Spiele mit FG, SR-Spiel
 Bereits aktuelle DLL-Dateien werden beim Sammel-Update anhand ihrer Prüfsumme erkannt und nicht erneut ersetzt. Die Minutenprüfung ist keine erneute Online-Manifest-Abfrage pro Spiel; neue Versionslisten werden beim Start oder über die manuelle Manifest-Aktualisierung geladen.
 
 Minimieren legt den Manager im Tray ab. Über das Tray-Menü lässt sich das Fenster wieder öffnen oder das Programm beenden. Das Schließen des Hauptfensters beendet den Manager.
+
+## Manager-Updates: Beta und stabile Versionen
+
+Unter **Einstellungen → Manager-Update** zeigt der Manager seine installierte Version und verfügbare Releases an. Die Prüfung beim Programmstart lässt sich abschalten; eine Installation erfordert weiterhin deine Bestätigung.
+
+| Update-Kanal | Berücksichtigte Releases |
+| --- | --- |
+| Stabil | Nur stabile Versionen |
+| Beta | Stabile Versionen sowie Beta- und RC-Versionen |
+
+Bei neuen Beta-Installationen ist der Beta-Kanal vorausgewählt. Eine gespeicherte Auswahl bleibt erhalten. Der Updater berücksichtigt die Versionsreihenfolge und führt bei einem Kanalwechsel kein automatisches Downgrade durch.
+
+Der erste geplante Tag lautet **`v0.9.0-beta.1`**. Download, SHA-256-Prüfung, Sicherung der betroffenen Programmdateien und Neustart sind vorbereitet. Bei einem Dateifehler während des Austauschs versucht der Helfer, die vorherigen Dateien zurückzuspielen. Über **Vorherige Version** lässt sich eine vorhandene Programm-Sicherung auch manuell wiederherstellen.
+
+**Im AHK-Skriptbetrieb ist nur die Prüfung freigegeben.** Der Programmaustausch ist für die kompilierte `DLSS Manager.exe` vorgesehen. Persönliche Daten unter `data/`, Spiel-DLLs und private AHK-Dateien werden dabei nicht ersetzt.
+
+Der vollständige Update- und Wiederherstellungsdurchlauf mit kompilierten Releases ist vor der Veröffentlichung noch zu prüfen.
 
 ## Backups und Wiederherstellung
 
