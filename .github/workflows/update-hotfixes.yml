@@ -1,0 +1,225 @@
+name: Update NVIDIA Hotfixes Feed
+
+on:
+  schedule:
+    # Alle 6 Stunden (00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-hotfixes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Hotfixes ermitteln & hotfixes.json aktualisieren
+        run: |
+          python3 - << 'EOF'
+          import json
+          import os
+          import re
+          import urllib.request
+          import urllib.error
+          import xml.etree.ElementTree as ET
+          from datetime import datetime, timezone
+          from email.utils import parsedate_to_datetime
+
+          OUTPUT_FILE = "hotfixes.json"
+          USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+
+          def fetch_text(url: str, timeout: int = 12) -> str:
+              req = urllib.request.Request(url, headers={
+                  "User-Agent": USER_AGENT,
+                  "Accept-Language": "en-US,en;q=0.9"
+              })
+              with urllib.request.urlopen(req, timeout=timeout) as resp:
+                  return resp.read().decode("utf-8", errors="ignore")
+
+          def verify_cdn_url(version: str) -> tuple[str, str]:
+              candidates = [
+                  f"https://international.download.nvidia.com/Windows/{version}hf/{version}-desktop-notebook-win10-win11-64bit-international-dch.hf.exe",
+                  f"https://international.download.nvidia.com/Windows/{version}hf/{version}-desktop-win10-win11-64bit-international-dch.hf.exe",
+              ]
+              verified = []
+              for url in candidates:
+                  try:
+                      req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": USER_AGENT})
+                      with urllib.request.urlopen(req, timeout=8) as resp:
+                          if resp.status == 200:
+                              verified.append(url)
+                  except Exception:
+                      pass
+              direct = verified[0] if verified else candidates[0]
+              desktop = verified[1] if len(verified) > 1 else candidates[1]
+              return direct, desktop
+
+          def parse_version_tuple(v: str) -> tuple[int, int]:
+              parts = v.split(".")
+              return (int(parts[0]), int(parts[1]))
+
+          # 1. Bestehende hotfixes.json laden (falls vorhanden)
+          existing_by_version = {}
+          if os.path.exists(OUTPUT_FILE):
+              try:
+                  with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
+                      old_data = json.load(f)
+                      for item in old_data.get("hotfixes", []):
+                          ver = str(item.get("version", "")).strip()
+                          if re.fullmatch(r"\d{3}\.\d{2}", ver):
+                              existing_by_version[ver] = item
+              except Exception as exc:
+                  print(f"Warnung beim Lesen bestehender {OUTPUT_FILE}: {exc}")
+
+          discovered = {}
+
+          # 2. Quelle A: Google News RSS (GeForce Hotfix Display Driver)
+          google_rss_url = (
+              "https://news.google.com/rss/search?"
+              "q=%22GeForce+Hotfix+Display+Driver%22+OR+%22NVIDIA+GeForce+Hotfix%22&hl=en-US&gl=US&ceid=US:en"
+          )
+          try:
+              xml_text = fetch_text(google_rss_url)
+              root = ET.fromstring(xml_text)
+              for item in root.findall("./channel/item"):
+                  title = (item.findtext("title") or "").strip()
+                  link = (item.findtext("link") or "").strip()
+                  pub_date_raw = (item.findtext("pubDate") or "").strip()
+                  if "hotfix" not in title.lower():
+                      continue
+                  for ver in re.findall(r"\b(\d{3}\.\d{2})\b", title):
+                      if int(ver.split(".")[0]) < 500:
+                          continue
+                      iso_date = ""
+                      if pub_date_raw:
+                          try:
+                              iso_date = parsedate_to_datetime(pub_date_raw).strftime("%Y-%m-%d")
+                          except Exception:
+                              pass
+                      discovered.setdefault(ver, {
+                          "version": ver,
+                          "releaseDate": iso_date,
+                          "pageUrl": link,
+                          "summary": re.sub(r"\s+-\s+[^-]+$", "", title).strip()
+                      })
+              print(f"Google News RSS abgeschlossen ({len(discovered)} Kandidaten bisher).")
+          except Exception as exc:
+              print(f"Google News RSS Fehler: {exc}")
+
+          # 3. Quelle B: TechPowerUp NVIDIA Treiber-Seite
+          tpu_url = "https://www.techpowerup.com/download/nvidia-geforce-graphics-drivers/"
+          try:
+              html = fetch_text(tpu_url)
+              for match in re.finditer(r"NVIDIA GeForce(?: Graphics Drivers)?\s+(\d{3}\.\d{2})\s+Hotfix", html, re.IGNORECASE):
+                  ver = match.group(1)
+                  if int(ver.split(".")[0]) < 500:
+                      continue
+                  discovered.setdefault(ver, {
+                      "version": ver,
+                      "releaseDate": "",
+                      "pageUrl": tpu_url,
+                      "summary": f"NVIDIA GeForce Graphics Drivers {ver} Hotfix"
+                  })
+              print(f"TechPowerUp abgeschlossen ({len(discovered)} Kandidaten insgesamt).")
+          except Exception as exc:
+              print(f"TechPowerUp Fehler: {exc}")
+
+          # 4. Quelle C: Guru3D RSS Feed
+          guru_rss_url = "https://www.guru3d.com/rss/news.xml"
+          try:
+              xml_text = fetch_text(guru_rss_url)
+              root = ET.fromstring(xml_text)
+              for item in root.findall("./channel/item"):
+                  title = (item.findtext("title") or "").strip()
+                  link = (item.findtext("link") or "").strip()
+                  pub_date_raw = (item.findtext("pubDate") or "").strip()
+                  if "hotfix" not in title.lower() or "geforce" not in title.lower():
+                      continue
+                  for ver in re.findall(r"\b(\d{3}\.\d{2})\b", title):
+                      if int(ver.split(".")[0]) < 500:
+                          continue
+                      iso_date = ""
+                      if pub_date_raw:
+                          try:
+                              iso_date = parsedate_to_datetime(pub_date_raw).strftime("%Y-%m-%d")
+                          except Exception:
+                              pass
+                      discovered.setdefault(ver, {
+                          "version": ver,
+                          "releaseDate": iso_date,
+                          "pageUrl": link,
+                          "summary": title
+                      })
+              print(f"Guru3D RSS abgeschlossen ({len(discovered)} Kandidaten insgesamt).")
+          except Exception as exc:
+              print(f"Guru3D RSS Fehler: {exc}")
+
+          # 5. Zusammenführen mit bestehenden Einträgen & CDN-URLs verifizieren
+          merged = dict(existing_by_version)
+          today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+          for ver, info in discovered.items():
+              if ver in merged:
+                  # Bestehenden Eintrag behalten, aber fehlende Felder ergänzen
+                  if not merged[ver].get("releaseDate") and info.get("releaseDate"):
+                      merged[ver]["releaseDate"] = info["releaseDate"]
+                  continue
+
+              direct_url, desktop_url = verify_cdn_url(ver)
+              series_prefix = f"{ver[0]}xx"
+              merged[ver] = {
+                  "version": ver,
+                  "series": series_prefix,
+                  "releaseDate": info.get("releaseDate") or today_str,
+                  "title": f"GeForce Hotfix Display Driver version {ver}",
+                  "directUrl": direct_url,
+                  "desktopOnlyUrl": desktop_url,
+                  "pageUrl": info.get("pageUrl") or "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+                  "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+                  "summary": info.get("summary") or f"GeForce Hotfix Display Driver version {ver}",
+                  "sha256": ""
+              }
+
+          # 6. Numerisch absteigend sortieren und auf die letzten 25 Hotfixes begrenzen
+          sorted_hotfixes = sorted(
+              merged.values(),
+              key=lambda x: parse_version_tuple(x["version"]),
+              reverse=True
+          )[:25]
+
+          # Nur schreiben, wenn sich die Liste geändert hat (vermeidet leere Commits)
+          old_list = [existing_by_version[k] for k in sorted(existing_by_version.keys(), key=parse_version_tuple, reverse=True)]
+          if sorted_hotfixes != old_list or not os.path.exists(OUTPUT_FILE):
+              output_payload = {
+                  "schemaVersion": 1,
+                  "updatedAtUtc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                  "hotfixes": sorted_hotfixes
+              }
+              with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                  json.dump(output_payload, f, indent=2, ensure_ascii=False)
+                  f.write("\n")
+              print(f"{OUTPUT_FILE} mit {len(sorted_hotfixes)} Einträgen aktualisiert.")
+          else:
+              print("Keine neuen Hotfixes gefunden – hotfixes.json bleibt unverändert.")
+          EOF
+
+      - name: Änderungen committen & pushen (nur bei neuen Hotfixes)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add hotfixes.json
+          if git diff --staged --quiet; then
+            echo "Keine Änderungen an hotfixes.json vorhanden."
+          else
+            git commit -m "chore(drivers): update hotfixes.json feed"
+            git push
+          fi
