@@ -10,7 +10,7 @@
 
 **Development version: 0.9.0-beta.1** · Windows 10/11 x64 · German & English
 
-[Preview](#preview) · [Features](#features) · [Getting started](#running-the-manager) · [Manager updates](#manager-updates-beta-and-stable-releases) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
+[Preview](#preview) · [Features](#features) · [Driver previews](#driver-previews) · [Getting started](#running-the-manager) · [Manager updates](#manager-updates-beta-and-stable-releases) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
 
 **Manage DLSS DLLs, discover games, and install the SM86 FrameGen mod from a Windows interface.**
 
@@ -50,6 +50,15 @@ These screenshots show the English interface of development version **0.9.0-beta
 *Choose an update channel, read release notes and install available manager updates after confirmation.*
 
 </details>
+
+## Driver previews
+
+In the C# development build, choose **Alle Versionen & Übersicht…** from the driver rollback menu. In **Treiber-Übersicht & Rollback**, hover over a WHQL or Hotfix row to see its release notes.
+
+- **Kompakt (Summary)** is the default. It shows game and feature highlights and up to three fixes.
+- **Detailliert (Release-Notes mit Badges)** shows games, features and driver status as badges. It lists up to four fixes and shows how many more are available.
+
+Change the style under **Einstellungen → Treiber & Cache → Treiber-Vorschau (Hover-Card)** or switch between **Kompakt** and **Details** directly in the dialog. Both controls share one preference, which is saved across restarts.
 
 ## Language
 

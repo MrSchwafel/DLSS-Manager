@@ -10,7 +10,7 @@
 
 **Entwicklungsstand: 0.9.0-beta.1** · Windows 10/11 x64 · Deutsch & Englisch
 
-[Vorschau](#vorschau) · [Funktionen](#funktionen) · [Starten](#starten) · [Manager-Updates](#manager-updates-beta-und-stabile-versionen) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
+[Vorschau](#vorschau) · [Funktionen](#funktionen) · [Treiber-Vorschau](#treiber-vorschau) · [Starten](#starten) · [Manager-Updates](#manager-updates-beta-und-stabile-versionen) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
 
 **DLSS-DLLs verwalten, Spiele finden und die SM86-FrameGen-Mod installieren — in einer Windows-Oberfläche.**
 
@@ -48,6 +48,15 @@ Die Aufnahmen zeigen die deutsche Oberfläche des Entwicklungsstands **0.9.0-bet
 *Update-Kanal wählen, Release-Änderungen lesen und verfügbare Manager-Updates nach Bestätigung installieren.*
 
 </details>
+
+## Treiber-Vorschau
+
+Wähle im C#-Entwicklungsbuild im Treiber-Rollback-Menü **Alle Versionen & Übersicht…**. Halte in **Treiber-Übersicht & Rollback** den Mauszeiger über eine WHQL- oder Hotfix-Zeile, um die Release Notes zu sehen.
+
+- **Kompakt (Summary)** ist die Standardeinstellung. Die Karte zeigt Spiele- und Feature-Highlights sowie bis zu drei Fixes.
+- **Detailliert (Release-Notes mit Badges)** zeigt Spiele, Features und Treiberstatus als Badges. Die Karte listet bis zu vier Fixes auf und zeigt die Anzahl weiterer Fixes an.
+
+Ändere den Stil unter **Einstellungen → Treiber & Cache → Treiber-Vorschau (Hover-Card)** oder wechsle direkt im Dialog zwischen **Kompakt** und **Details**. Beide Umschalter verwenden dieselbe Einstellung, die nach einem Neustart erhalten bleibt.
 
 ## Sprache
 
