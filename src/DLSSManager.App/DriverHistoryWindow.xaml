@@ -1,0 +1,556 @@
+<Window x:Class="DLSSManager.App.DriverHistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:DLSSManager.Core;assembly=DLSSManager.Core"
+        Title="Treiber-Übersicht &amp; Rollback" Width="680" Height="520"
+        Style="{StaticResource CustomCaptionWindow}" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="#181B20" Foreground="{StaticResource Ink}"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13">
+    <Window.Resources>
+        <Style x:Key="HistoryFilterChip" TargetType="Button">
+            <Setter Property="Background" Value="#0AFFFFFF"/>
+            <Setter Property="BorderBrush" Value="#1FFFFFFF"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chip" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chip" Property="Background" Value="#17FFFFFF"/>
+                                <Setter Property="Foreground" Value="#F1F5F9"/>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Active">
+                                <Setter TargetName="Chip" Property="Background" Value="#294CAF50"/>
+                                <Setter TargetName="Chip" Property="BorderBrush" Value="#734CAF50"/>
+                                <Setter Property="Foreground" Value="#A5D6A7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="HistoryTranslateToggle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="#0AFFFFFF"/>
+            <Setter Property="BorderBrush" Value="#1FFFFFFF"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Chip" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chip" Property="Background" Value="#17FFFFFF"/>
+                                <Setter Property="Foreground" Value="#F1F5F9"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Chip" Property="Background" Value="#294CAF50"/>
+                                <Setter TargetName="Chip" Property="BorderBrush" Value="#734CAF50"/>
+                                <Setter Property="Foreground" Value="#A5D6A7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="HistoryActionButton" TargetType="Button" BasedOn="{StaticResource InspectorButton}">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+        </Style>
+        <Style x:Key="HistoryRowActionButton" TargetType="Button" BasedOn="{StaticResource HistoryActionButton}">
+            <Setter Property="Background" Value="#252A34"/>
+            <Setter Property="BorderBrush" Value="#2BFFFFFF"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#313744"/>
+                    <Setter Property="Foreground" Value="#F8FAFC"/>
+                </Trigger>
+                <DataTrigger Binding="{Binding IsUpdateAction}" Value="True">
+                    <Setter Property="Background" Value="#294CAF50"/>
+                    <Setter Property="BorderBrush" Value="#734CAF50"/>
+                    <Setter Property="Foreground" Value="#81C784"/>
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsUpdateAction}" Value="True"/>
+                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Background" Value="#404CAF50"/>
+                    <Setter Property="Foreground" Value="#A5D6A7"/>
+                </MultiDataTrigger>
+                <DataTrigger Binding="{Binding IsInstalledAction}" Value="True">
+                    <Setter Property="Background" Value="#12FFFFFF"/>
+                    <Setter Property="BorderBrush" Value="#1FFFFFFF"/>
+                    <Setter Property="Foreground" Value="#64748B"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SourceRefreshButton" TargetType="Button" BasedOn="{StaticResource HistoryActionButton}">
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="MinWidth" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="MinHeight" Value="22"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="#10FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#1FFFFFFF"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#22FFFFFF"/>
+                    <Setter Property="Foreground" Value="#F8FAFC"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="HistorySummaryHeading" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,7,0,2"/>
+        </Style>
+        <Style x:Key="HistorySummaryLine" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style x:Key="HistoryPreviewSegment" TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Segment" Background="Transparent" Padding="{TemplateBinding Padding}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Segment" Property="Background" Value="#17FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Segment" Property="Background" Value="#294CAF50"/>
+                                <Setter Property="Foreground" Value="#A5D6A7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="HistoryFeatureBadge" TargetType="Border">
+            <Setter Property="Background" Value="#244CAF50"/>
+            <Setter Property="BorderBrush" Value="#524CAF50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Margin" Value="0,0,5,5"/>
+            <Setter Property="TextElement.Foreground" Value="#81C784"/>
+            <Setter Property="TextElement.FontSize" Value="11"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="20,16,20,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Treiber-Übersicht &amp; Rollback" FontSize="17" FontWeight="SemiBold" Foreground="#F8FAFC"/>
+                <TextBlock x:Name="SubtitleText" Foreground="#94A3B8" FontSize="12" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+            <ToggleButton x:Name="TranslateToggleButton" Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
+                          Content="Auf Deutsch übersetzen" Style="{StaticResource HistoryTranslateToggle}"
+                          Click="ToggleTranslation" Visibility="Collapsed"/>
+        </Grid>
+
+        <DockPanel Grid.Row="1" Margin="20,0,20,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <TextBlock x:Name="CountText" VerticalAlignment="Center" Foreground="#94A3B8" FontSize="11.5" Margin="0,0,12,0"/>
+                <TextBlock Text="Vorschau:" VerticalAlignment="Center" Foreground="#94A3B8" FontSize="11.5" Margin="0,0,6,0"/>
+                <ListBox x:Name="PreviewStyleSegments" Height="26" VerticalAlignment="Center" Background="#0AFFFFFF"
+                         BorderBrush="#24FFFFFF" BorderThickness="1" Padding="1" ItemContainerStyle="{StaticResource HistoryPreviewSegment}"
+                         AutomationProperties.Name="Vorschau" IsEnabled="{Binding CanChooseDriverTooltipStyle}"
+                         SelectedValuePath="Tag" SelectedValue="{Binding DriverPreviewStyle, Mode=TwoWay}">
+                    <ListBox.Template>
+                        <ControlTemplate TargetType="ListBox">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" CornerRadius="7">
+                                <ItemsPresenter/>
+                            </Border>
+                        </ControlTemplate>
+                    </ListBox.Template>
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBoxItem Content="Kompakt" Tag="{x:Static core:DriverTooltipStyle.Compact}"/>
+                    <ListBoxItem Content="Details" Tag="{x:Static core:DriverTooltipStyle.Detailed}"/>
+                </ListBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="FilterAllButton" Content="Alle" Tag="Active" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+                <Button x:Name="FilterWhqlButton" Content="WHQL (Stabil)" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+                <Button x:Name="FilterHotfixButton" Content="Hotfix" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+                <Button x:Name="FilterCachedButton" Content="Im Cache" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Border x:Name="HotfixSourcesBar" Grid.Row="2" Background="#05FFFFFF" BorderBrush="#12FFFFFF" BorderThickness="1"
+                CornerRadius="6" Padding="10,5" Margin="20,0,20,8" Visibility="Collapsed">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                    <TextBlock x:Name="SourceTimestampText" Foreground="#94A3B8" FontSize="11.5" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button x:Name="RefreshSourcesButton" Content="↻" Style="{StaticResource SourceRefreshButton}"
+                            ToolTip="Hotfix-Quellen jetzt neu durchsuchen" Click="RefreshHotfixSources" Visibility="Collapsed"/>
+                </StackPanel>
+                <DockPanel VerticalAlignment="Center">
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,7,0">
+                        <TextBlock Text="&#xE774;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="11.5"
+                                   Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                        <TextBlock Text="Hotfix-Quellen:" FontSize="11.5" FontWeight="SemiBold" Foreground="#CBD5E1"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="SourceStatusList" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding PillBackground}" BorderBrush="{Binding PillBorder}"
+                                        BorderThickness="1" CornerRadius="4" Padding="6,1.5" Margin="0,1,5,1"
+                                        ToolTip="{Binding ToolTip}">
+                                    <TextBlock Text="{Binding Label}" Foreground="{Binding PillForeground}"
+                                               FontSize="11.5" FontWeight="SemiBold"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </DockPanel>
+        </Border>
+
+        <StackPanel Grid.Row="3" Margin="20,0">
+            <Border x:Name="HotfixNoticeBanner" Background="#14F59E0B" BorderBrush="#47F59E0B" BorderThickness="1"
+                    CornerRadius="8" Padding="10,8" Margin="0,0,0,8" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.Column="0">
+                        <TextBlock DockPanel.Dock="Left" Text="&#xE946;" Style="{StaticResource InspectorGlyph}"
+                                   Foreground="#F59E0B" VerticalAlignment="Top" Margin="0,2,8,0"/>
+                        <TextBlock Foreground="#E2E8F0" FontSize="11.5" TextWrapping="Wrap"
+                                   Text="NVIDIA blockiert aktuell die automatische Hotfix-Abfrage (nvidia.custhelp.com). Hotfix-Versionen (z. B. Zwischen-Updates) können direkt im Browser geladen und unten als lokale .exe ausgewählt werden."/>
+                    </DockPanel>
+                    <Button Grid.Column="1" Content="Hotfix-Seite öffnen ↗" Click="OpenHotfixPortal" VerticalAlignment="Center"
+                            Margin="10,0,0,0" Height="26" MinHeight="26" Padding="9,0" FontSize="11.5"
+                            Background="#252A34" BorderBrush="#3DF59E0B" Foreground="#FCD34D"/>
+                </Grid>
+            </Border>
+
+            <Border x:Name="GenerationHintBanner" Background="#0D94A3B8" BorderBrush="#2694A3B8" BorderThickness="1"
+                    CornerRadius="6" Padding="10,6" Margin="0,0,0,8" Visibility="Collapsed">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" Text="&#xE946;" Style="{StaticResource InspectorGlyph}"
+                               Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                    <TextBlock x:Name="GenerationHintText" Foreground="#CBD5E1" FontSize="11.5" TextWrapping="Wrap"/>
+                </DockPanel>
+            </Border>
+        </StackPanel>
+
+        <Border Grid.Row="4" Background="#14171D" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="8"
+                Padding="8" Margin="20,0">
+            <Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="DriverList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid Margin="2,6,2,6" Visibility="{Binding IsDivider, Converter={StaticResource ShowWhenTrue}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding VersionLabel}" Foreground="#94A3B8"
+                                                   FontSize="11" FontWeight="SemiBold" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Height="1" Background="#1FFFFFFF" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Background="#1E2229" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="8"
+                                            Padding="12,9" Margin="0,0,0,6"
+                                            MouseEnter="StartSummaryHover" MouseLeave="EndSummaryHover" Unloaded="UnloadSummaryRow"
+                                            Visibility="{Binding IsDriverRow, Converter={StaticResource ShowWhenTrue}}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding VersionLabel}" FontWeight="SemiBold" FontSize="13.5"
+                                                               Foreground="#F8FAFC" VerticalAlignment="Center"/>
+                                                    <Border Style="{StaticResource RollbackHotfixBadge}" Margin="8,0,0,0"
+                                                            Visibility="{Binding IsHotfix, Converter={StaticResource ShowWhenTrue}}">
+                                                        <TextBlock Text="Hotfix"/>
+                                                    </Border>
+                                                    <Border Background="#294CAF50" BorderBrush="#664CAF50" BorderThickness="1" CornerRadius="4"
+                                                            Padding="6,1" Margin="6,0,0,0"
+                                                            Visibility="{Binding IsLatestHotfixUpdate, Converter={StaticResource ShowWhenTrue}}">
+                                                        <TextBlock Text="Neuester Hotfix" Foreground="#81C784" FontSize="10.5" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                    <Border Background="#24F59E0B" BorderBrush="#55F59E0B" BorderThickness="1" CornerRadius="4"
+                                                            Padding="6,1" Margin="6,0,0,0"
+                                                            Visibility="{Binding IsPreviousHotfix, Converter={StaticResource ShowWhenTrue}}">
+                                                        <TextBlock Text="Letzter Hotfix" Foreground="#FCD34D" FontSize="10.5" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                    <Border Style="{StaticResource RollbackWhqlBadge}" Margin="8,0,0,0"
+                                                            Visibility="{Binding IsWhql, Converter={StaticResource ShowWhenTrue}}">
+                                                        <TextBlock Text="WHQL"/>
+                                                    </Border>
+                                                    <Border Style="{StaticResource RollbackCachedBadge}" Margin="6,0,0,0"
+                                                            Visibility="{Binding IsCached, Converter={StaticResource ShowWhenTrue}}">
+                                                        <TextBlock Text="Im Cache"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding ReleaseDateLabel}" Foreground="#94A3B8" FontSize="11.5"
+                                                               VerticalAlignment="Center" Margin="8,0,0,0"
+                                                               Visibility="{Binding HasReleaseDate, Converter={StaticResource ShowWhenTrue}}"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding SummaryPreview}"
+                                                           Foreground="#94A3B8" FontSize="11.5" TextWrapping="Wrap" MaxHeight="34"
+                                                           TextTrimming="CharacterEllipsis" Margin="0,4,0,0"
+                                                           Visibility="{Binding HasSummary, Converter={StaticResource ShowWhenTrue}}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                <Button Style="{StaticResource DriverSplitIconButton}" Content="↗" Margin="0,0,6,0"
+                                                        Tag="{Binding ReleasePageUrl}" Click="OpenDriverDetails"
+                                                        AutomationProperties.Name="Release-Details im Browser öffnen"
+                                                        Visibility="{Binding HasReleasePage, Converter={StaticResource ShowWhenTrue}}"/>
+                                                <Button Content="{Binding ActionLabel}" Style="{StaticResource HistoryRowActionButton}"
+                                                        IsEnabled="{Binding CanSelectAction}"
+                                                        Tag="{Binding Driver}" Click="SelectDriverForDowngrade" Margin="0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <TextBlock x:Name="EmptyStateText" Text="Keine Treiberversionen für diesen Filter gefunden."
+                           Foreground="#94A3B8" FontSize="12.5" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" Visibility="Collapsed"/>
+            </Grid>
+        </Border>
+
+        <DockPanel Grid.Row="5" Margin="20,14,20,18">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button Content="Lokale Treiber-.exe wählen…" Click="PickLocalInstaller" Height="30" MinHeight="30"
+                        Padding="12,0" FontSize="12" Margin="0,0,8,0"
+                        Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#E2E8F0"/>
+                <Button Content="Download-Ordner öffnen" Click="OpenCacheFolder" Height="30" MinHeight="30"
+                        Padding="12,0" FontSize="12" Margin="0"
+                        Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#CBD5E1"/>
+            </StackPanel>
+            <Button DockPanel.Dock="Right" Content="Schließen" IsCancel="True" HorizontalAlignment="Right"
+                    Height="30" MinHeight="30" Padding="14,0" FontSize="12" Margin="0"
+                    Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#CBD5E1"/>
+        </DockPanel>
+
+        <Canvas x:Name="SummaryViewport" Grid.RowSpan="6" SizeChanged="UpdateSummaryPlacement">
+            <Border x:Name="SummaryOverlay" Visibility="Hidden" SizeChanged="UpdateSummaryPlacement"
+                    MouseEnter="EnterSummaryCard" MouseLeave="LeaveSummaryCard">
+                <Grid>
+                    <Grid x:Name="SummaryCard" MaxWidth="380" TextElement.FontSize="12">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.DriverPreviewStyle, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                 Value="{x:Static core:DriverTooltipStyle.Detailed}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Border Background="#1E2229" BorderBrush="#24FFFFFF" BorderThickness="1" CornerRadius="8">
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" Opacity="0.55" BlurRadius="24" ShadowDepth="8" Direction="270"/>
+                            </Border.Effect>
+                        </Border>
+                        <StackPanel Margin="13,11">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding VersionLabel}" Foreground="#F8FAFC" FontWeight="SemiBold"
+                                           FontSize="14" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource RollbackWhqlBadge}"
+                                        Visibility="{Binding IsWhql, Converter={StaticResource ShowWhenTrue}}">
+                                    <TextBlock Text="WHQL"/>
+                                </Border>
+                                <Border Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource RollbackHotfixBadge}"
+                                        Visibility="{Binding IsHotfix, Converter={StaticResource ShowWhenTrue}}">
+                                    <TextBlock Text="Hotfix"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding ReleaseDateLabel}" Foreground="#94A3B8"
+                                           VerticalAlignment="Center" TextAlignment="Right" Margin="10,0,0,0"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+                            <StackPanel Visibility="{Binding HoverSummary.HasHighlights, Converter={StaticResource ShowWhenTrue}}">
+                                <TextBlock Text="Highlights" Style="{StaticResource HistorySummaryHeading}"/>
+                                <TextBlock Text="{Binding HoverSummary.Highlights}" Style="{StaticResource HistorySummaryLine}"
+                                           TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" LineHeight="16" MaxHeight="32"/>
+                            </StackPanel>
+                            <StackPanel Visibility="{Binding HoverSummary.HasFixes, Converter={StaticResource ShowWhenTrue}}">
+                                <TextBlock Text="Wichtigste Fixes" Style="{StaticResource HistorySummaryHeading}"/>
+                                <ItemsControl ItemsSource="{Binding HoverSummary.Fixes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel>
+                                                <TextBlock DockPanel.Dock="Left" Text="•" Foreground="#94A3B8" Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding}" Style="{StaticResource HistorySummaryLine}"/>
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                            <TextBlock Text="{Binding HoverSummary.HotfixMessage}" Style="{StaticResource HistorySummaryLine}"
+                                       Margin="0,7,0,0"
+                                       Visibility="{Binding HoverSummary.HasHotfixMessage, Converter={StaticResource ShowWhenTrue}}"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid x:Name="DetailedCard" MaxWidth="420" MaxHeight="460" TextElement.FontSize="12">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.DriverPreviewStyle, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                 Value="{x:Static core:DriverTooltipStyle.Detailed}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Border Background="#1E2229" BorderBrush="#24FFFFFF" BorderThickness="1" CornerRadius="10">
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" Opacity="0.6" BlurRadius="32" ShadowDepth="12" Direction="270"/>
+                            </Border.Effect>
+                        </Border>
+                        <ScrollViewer x:Name="DetailedScroll" Margin="15,13" Focusable="False"
+                                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel>
+                                <Border BorderBrush="#14FFFFFF" BorderThickness="0,0,0,1" Padding="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding VersionLabel}" Foreground="#F1F5F9" FontWeight="Bold" FontSize="15"
+                                                   VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Margin="7,0,0,0" CornerRadius="8" Style="{StaticResource RollbackWhqlBadge}"
+                                                Visibility="{Binding IsWhql, Converter={StaticResource ShowWhenTrue}}">
+                                            <TextBlock Text="WHQL"/>
+                                        </Border>
+                                        <Border Grid.Column="1" Margin="7,0,0,0" CornerRadius="8" Style="{StaticResource RollbackHotfixBadge}"
+                                                Visibility="{Binding IsHotfix, Converter={StaticResource ShowWhenTrue}}">
+                                            <TextBlock Text="Hotfix"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Border Margin="6,0,0,0" CornerRadius="8" Style="{StaticResource RollbackCachedBadge}"
+                                                    Visibility="{Binding IsCached, Converter={StaticResource ShowWhenTrue}}">
+                                                <TextBlock Text="Im Cache"/>
+                                            </Border>
+                                            <Border Margin="6,0,0,0" CornerRadius="8" Style="{StaticResource RollbackMenuBadge}"
+                                                    Background="#2494A3B8" BorderBrush="#4894A3B8" TextElement.Foreground="#CBD5E1"
+                                                    Visibility="{Binding IsInstalledAction, Converter={StaticResource ShowWhenTrue}}">
+                                                <TextBlock Text="Installiert"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="3" Text="{Binding ReleaseDateLabel}" Foreground="#94A3B8"
+                                                   TextAlignment="Right" TextWrapping="Wrap" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                                <StackPanel Visibility="{Binding HoverSummary.HasDetailedHighlights, Converter={StaticResource ShowWhenTrue}}">
+                                    <TextBlock Text="Highlights" Style="{StaticResource HistorySummaryHeading}"/>
+                                    <TextBlock Text="{Binding HoverSummary.DetailedHighlights}" Foreground="#E2E8F0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding HoverSummary.Badges}" Margin="0,9,0,0"
+                                              Visibility="{Binding HoverSummary.HasBadges, Converter={StaticResource ShowWhenTrue}}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource HistoryFeatureBadge}">
+                                                <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Visibility="{Binding HoverSummary.HasDetailedFixes, Converter={StaticResource ShowWhenTrue}}">
+                                    <TextBlock Text="Fixes" Style="{StaticResource HistorySummaryHeading}"/>
+                                    <ItemsControl ItemsSource="{Binding HoverSummary.DetailedFixes}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel Margin="0,1,0,2">
+                                                    <TextBlock DockPanel.Dock="Left" Text="•" Foreground="#94A3B8" Margin="0,0,6,0"/>
+                                                    <TextBlock Foreground="#CBD5E1" FontSize="12" TextWrapping="Wrap"
+                                                               LineStackingStrategy="BlockLineHeight" LineHeight="16">
+                                                        <Run Text="{Binding AppPrefix, Mode=OneWay}" FontWeight="SemiBold"/><Run Text="{Binding Description, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Canvas>
+    </Grid>
+</Window>

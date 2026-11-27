@@ -1,0 +1,9 @@
+Mod INI defaults
+
+OptiScaler.ini is the original OptiScaler configuration from commit 55ad794ab0c75f7fb4154b75a26b18e5e7e18a29.
+Project source: https://github.com/optiscaler/OptiScaler/tree/55ad794ab0c75f7fb4154b75a26b18e5e7e18a29
+License: OptiScaler-LICENSE.txt (GNU GPL v3).
+
+dlssg_sm86.ini is the original SM86 release configuration from the companion
+DLSS Manager AHKv2 workspace cache (data/cache/mod/dlssg_sm86.ini).
+Project source: https://github.com/sdli1995/dlssg_for_sm86

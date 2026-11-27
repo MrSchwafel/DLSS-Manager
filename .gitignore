@@ -1,9 +1,10 @@
-# Local application source and compiled application
-*.[aA][hH][kK]
-*.[aA][hH][kK].*
-*.[eE][xX][eE]
+**/bin/
+**/obj/
+.vs/
+TestResults/
+artifacts/
+*.user
 
-# User settings, game paths, downloaded DLLs, logs and backups
-/data/
-*.bak
-*.log
+# Internal development documentation
+/docs/
+/Matrix.md

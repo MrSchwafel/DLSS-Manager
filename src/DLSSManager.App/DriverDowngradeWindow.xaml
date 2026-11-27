@@ -1,0 +1,57 @@
+<Window x:Class="DLSSManager.App.DriverDowngradeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Treiber-Downgrade" Width="560" SizeToContent="Height"
+        Style="{StaticResource CustomCaptionWindow}" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="#181B20" Foreground="{StaticResource Ink}"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13">
+    <Border Padding="20,16,20,18">
+        <StackPanel>
+            <TextBlock x:Name="TitleHeading" FontSize="17" FontWeight="SemiBold" Foreground="#F8FAFC" TextWrapping="Wrap"/>
+            <Border Background="#1E2229" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="6" Padding="9,5"
+                    HorizontalAlignment="Left" Margin="0,6,0,14">
+                <TextBlock x:Name="VersionComparisonText" Style="{StaticResource Mono}" Foreground="#CBD5E1"/>
+            </Border>
+
+            <Border Background="#1E2229" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                <StackPanel>
+                    <CheckBox x:Name="CleanInstallCheckBox" IsChecked="True" Checked="UpdateModeHint" Unchecked="UpdateModeHint"
+                              Content="Saubere Neuinstallation durchführen (Clean Install)" FontWeight="SemiBold" Foreground="#F1F5F9"/>
+                    <TextBlock Margin="22,4,0,0" FontSize="12" Foreground="#94A3B8" TextWrapping="Wrap"
+                               Text="Entfernt vorhandene NVIDIA-Treiberkomponenten und setzt 3D-/Anwendungsprofile vor der Installation zurück (empfohlen bei Downgrades auf ältere Versionen)."/>
+                    <TextBlock x:Name="SetupModeHint" Margin="22,6,0,0" FontSize="11.5" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#14F59E0B" BorderBrush="#47F59E0B" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,10,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.Column="0">
+                        <TextBlock DockPanel.Dock="Left" Text="&#xE946;" Style="{StaticResource InspectorGlyph}"
+                                   Foreground="#F59E0B" VerticalAlignment="Top" Margin="0,2,8,0"/>
+                        <TextBlock Foreground="#E2E8F0" FontSize="11.5" TextWrapping="Wrap"
+                                   Text="Bei schweren Treiber- oder Blackscreen-Problemen empfiehlt sich vor dem Downgrade eine vollständige Bereinigung im abgesicherten Modus mit Display Driver Uninstaller (DDU)."/>
+                    </DockPanel>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <Button x:Name="PrimaryDduButton" Click="HandlePrimaryDduAction" Height="26" MinHeight="26"
+                                FontSize="11.5" Padding="9,0" Margin="0" Background="#252A34" BorderBrush="#3DF59E0B" Foreground="#FCD34D"/>
+                        <Button Content="Download-Ordner öffnen" Click="OpenDownloadFolder" Height="26" MinHeight="26"
+                                FontSize="11.5" Padding="9,0" Margin="0,5,0,0" Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#CBD5E1"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock x:Name="ActionErrorText" Foreground="#FCA5A5" FontSize="11.5" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <Button Content="Abbrechen" IsCancel="True" Height="32" MinHeight="32" Padding="14,0" Margin="0,0,8,0"
+                        Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#CBD5E1"/>
+                <Button Content="Downgrade starten" IsDefault="True" Click="ConfirmDowngrade" Height="32" MinHeight="32"
+                        Padding="16,0" Margin="0" Background="#4CAF50" BorderBrush="#4CAF50" Foreground="#0F2210" FontWeight="SemiBold"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

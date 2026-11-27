@@ -1,0 +1,405 @@
+<UserControl x:Class="DLSSManager.App.DllCatalogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DLSSManager.App">
+    <UserControl.CommandBindings>
+        <CommandBinding Command="local:DllCatalogView.Download" CanExecute="CanDownload" Executed="ExecuteDownload"/>
+        <CommandBinding Command="local:DllCatalogView.Pin" CanExecute="CanPin" Executed="ExecutePin"/>
+        <CommandBinding Command="local:DllCatalogView.CopyHash" CanExecute="CanCopyHash" Executed="ExecuteCopyHash"/>
+    </UserControl.CommandBindings>
+    <UserControl.Resources>
+        <Style x:Key="CatalogPrimary" TargetType="Button" BasedOn="{StaticResource Primary}">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="#101A12"/>
+        </Style>
+        <Style x:Key="CatalogDownload" TargetType="Button" BasedOn="{StaticResource WorkspaceButton}">
+            <Setter Property="Background" Value="#294CAF50"/>
+            <Setter Property="BorderBrush" Value="#664CAF50"/>
+            <Setter Property="Foreground" Value="#81C784"/>
+        </Style>
+        <Style x:Key="CatalogSmallAction" TargetType="Button" BasedOn="{StaticResource WorkspaceButton}">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="MinHeight" Value="26"/>
+            <Setter Property="Padding" Value="7,2"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style x:Key="CatalogIconAction" TargetType="Button" BasedOn="{StaticResource CatalogSmallAction}">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style x:Key="CatalogPill" TargetType="Border" BasedOn="{StaticResource LibraryBadge}">
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#2494A3B8"/>
+            <Setter Property="BorderBrush" Value="#4794A3B8"/>
+            <Setter Property="TextElement.Foreground" Value="#CBD5E1"/>
+        </Style>
+        <Style x:Key="CatalogCellText" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+        </Style>
+        <Style x:Key="CatalogCellMono" TargetType="TextBlock" BasedOn="{StaticResource CatalogCellText}">
+            <Setter Property="FontFamily" Value="Consolas"/>
+        </Style>
+    </UserControl.Resources>
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12" LastChildFill="True">
+            <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <Button Content="↻  Katalog aktualisieren" Command="{Binding RefreshCatalog}" Style="{StaticResource CatalogPrimary}" Margin="0,0,6,0"/>
+                <Button Content="+  Lokale DLL importieren" Command="{Binding ImportDll}" Margin="0,0,6,0"/>
+                <Button x:Name="DownloadSelection" Content="↓  Auswahl herunterladen" Command="local:DllCatalogView.Download"
+                        Style="{StaticResource CatalogDownload}" Margin="0"
+                        ToolTip="Markierte Online-DLLs laden. Strg oder Umschalt für Mehrfachauswahl."
+                        ToolTipService.ShowOnDisabled="True"/>
+            </WrapPanel>
+            <WrapPanel VerticalAlignment="Center">
+                <TextBlock Text="DLL-Katalog" Style="{StaticResource PageHeading}" Margin="0,0,10,0"/>
+                <Border Style="{StaticResource CatalogPill}">
+                    <TextBlock Text="{Binding CatalogCounts}" Style="{StaticResource LibraryBadgeText}"/>
+                </Border>
+            </WrapPanel>
+        </DockPanel>
+        <Border DockPanel.Dock="Top" Background="#08FFFFFF" BorderBrush="#14FFFFFF" BorderThickness="1"
+                CornerRadius="8" Padding="12,8">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="⚑  Als Batch-Ziel speichern" Command="local:DllCatalogView.Pin"
+                        VerticalAlignment="Center" Style="{StaticResource CatalogSmallAction}" Margin="10,0,0,0"
+                        ToolTip="Markierte lokale DLL als Zielversion für 'Alle aktualisieren' festlegen"
+                        ToolTipService.ShowOnDisabled="True"/>
+                <WrapPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,14,2">
+                        <TextBlock Text="&#xE8B7;" Style="{StaticResource Glyph}" Foreground="#81C784"/>
+                        <TextBlock Text="{Binding UnlockerCacheLabel}" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"/>
+                        <Button Content="Aktualisieren / Laden" Command="{Binding DownloadMod}" Style="{StaticResource CatalogSmallAction}"/>
+                        <Button Content="↻" Command="{Binding CheckModReleases}" Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
+                                ToolTip="GitHub-Releases prüfen" AutomationProperties.Name="GitHub-Releases prüfen"/>
+                        <Button Content="↗" Click="OpenUnlockerReleases" Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
+                                ToolTip="Unlocker-Releases öffnen" AutomationProperties.Name="Unlocker-Releases öffnen"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+                        <TextBlock Text="&#xE8B7;" Style="{StaticResource Glyph}" Foreground="#D8B4FE"/>
+                        <TextBlock Text="OptiScaler:" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"/>
+                        <Grid Width="128" Margin="0,0,6,0">
+                            <ComboBox ItemsSource="{Binding OptiPackages}" SelectedItem="{Binding SelectedOptiPackage}"
+                                      DisplayMemberPath="Source" Height="28" MinHeight="0" FontSize="11"
+                                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                      ToolTip="{Binding SelectedOptiPackage.Display}"
+                                      AutomationProperties.Name="Lokales OptiScaler-Release auswählen">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                                        <Style.Triggers>
+                                            <Trigger Property="HasItems" Value="False">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
+                            <TextBlock Text="Kein Paket" VerticalAlignment="Center" FontSize="11"
+                                       Foreground="{StaticResource Muted}" IsHitTestVisible="False">
+                                <TextBlock.Style><Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding OptiPackages.Length}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style></TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                        <Button Content="Aktualisieren / Laden" Command="{Binding DownloadOpti}" Style="{StaticResource CatalogSmallAction}"/>
+                        <Button Content="↗" Command="{Binding OpenOptiReleases}" Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
+                                ToolTip="OptiScaler-Releases öffnen" AutomationProperties.Name="OptiScaler-Releases öffnen"/>
+                    </StackPanel>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+        <DockPanel DockPanel.Dock="Top" Margin="0,12,0,8">
+            <Grid DockPanel.Dock="Right" Width="240" Height="32" Margin="12,0,0,0">
+                <TextBox x:Name="CatalogSearchBox" Text="{Binding CatalogSearch, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center" Padding="9,0" AutomationProperties.Name="Version oder Hash suchen"/>
+                <TextBlock Text="Version oder Hash suchen..." Foreground="#94A3B8" IsHitTestVisible="False"
+                           Margin="10,0" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=CatalogSearchBox}" Value="">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+            <WrapPanel VerticalAlignment="Center" Margin="0,4,0,0">
+            <Button Tag="Alle" Content="Alle" Click="ChangeFilter">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CatalogFilter}" Value="Alle">
+                                <Setter Property="Background" Value="#384CAF50"/>
+                                <Setter Property="BorderBrush" Value="#8C4CAF50"/>
+                                <Setter Property="Foreground" Value="#E2E8F0"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Tag="SR" Content="DLSS (SR)" Click="ChangeFilter">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CatalogFilter}" Value="SR">
+                                <Setter Property="Background" Value="#3D4CAF50"/>
+                                <Setter Property="BorderBrush" Value="#8C4CAF50"/>
+                                <Setter Property="Foreground" Value="#81C784"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Tag="FG" Content="FrameGen (FG)" Click="ChangeFilter">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CatalogFilter}" Value="FG">
+                                <Setter Property="Background" Value="#3D26A69A"/>
+                                <Setter Property="BorderBrush" Value="#8C26A69A"/>
+                                <Setter Property="Foreground" Value="#80CBC4"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Tag="Lokal" Content="Lokal verfügbar" Click="ChangeFilter">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CatalogFilter}" Value="Lokal">
+                                <Setter Property="Background" Value="#3D10B981"/>
+                                <Setter Property="BorderBrush" Value="#8C10B981"/>
+                                <Setter Property="Foreground" Value="#6EE7B7"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Tag="Online" Content="Online verfügbar" Click="ChangeFilter">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CatalogFilter}" Value="Online">
+                                <Setter Property="Background" Value="#3D38BDF8"/>
+                                <Setter Property="BorderBrush" Value="#8C38BDF8"/>
+                                <Setter Property="Foreground" Value="#7DD3FC"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            </WrapPanel>
+        </DockPanel>
+        <Border Background="#05FFFFFF" BorderBrush="#14FFFFFF" BorderThickness="1" CornerRadius="10">
+            <Grid ClipToBounds="True" Margin="1">
+                <DataGrid x:Name="CatalogTable" ItemsSource="{Binding CatalogRows}" AutoGenerateColumns="False"
+                          IsReadOnly="True" HeadersVisibility="Column" SelectionMode="Extended" SelectionUnit="FullRow"
+                          SelectionChanged="SelectionChanged" CanUserAddRows="False" CanUserSortColumns="False"
+                          CanUserResizeColumns="False" CanUserReorderColumns="False" EnableRowVirtualization="True"
+                          BorderThickness="0" Background="Transparent" GridLinesVisibility="None"
+                          RowHeight="40" ColumnHeaderHeight="38" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          AutomationProperties.Name="DLL-Katalog">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Foreground" Value="#94A3B8"/>
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridColumnHeader">
+                                        <Border Background="#0AFFFFFF" BorderBrush="#14FFFFFF" BorderThickness="0,0,0,1" Padding="12,0">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="3,0,0,0"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#0DFFFFFF"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#244CAF50"/>
+                                    <Setter Property="BorderBrush" Value="#4CAF50"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="10,0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Border Padding="{TemplateBinding Padding}" Background="Transparent">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Typ" Width="0.65*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource CatalogPill}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Entry.Kind}" Value="SR">
+                                                        <Setter Property="Background" Value="#294CAF50"/>
+                                                        <Setter Property="BorderBrush" Value="#664CAF50"/>
+                                                        <Setter Property="TextElement.Foreground" Value="#81C784"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Entry.Kind}" Value="FG">
+                                                        <Setter Property="Background" Value="#2926A69A"/>
+                                                        <Setter Property="BorderBrush" Value="#6626A69A"/>
+                                                        <Setter Property="TextElement.Foreground" Value="#80CBC4"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Entry.Kind}" Value="RR">
+                                                        <Setter Property="Background" Value="#29A855F7"/>
+                                                        <Setter Property="BorderBrush" Value="#66A855F7"/>
+                                                        <Setter Property="TextElement.Foreground" Value="#D8B4FE"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Entry.Kind}" Style="{StaticResource LibraryBadgeText}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Version" Width="1.45*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Right" Text="⚑" Foreground="#81C784" Margin="4,0,0,0"
+                                                   ToolTip="Batch-Ziel" AutomationProperties.Name="Batch-Ziel"
+                                                   Visibility="{Binding IsBatchTarget, Converter={StaticResource ShowWhenTrue}}"/>
+                                        <TextBlock Text="{Binding Entry.Version}" Style="{StaticResource CatalogCellMono}" FontWeight="SemiBold"
+                                                   Foreground="#F1F5F9" ToolTip="{Binding Entry.Version}"/>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Datei" Width="1.6*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Entry.DllName}" Style="{StaticResource CatalogCellMono}">
+                                        <TextBlock.ToolTip>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Entry.DllName}"/>
+                                                <TextBlock Text="{Binding Entry.Source}" Foreground="{StaticResource Muted}"/>
+                                            </StackPanel>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Status" Width="0.9*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource CatalogPill}">
+                                                <Setter Property="Background" Value="#294CAF50"/>
+                                                <Setter Property="BorderBrush" Value="#664CAF50"/>
+                                                <Setter Property="TextElement.Foreground" Value="#81C784"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsOnline}" Value="True">
+                                                        <Setter Property="Background" Value="#2438BDF8"/>
+                                                        <Setter Property="BorderBrush" Value="#5938BDF8"/>
+                                                        <Setter Property="TextElement.Foreground" Value="#7DD3FC"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Entry.Availability, StringFormat='● {0}'}" Style="{StaticResource LibraryBadgeText}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Größe" Width="0.95*">
+                            <DataGridTemplateColumn.HeaderTemplate>
+                                <DataTemplate><TextBlock Text="{Binding}" TextAlignment="Right"/></DataTemplate>
+                            </DataGridTemplateColumn.HeaderTemplate>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding SizeLabel}" ToolTip="{Binding SizeTooltip}" Style="{StaticResource CatalogCellMono}" TextAlignment="Right"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Datum" Width="0.95*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DateLabel}" ToolTip="{Binding DateLabel}" Style="{StaticResource CatalogCellText}" Foreground="#94A3B8"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="SHA-256" Width="1.95*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="⧉" Command="local:DllCatalogView.CopyHash" CommandParameter="{Binding}"
+                                                Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
+                                                ToolTip="Vollständigen SHA-256 kopieren" AutomationProperties.Name="SHA-256 kopieren"/>
+                                        <TextBlock Text="{Binding HashLabel}" ToolTip="{Binding Entry.Sha256}" Style="{StaticResource CatalogCellMono}"/>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Width="52">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Button Content="↓" Command="local:DllCatalogView.Download" CommandParameter="{Binding}"
+                                                Style="{StaticResource CatalogIconAction}" ToolTip="DLL herunterladen" AutomationProperties.Name="DLL herunterladen"
+                                                Visibility="{Binding IsOnline, Converter={StaticResource ShowWhenTrue}}"/>
+                                        <Button Content="⚑" Command="local:DllCatalogView.Pin" CommandParameter="{Binding}"
+                                                Style="{StaticResource CatalogIconAction}" ToolTip="Als Batch-Ziel speichern" AutomationProperties.Name="Als Batch-Ziel speichern"
+                                                Visibility="{Binding CanPin, Converter={StaticResource ShowWhenTrue}}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Text="Keine DLLs gefunden" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasItems, ElementName=CatalogTable}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+    </DockPanel>
+</UserControl>
