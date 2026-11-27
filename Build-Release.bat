@@ -1,18 +1,20 @@
 @echo off
 setlocal
 set "releaseVersion=%~1"
+if not "%releaseVersion%"=="" goto have_version
 
-if "%releaseVersion%"=="" (
-    set "CSPROJ_PATH=%~dp0src\DLSSManager.App\DLSSManager.App.csproj"
-    for /f "usebackq delims=" %%i in (`powershell.exe -NoProfile -Command "([xml](Get-Content -LiteralPath $env:CSPROJ_PATH -Raw)).SelectSingleNode('/Project/PropertyGroup/Version').InnerText"`) do set "defaultVersion=%%i"
-    if defined defaultVersion (
-        set /p "releaseVersion=Release-Version [Enter fuer %defaultVersion%]: "
-        if "%releaseVersion%"=="" set "releaseVersion=%defaultVersion%"
-    ) else (
-        set /p "releaseVersion=Release-Version (z.B. 1.0.1): "
-    )
-)
+set "CSPROJ_PATH=%~dp0src\DLSSManager.App\DLSSManager.App.csproj"
+for /f "usebackq delims=" %%i in (`powershell.exe -NoProfile -Command "([xml](Get-Content -LiteralPath $env:CSPROJ_PATH -Raw)).SelectSingleNode('/Project/PropertyGroup/Version').InnerText"`) do set "defaultVersion=%%i"
 
+if not defined defaultVersion goto prompt_no_default
+set /p "releaseVersion=Release-Version [Enter fuer %defaultVersion%]: "
+if "%releaseVersion%"=="" set "releaseVersion=%defaultVersion%"
+goto have_version
+
+:prompt_no_default
+set /p "releaseVersion=Release-Version (z.B. 1.0.1): "
+
+:have_version
 if "%releaseVersion%"=="" (
     echo Keine Version angegeben.
     set "buildExitCode=1"

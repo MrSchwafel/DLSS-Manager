@@ -5,6 +5,7 @@ $expected = (Get-Content -LiteralPath ($zip.FullName + '.sha256') -Raw).Trim()
 $hash = (Get-FileHash -LiteralPath $zip.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($expected -cne "$hash  $($zip.Name)") { throw 'ZIP checksum or filename mismatch.' }
 
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
 try {
     $required = @('DLSSManager.App.exe', 'dlss-manager-release.json', 'README.md',
