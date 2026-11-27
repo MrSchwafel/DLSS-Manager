@@ -1,1 +1,94 @@
-
+{
+  "schemaVersion": 1,
+  "updatedAtUtc": "2026-11-27T06:05:54Z",
+  "hotfixes": [
+    {
+      "version": "621.35",
+      "series": "6xx",
+      "releaseDate": "2026-11-20",
+      "title": "GeForce Hotfix Display Driver version 621.35",
+      "pageUrl": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNV3lERV9PM0U1bXI2Tld0MEdOWEplTm9fMnNpYklUUDk1QXVzbW5YUHJXUHB4anhySHhOTWJLaEtRSVdJSDVlNUFWZmhfU25kV2R5UjBER0M2Yy1RLXNpdXZ6a1VnMXJHTWNlWjdGT0Y4cWpWaHJMZnZOdWJQMFNkS2dhS29iMkNvd0VQRHlQSDVHaWswWDdqclZiTlhEUVYwRGVF0gGoAUFVX3lxTE1Ra2JoYVVCUHJaX2pZNlpVTGl4LWdSd2QxbjZQQjJLMDdpTDNPdHFwNDdBVnNLSF95bnc2Y05NajN0c3ktdzFCZ01zaS15T3JBQVpXTlY1V1JINmhTR19aZ0VvMVNmN0M4SHp6SFE2ZnJ0NEc2bkxtUFd6REdXV2ZPR1hHVU92RWJ2MUdkRXhLZmNzbmNvRktxY2FTVHZrQlpUS0d4dVhCUQ?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "NVIDIA's SSD Write Bug Gets Patched in GeForce Hotfix 621.35 Driver - TechPowerUp",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/621.35hf/621.35-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "616.86",
+      "series": "6xx",
+      "releaseDate": "2026-09-05",
+      "title": "GeForce Hotfix Display Driver version 616.86",
+      "pageUrl": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPSkFJOXRsam9PSXkxbURrVXJVRzgxaUNLYTgxdEd1WUNNanlIQnhQcU1VOE5IN1RMYzQzSzFRbm5jbm9yX0lrMEVEYm9kTWZ1SDVDd0FpZDhjR0tIYnRzNmZRSnllcXFmZzJKUVVUUGZlSXIwcjdlSm5pZ1hQLWtDcllEVzNBMDkzelQxWTR5dDAtanNuZmJUYUp3ejdnNTJ3SGU5V0hB?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "NVIDIA GeForce Hotfix 616.86 fixes browser flickering and RDP black screens - VideoCardz.com",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/616.86hf/616.86-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "610.82",
+      "series": "6xx",
+      "releaseDate": "2026-07-23",
+      "title": "GeForce Hotfix Display Driver version 610.82",
+      "pageUrl": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNNW9HLW1hZ3FkVXFCRWJyYkFjaE5VR1M2ZTg5MTdRQi1nTXY3My0yZmFNNU9Tc0tJajMzN2pOdERIWXlmRHVnYWZjM19CWFZ6SWFSbzBxbDJYZHcyaVNjeGRHY3lyeWdnR09RT1VqNFNPNEo4MHY3ZUhGaldPYl8wdkdlYjZOS1lhdlROYko4dTZRVGI4eGhvZW5RTXZPdnZ0a09YSGpPWExCX2ZwUEpRVHZXeG9BRHp3UFZPUGktMjVac1M2a3RsQTNUQUtadVg3SXVHNThFVlk?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "NVIDIA GeForce Hotfix Driver 610.82 Released, Addressing Issues With Halo: Campaign Evolved and Path of Exile 2 - DSOGaming",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/610.82hf/610.82-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "610.52",
+      "series": "6xx",
+      "releaseDate": "2026-06-12",
+      "title": "GeForce Hotfix Display Driver version 610.52",
+      "pageUrl": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOQlRjMERZZ2pSUVhNQmhqUm4wUV9QODljMEJCVktrRXdFVFp0UTRia081ckZvVUx5dmRpYXM1dzFhMlN2ZEJBS0NwbERsOUFVa3IxN093Q3hQVHlaVVVzMXJGYkktR0hxT1VpR19hLWxWcE1QRXVPRWduS0lxMHNKSWVuc1k5clUyZ0lnbEZXTEhQTlZqanNyYVhQRXlScF9RS3hOUEZMZzVzakdwZjlDLVdwdXo3QVN3YlE?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "NVIDIA GeForce Hotfix 610.52: Optional driver resolves G-SYNC, EDID, and Smooth Motion issues - igor´sLAB",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/610.52hf/610.52-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "596.02",
+      "series": "5xx",
+      "releaseDate": "2026-03-25",
+      "title": "GeForce Hotfix Display Driver version 596.02",
+      "pageUrl": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQekZ3YXMyQ214VjkzRlVxRms4NklkaV9LT0EyenFuMVRnNVZnUXAwVDkxYWxFSi1wN3RSTFhQajRlMzZkLUJOMGlSSHdKTzVaeC02bmNNSm9aa2JUbW02dnJhQk5RclVjbjJ2M3BGZFRVZmVsd0E5TEVFNzdGZzQyWV9QeG4zSDN1TldkbTd0NkNQcHREUDdUTE51YWNDZ3BsV204MWV4QndzeVRadDVtMEc5am1rbnFoS3ZROGQ2M1ozX1RnZHpGZU10UQ?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "NVIDIA releases GeForce Hotfix Display Driver 596.02 to fix stuttering in one game - TweakTown",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/596.02hf/596.02-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "595.76",
+      "series": "5xx",
+      "releaseDate": "2026-03-05",
+      "title": "GeForce Hotfix Display Driver version 595.76",
+      "pageUrl": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOd0YtY0R4UVRBd3RScEhHendsN1JzMTJXeXRDY3J3TnM3SUQ5emphMkxtQlBUVW9yU1NqNV9CSU9pX1duaGRkVUJ3T0d4M2N3dmlNSF9nVUFHVFlMN0xZeFRBeWIyeWFFN1l6MGdrOGdTd0JNOHg5ZXFoV1dxaFgxR0trZGR4TmI3eUkxc2pJY3JkT3o5MExRYkRQTW5PcGdudjV4U2dEMlF4aElPcXBxNldxYVZ6SVpiSUE1RUp3NzEzc0tUYW04?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "Nvidia fixes overclocking and Resident Evil Requiem issues with GeForce Hotfix 595.76 - OC3D",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/595.76hf/595.76-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "581.94",
+      "series": "5xx",
+      "releaseDate": "2025-11-20",
+      "title": "GeForce Hotfix Display Driver version 581.94",
+      "pageUrl": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNQWpXRE96dmFDc3VrejJTUXNKX1JWU05YTzhNZEs5bmRzbXgxZElJSEt1dHN1Y2VERzFadkp1S3Y1M2syOVR1VjRGZkVXdUtVTGhTcDdJYXFWZ2szVkhTMDIyT25ILWpXY0p5U0QyajBGTnVZbURyTDc5QzNTODNDLURzU3JsRHE2dzFPTG9Bd0RPeVRtNmJodFV6RVp4OFRrenA5bjEtbkXSAa4BQVVfeXFMT1h6dmlCQkFPTkY0TlpEdEtXbGRYaXhSaXNKV0lId09JblRDRURhQ1FBc2QxR19FX1dxR1pPbmtLSUFzRXExLWZHMktsU3IzbkxPaExKX1hTMFRlWVpIM3hrUTY1U0NBM0R5cGpKdTY2T24wQzlwX29UY3U4d1A0am81cUtxdHBCbVdtbEw1ak1kc2RWdXFjMFBsUnpSaTJFWTBpcUlSU3J4aFJyMmJn?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "NVIDIA GeForce Hotfix 581.94 Addresses Windows 11 Game Performance Bug - TechPowerUp",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/581.94hf/581.94-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "576.26",
+      "series": "5xx",
+      "releaseDate": "2025-04-28",
+      "title": "GeForce Hotfix Display Driver version 576.26",
+      "pageUrl": "https://news.google.com/rss/articles/CBMigAFBVV95cUxNQy1WZTJzMTBES1NPM0NfeEFuY184aEJJVkc1THhGU1pSUm14VTBfWHV6cjlPS1BmazFaVDRBdjJ1VW0xT3ZwRk1XQ1RoeXZBVDRaUXJWNXhrNnY3X29wTDEwbF9BbXRXYmZEMVRyelpFOVR3TFBHWUlvS2hRa2ZXedIBhgFBVV95cUxNLTNBeUN5NHFUYkNBLVFFTm1LQ1d3Q1RFNE9uOXNBaVVpLXVMREhiTGlpbGIxck5RWi1HMlRZRFZzUEZTZGFBX29RQVp4d0FlbUstdWMwbERGVXdFRk9TS0NuemptRmJoT0JJeV9kb3Nfd2dJTlg1UWRGU3pmREhGeEhnaWFGZw?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "NVIDIA Rolls Out GeForce Hotfix Display Driver 576.26 For Fixing Grey Screen Crashes, Display Flickers And More - Wccftech",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/576.26hf/576.26-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    }
+  ]
+}
