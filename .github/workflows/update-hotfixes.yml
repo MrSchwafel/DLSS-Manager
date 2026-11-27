@@ -2,8 +2,8 @@ name: Update NVIDIA Hotfixes Feed
 
 on:
   schedule:
-    # Alle 6 Stunden (00:00, 06:00, 12:00, 18:00 UTC)
-    - cron: "0 */6 * * *"
+    # Einmal pro Stunde zur vollen Stunde (00:00, 01:00, 02:00, ... UTC)
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -165,11 +165,9 @@ jobs:
 
           # 5. Zusammenführen mit bestehenden Einträgen & CDN-URLs verifizieren
           merged = dict(existing_by_version)
-          today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
           for ver, info in discovered.items():
               if ver in merged:
-                  # Bestehenden Eintrag behalten, aber fehlende Felder ergänzen
                   if not merged[ver].get("releaseDate") and info.get("releaseDate"):
                       merged[ver]["releaseDate"] = info["releaseDate"]
                   continue
@@ -179,7 +177,7 @@ jobs:
               merged[ver] = {
                   "version": ver,
                   "series": series_prefix,
-                  "releaseDate": info.get("releaseDate") or today_str,
+                  "releaseDate": info.get("releaseDate") or "",
                   "title": f"GeForce Hotfix Display Driver version {ver}",
                   "directUrl": direct_url,
                   "desktopOnlyUrl": desktop_url,
@@ -196,7 +194,7 @@ jobs:
               reverse=True
           )[:25]
 
-          # Nur schreiben, wenn sich die Liste geändert hat (vermeidet leere Commits)
+          # Nur schreiben, wenn sich die Liste geändert hat (vermeidet stündliche leere Commits)
           old_list = [existing_by_version[k] for k in sorted(existing_by_version.keys(), key=parse_version_tuple, reverse=True)]
           if sorted_hotfixes != old_list or not os.path.exists(OUTPUT_FILE):
               output_payload = {
@@ -221,5 +219,6 @@ jobs:
             echo "Keine Änderungen an hotfixes.json vorhanden."
           else
             git commit -m "chore(drivers): update hotfixes.json feed"
+            git pull --rebase origin main
             git push
           fi
