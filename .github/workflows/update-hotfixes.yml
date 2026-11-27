@@ -169,6 +169,7 @@ jobs:
 
           for ver, info in discovered.items():
               if ver in merged:
+                  # Bestehenden Eintrag behalten, aber fehlende Felder ergänzen
                   if not merged[ver].get("releaseDate") and info.get("releaseDate"):
                       merged[ver]["releaseDate"] = info["releaseDate"]
                   continue
