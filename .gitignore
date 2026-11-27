@@ -9,6 +9,7 @@ artifacts/
 /docs/*
 !/docs/guides/
 !/docs/screenshots/
+!/docs/localization/
 /docs/intern/
 /tests/
 /Matrix.md

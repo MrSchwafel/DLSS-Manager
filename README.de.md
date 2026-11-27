@@ -60,6 +60,10 @@ Auf einem deutschsprachigen Windows startet die App auf Deutsch, auf anderen Sys
 
 Die [Anleitung](docs/guides/usage.de.md) erklärt Paketprüfung, DLL- und Mod-Einstellungen, Wiederherstellung, Treibervorschau und Fehlerbehebung.
 
+## Übersetzung beitragen
+
+Verwende die aktuelle deutsche oder englische Sprachdatei als Vorlage für eine neue App-Sprache. [Anleitung für Übersetzungen](docs/localization/README.de.md)
+
 ## Aus dem Quellcode bauen
 
 Öffne auf Windows x64 PowerShell 7 im Stammordner des Repositorys. Installiere ein mit [global.json](global.json) kompatibles .NET SDK.

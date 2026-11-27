@@ -60,6 +60,10 @@ The app uses German on German Windows installations and English on other systems
 
 The [user guide](docs/guides/usage.md) covers package verification, DLL and mod settings, recovery, driver previews, and troubleshooting.
 
+## Contribute a translation
+
+Use the current English or German catalog as a template for a new app language. [Translation guide](docs/localization/README.md)
+
 ## Build from source
 
 On Windows x64, open PowerShell 7 in the repository root. Install a compatible .NET SDK using the baseline in [global.json](global.json).
