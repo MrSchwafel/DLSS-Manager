@@ -7,4 +7,5 @@ artifacts/
 
 # Internal development documentation
 /docs/
+/tests/
 /Matrix.md
