@@ -1,7 +1,7 @@
-[English](README.md) · **Deutsch**
+**Sprache / Language:** **Deutsch** · [English](README.md)
 
 <p align="center">
-  <img src="resources/logo.png" alt="DLSS Manager" width="180">
+  <img src="resources/logo.png" alt="DLSS Manager Logo" width="200">
 </p>
 
 # DLSS Manager
@@ -10,9 +10,11 @@
 
 **Windows x64 · C# / .NET 10 · WPF · Deutsche Oberfläche**
 
-[Installation](#installation) · [Erste Schritte](#erste-schritte) · [Funktionen](#funktionen) · [Treiber-Vorschau](#treiber-vorschau) · [Aus dem Quellcode bauen](#aus-dem-quellcode-bauen)
+[Installation](#installation) · [Erste Schritte](#erste-schritte) · [Funktionen](#funktionen) · [Treiber-Vorschau](#treiber-vorschau) · [Aus dem Quellcode bauen](#aus-dem-quellcode-bauen) · [Credits](#datenquellen-und-credits) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
 
 Der DLSS Manager befindet sich als C#-Vorschau in Entwicklung. Dieses GitHub-Repository enthält die Projektdokumentation und Ressourcen. Gebaut wird die App im separaten C#-Quellcode-Checkout.
+
+Das Logo nimmt künstliche Hardware-Grenzen aufs Korn. DLSS Manager ist ein Community-Projekt, das unabhängig von NVIDIA entwickelt wird.
 
 ## Installation
 
@@ -31,7 +33,7 @@ Erstelle mit der [Build-Anleitung](#aus-dem-quellcode-bauen) ein eigenständiges
 - Ein kompatibles Spiel, eine geeignete GPU und ein passender Treiber für die gewünschte Funktion. Details stehen bei [SM86](https://github.com/sdli1995/dlssg_for_sm86) und [OptiScaler](https://github.com/optiscaler/OptiScaler).
 
 > [!WARNING]
-> Verwende DLL-Tausch und Proxy-Mods nur mit Einzelspieler-Spielen. Die Anti-Cheat-Erkennung kann Spiele übersehen. Batch-Updates überspringen Spiele mit erkanntem Anti-Cheat. Änderungen im Spiel-Cockpit erfordern bei solchen Spielen eine ausdrückliche Bestätigung.
+> **Nur für Einzelspieler-Spiele verwenden.** DLL-Tausch und Proxy-Mods können Anti-Cheat-Systeme auslösen und zu Sperren führen. Die Anti-Cheat-Erkennung kann Spiele übersehen. Batch-Updates überspringen Spiele mit erkanntem Anti-Cheat. Änderungen im Spiel-Cockpit erfordern bei solchen Spielen eine ausdrückliche Bestätigung.
 
 ## Erste Schritte
 
@@ -103,10 +105,18 @@ Das Publish-Skript schreibt das ZIP und die zugehörige SHA-256-Datei nach `arti
 
 Die Windows-Oberfläche in `src/DLSSManager.App` nutzt WPF, XAML und MVVM sowie WinForms für Tray-Symbol und Menü. `src/DLSSManager.Core` enthält Scan, Kataloge, Mod-Profile und Dateitransaktionen. `tests/DLSSManager.Tests` prüft diese Dienste mit temporären Testdaten.
 
-## Fehler melden und Quellen
+## Fehlerbehebung
 
 Gib die Manager-Version, den Windows-Build, GPU und Treiberversion, das Spiel, die betroffene DLL- oder Mod-Version, die Schritte zum Reproduzieren und einen relevanten Diagnoseauszug an. Entferne persönliche Pfade, Benutzernamen und andere private Angaben vor dem Posten.
 
-DLSS Manager ist ein unabhängiges Community-Projekt. Die Katalogdaten stammen von [DLSS Swapper](https://github.com/beeradmoore/dlss-swapper) und dessen [Manifest Builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder), die Spielinformationen von [DLSSdb](https://github.com/JZ6/DLSSdb) und die Mod-Pakete von [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) und [OptiScaler](https://github.com/optiscaler/OptiScaler).
+## Datenquellen und Credits
+
+- [AutoHotkey](https://www.autohotkey.com/) und [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe) — Skriptsprache, Windows-Oberfläche und Build-Werkzeug der früheren AutoHotkey-Ausgabe.
+- [sdli1995/dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) — verwaltete FrameGen-Mod.
+- [beeradmoore/dlss-swapper](https://github.com/beeradmoore/dlss-swapper) und [DLSS-Swapper Manifest Builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder) — DLL-Versionsinformationen und Downloadreferenzen. DLSS Manager verwendet den Katalog unabhängig von der DLSS-Swapper-App.
+- [JZ6/DLSSdb](https://github.com/JZ6/DLSSdb) — verwendete RTX-/DLSS-Datenbankinformationen.
+- [OptiScaler](https://github.com/optiscaler/OptiScaler) — verwaltete Mod für Upscaling und Frame Generation.
+
+Fremde DLLs, Mods und Datenquellen unterliegen den Bedingungen ihrer jeweiligen Rechteinhaber und Projekte.
 
 [Dokumentation der früheren AutoHotkey-Ausgabe](https://github.com/MrSchwafel/DLSS-Manager/blob/0b5072243014602e5047eb1bcccd747ad0c5d6c7/README.de.md).

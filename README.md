@@ -1,7 +1,7 @@
-**English** · [Deutsch](README.de.md)
+**Language / Sprache:** **English** · [Deutsch](README.de.md)
 
 <p align="center">
-  <img src="resources/logo.png" alt="DLSS Manager" width="180">
+  <img src="resources/logo.png" alt="DLSS Manager logo" width="200">
 </p>
 
 # DLSS Manager
@@ -10,9 +10,11 @@
 
 **Windows x64 · C# / .NET 10 · WPF · German interface**
 
-[Installation](#installation) · [Getting started](#getting-started) · [Features](#features) · [Driver previews](#driver-previews) · [Build from source](#build-from-source)
+[Installation](#installation) · [Getting started](#getting-started) · [Features](#features) · [Driver previews](#driver-previews) · [Build from source](#build-from-source) · [Credits](#data-sources-and-credits) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
 
 DLSS Manager is currently in C# preview development. This GitHub repository contains project documentation and resources. Build the app from the separate C# source checkout.
+
+The logo pokes fun at artificial hardware restrictions. DLSS Manager is a community project developed independently of NVIDIA.
 
 ## Installation
 
@@ -31,7 +33,7 @@ Use the [build instructions](#build-from-source) to create a self-contained Wind
 - A compatible game, GPU and driver for the selected feature or mod. Consult [SM86](https://github.com/sdli1995/dlssg_for_sm86) and [OptiScaler](https://github.com/optiscaler/OptiScaler) for their compatibility details.
 
 > [!WARNING]
-> Use DLL replacements and proxy mods only with single-player games. Anti-cheat detection can miss games. Batch updates skip entries with detected anti-cheat, and cockpit changes for those entries require explicit confirmation.
+> **Use only with single-player games.** DLL replacements and proxy mods can trigger anti-cheat systems and lead to bans. Anti-cheat detection can miss games. Batch updates skip entries with detected anti-cheat, and cockpit changes for those entries require explicit confirmation.
 
 ## Getting started
 
@@ -103,10 +105,18 @@ The publish script writes the ZIP and its SHA-256 sidecar under `artifacts` and 
 
 The Windows frontend in `src/DLSSManager.App` uses WPF, XAML and MVVM, with WinForms for the notification icon and menu. `src/DLSSManager.Core` implements scanning, catalogs, mod profiles and file transactions. `tests/DLSSManager.Tests` exercises those services using temporary fixtures.
 
-## Reporting issues and credits
+## Troubleshooting
 
 Include the manager version, Windows build, GPU and driver, game, affected DLL or mod version, steps to reproduce and a relevant diagnostic excerpt. Remove personal paths, user names and other private data before posting.
 
-DLSS Manager is an independent community project. Catalog data comes from [DLSS Swapper](https://github.com/beeradmoore/dlss-swapper) and its [manifest builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder), game feature data from [DLSSdb](https://github.com/JZ6/DLSSdb), and mod packages from [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) and [OptiScaler](https://github.com/optiscaler/OptiScaler).
+## Data sources and credits
+
+- [AutoHotkey](https://www.autohotkey.com/) and [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe) — the scripting language, Windows interface and build tool for the earlier AutoHotkey edition.
+- [sdli1995/dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) — the managed FrameGen mod.
+- [beeradmoore/dlss-swapper](https://github.com/beeradmoore/dlss-swapper) and [DLSS Swapper Manifest Builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder) — DLL version information and download references. DLSS Manager uses the catalog independently of the DLSS Swapper app.
+- [JZ6/DLSSdb](https://github.com/JZ6/DLSSdb) — the RTX/DLSS database information used by the manager.
+- [OptiScaler](https://github.com/optiscaler/OptiScaler) — managed upscaling and frame-generation mod.
+
+Third-party DLLs, mods, and data sources remain subject to the terms of their respective rights holders and projects.
 
 [Documentation for the earlier AutoHotkey edition](https://github.com/MrSchwafel/DLSS-Manager/blob/0b5072243014602e5047eb1bcccd747ad0c5d6c7/README.md).
