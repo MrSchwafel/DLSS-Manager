@@ -111,12 +111,9 @@ Gib die Manager-Version, den Windows-Build, GPU und Treiberversion, das Spiel, d
 
 ## Datenquellen und Credits
 
-- [AutoHotkey](https://www.autohotkey.com/) und [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe) — Skriptsprache, Windows-Oberfläche und Build-Werkzeug der früheren AutoHotkey-Ausgabe.
 - [sdli1995/dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) — verwaltete FrameGen-Mod.
 - [beeradmoore/dlss-swapper](https://github.com/beeradmoore/dlss-swapper) und [DLSS-Swapper Manifest Builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder) — DLL-Versionsinformationen und Downloadreferenzen. DLSS Manager verwendet den Katalog unabhängig von der DLSS-Swapper-App.
 - [JZ6/DLSSdb](https://github.com/JZ6/DLSSdb) — verwendete RTX-/DLSS-Datenbankinformationen.
 - [OptiScaler](https://github.com/optiscaler/OptiScaler) — verwaltete Mod für Upscaling und Frame Generation.
 
 Fremde DLLs, Mods und Datenquellen unterliegen den Bedingungen ihrer jeweiligen Rechteinhaber und Projekte.
-
-[Dokumentation der früheren AutoHotkey-Ausgabe](https://github.com/MrSchwafel/DLSS-Manager/blob/0b5072243014602e5047eb1bcccd747ad0c5d6c7/README.de.md).
