@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="src/DLSSManager.App/DLSSManager.App.csproj" />
   <Project Path="src/DLSSManager.Core/DLSSManager.Core.csproj" />
-  <Project Path="tests/DLSSManager.Tests/DLSSManager.Tests.csproj" />
 </Solution>

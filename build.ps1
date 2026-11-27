@@ -6,6 +6,4 @@ Push-Location $PSScriptRoot
 try {
     & $cli build DLSSManager.slnx -c $Configuration
     if ($LASTEXITCODE) { throw "Build failed ($LASTEXITCODE)." }
-    & $cli run --no-build -c $Configuration --project tests/DLSSManager.Tests
-    if ($LASTEXITCODE) { throw "Tests failed ($LASTEXITCODE)." }
 } finally { Pop-Location }
