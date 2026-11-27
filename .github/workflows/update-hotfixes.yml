@@ -2,6 +2,7 @@ name: Update NVIDIA Hotfixes Feed
 
 on:
   schedule:
+    # Einmal pro Stunde zur vollen Stunde (00:00, 01:00, 02:00, ... UTC)
     - cron: "0 * * * *"
   workflow_dispatch:
 
@@ -218,5 +219,6 @@ jobs:
             echo "Keine Änderungen an hotfixes.json vorhanden."
           else
             git commit -m "chore(drivers): update hotfixes.json feed"
+            git pull --rebase origin main
             git push
           fi
