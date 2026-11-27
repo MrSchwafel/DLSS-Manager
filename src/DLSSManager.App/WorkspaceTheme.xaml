@@ -2,6 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:DLSSManager.App"
                     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework">
+    <DataTemplate x:Key="LocalizedOptionLabel">
+        <TextBlock Text="{local:Loc Path=LabelKey, KeyFromPath=True}"/>
+    </DataTemplate>
     <SolidColorBrush x:Key="Canvas" Color="#14171D"/>
     <SolidColorBrush x:Key="Panel" Color="#1C2029"/>
     <SolidColorBrush x:Key="Elevated" Color="#252A36"/>
@@ -128,8 +131,8 @@
         <Setter Property="Content">
             <Setter.Value><RectangleGeometry Rect="0,4.25,10,1.5"/></Setter.Value>
         </Setter>
-        <Setter Property="ToolTip" Value="Minimieren"/>
-        <Setter Property="AutomationProperties.Name" Value="Minimieren"/>
+        <Setter Property="ToolTip" Value="{local:Loc WorkspaceTheme.Minimize}"/>
+        <Setter Property="AutomationProperties.Name" Value="{local:Loc WorkspaceTheme.Minimize}"/>
         <Setter Property="Visibility" Value="Collapsed"/>
         <Style.Triggers>
             <DataTrigger Binding="{Binding ResizeMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="CanMinimize">
@@ -149,8 +152,8 @@
                 <PathGeometry Figures="M0,0.8 L0.8,0 L5,4.2 L9.2,0 L10,0.8 L5.8,5 L10,9.2 L9.2,10 L5,5.8 L0.8,10 L0,9.2 L4.2,5 Z"/>
             </Setter.Value>
         </Setter>
-        <Setter Property="ToolTip" Value="Schließen"/>
-        <Setter Property="AutomationProperties.Name" Value="Schließen"/>
+        <Setter Property="ToolTip" Value="{local:Loc Common.Close}"/>
+        <Setter Property="AutomationProperties.Name" Value="{local:Loc Common.Close}"/>
     </Style>
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#294B80"/>
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFFFFF"/>
@@ -876,7 +879,7 @@
     </Style>
     <Style x:Key="AllLibraryFilterChip" TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
         <Style.Triggers>
-            <DataTrigger Binding="{Binding LibraryFilter}" Value="Alle Spiele">
+            <DataTrigger Binding="{Binding LibraryFilter}" Value="All">
                 <Setter Property="Background" Value="#384CAF50"/>
                 <Setter Property="BorderBrush" Value="#8C4CAF50"/>
                 <Setter Property="Foreground" Value="#E2E8F0"/>
@@ -885,7 +888,7 @@
     </Style>
     <Style x:Key="DlssLibraryFilterChip" TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
         <Style.Triggers>
-            <DataTrigger Binding="{Binding LibraryFilter}" Value="Mit DLSS">
+            <DataTrigger Binding="{Binding LibraryFilter}" Value="WithDlss">
                 <Setter Property="Background" Value="#3D4CAF50"/>
                 <Setter Property="BorderBrush" Value="#8C4CAF50"/>
                 <Setter Property="Foreground" Value="#81C784"/>
@@ -894,7 +897,7 @@
     </Style>
     <Style x:Key="FrameGenLibraryFilterChip" TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
         <Style.Triggers>
-            <DataTrigger Binding="{Binding LibraryFilter}" Value="Mit FrameGen">
+            <DataTrigger Binding="{Binding LibraryFilter}" Value="WithFrameGeneration">
                 <Setter Property="Background" Value="#3D26A69A"/>
                 <Setter Property="BorderBrush" Value="#8C26A69A"/>
                 <Setter Property="Foreground" Value="#80CBC4"/>
@@ -903,7 +906,7 @@
     </Style>
     <Style x:Key="BackupLibraryFilterChip" TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
         <Style.Triggers>
-            <DataTrigger Binding="{Binding LibraryFilter}" Value="DLL geändert">
+            <DataTrigger Binding="{Binding LibraryFilter}" Value="ChangedDll">
                 <Setter Property="Background" Value="#3DF59E0B"/>
                 <Setter Property="BorderBrush" Value="#8CF59E0B"/>
                 <Setter Property="Foreground" Value="#FCD34D"/>
@@ -912,7 +915,7 @@
     </Style>
     <Style x:Key="UnlockerLibraryFilterChip" TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
         <Style.Triggers>
-            <DataTrigger Binding="{Binding LibraryFilter}" Value="FG &amp; MFG Unlocker">
+            <DataTrigger Binding="{Binding LibraryFilter}" Value="Unlocker">
                 <Setter Property="Background" Value="#3D38BDF8"/>
                 <Setter Property="BorderBrush" Value="#8C38BDF8"/>
                 <Setter Property="Foreground" Value="#7DD3FC"/>

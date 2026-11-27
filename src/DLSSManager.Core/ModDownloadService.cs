@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Json;
@@ -26,25 +27,25 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
         if (response.StatusCode == HttpStatusCode.TooManyRequests ||
             (response.StatusCode == HttpStatusCode.Forbidden &&
              response.Headers.TryGetValues("X-RateLimit-Remaining", out var remaining) && remaining.Contains("0")))
-            throw new IOException("GitHub-Anfragelimit erreicht. Später erneut versuchen.");
+            throw new IOException(GetText("ModDownloadService.GitHubRateLimitReachedTryAgainLater"));
         response.EnsureSuccessStatusCode();
         if (response.RequestMessage?.RequestUri != uri)
-            throw new IOException("Unerwartete Weiterleitung bei der SM86-Release-Abfrage.");
+            throw new IOException(GetText("ModDownloadService.UnexpectedRedirectWhileLookingUpTheSM86"));
 
         var release = await response.Content.ReadFromJsonAsync<Release>(cancellationToken: token).ConfigureAwait(false);
         if (release is not { tag_name: { } tag, assets: { } releaseAssets } || release.draft || release.prerelease ||
             DllVersionService.Parse(tag.TrimStart('v', 'V')) is null)
-            throw new IOException("GitHub meldet kein gültiges stabiles SM86-Release.");
+            throw new IOException(GetText("ModDownloadService.GitHubDidNotReportAValidStable"));
         var name = $"dlssg-release-{tag.TrimStart('v', 'V')}-x64.zip";
         var assets = releaseAssets.Where(a => a.name == name).Take(2).ToArray();
         if (assets.Length != 1 || assets[0] is not { size: > 0 and <= MaxBytes, digest: { Length: 71 } digest } ||
             !digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) || !digest[7..].All(Uri.IsHexDigit))
-            throw new IOException("SM86-Release enthält kein eindeutiges x64-ZIP mit SHA-256-Prüfsumme.");
+            throw new IOException(GetText("ModDownloadService.TheSM86ReleaseHasNoUniqueX64"));
 
         var asset = assets[0];
         var download = new Uri($"https://github.com/{Repository}/releases/download/{tag}/{name}");
         if (!string.Equals(asset.browser_download_url, download.AbsoluteUri, StringComparison.Ordinal))
-            throw new IOException("Unerwartete Quelle für das SM86-Paket.");
+            throw new IOException(GetText("ModDownloadService.UnexpectedSM86PackageSource"));
 
         var root = SafePaths.Root(cacheDirectory);
         Directory.CreateDirectory(root);
@@ -66,7 +67,7 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
         var release = System.Text.Json.JsonSerializer.Deserialize<CachedRelease>(File.ReadAllText(manifest));
         if (release is not { Hash.Length: 64 } || !release.Hash.All(Uri.IsHexDigit) ||
             DllVersionService.Parse(release.Tag.TrimStart('v', 'V')) is null)
-            throw new IOException("Ungültige Unlocker-Katalogdaten.");
+            throw new IOException(GetText("ModDownloadService.InvalidUnlockerCatalogData"));
         var archive = SafePaths.Child(root, release.Hash + ".zip");
         return ExtractPackage(root, archive, release.Tag, release.Hash, token);
     }
@@ -107,7 +108,7 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
             else await SaveResponse(response).ConfigureAwait(false);
 
             if (DurableFiles.Hash(temporary, token) != hash)
-                throw new IOException("SHA-256-Prüfung des SM86-Archivs fehlgeschlagen.");
+                throw new IOException(GetText("ModDownloadService.SM86ArchiveSHAVerificationFailed"));
             token.ThrowIfCancellationRequested();
             SafePaths.RejectLinks(target);
             File.Move(temporary, target, overwrite: true);
@@ -118,9 +119,9 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
         {
             response.EnsureSuccessStatusCode();
             if (response.RequestMessage?.RequestUri is not { } final || (final != download && !IsReleaseAsset(final)))
-                throw new IOException("Unerwartetes Downloadziel für das SM86-Paket.");
+                throw new IOException(GetText("ModDownloadService.UnexpectedSM86PackageDownloadDestination"));
             if (response.Content.Headers.ContentLength is { } length && length != expectedSize)
-                throw new IOException("Die SM86-Archivgröße weicht vom Release-Metadatum ab.");
+                throw new IOException(GetText("ModDownloadService.TheSM86ArchiveSizeDoesNotMatch"));
             await using var source = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
             await using var output = File.Open(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None);
             var buffer = new byte[64 * 1024];
@@ -129,10 +130,10 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
             while ((count = await source.ReadAsync(buffer, token).ConfigureAwait(false)) != 0)
             {
                 total += count;
-                if (total > expectedSize) throw new IOException("Das SM86-Archiv ist größer als erwartet.");
+                if (total > expectedSize) throw new IOException(GetText("ModDownloadService.TheSM86ArchiveIsLargerThanExpected"));
                 await output.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
             }
-            if (total != expectedSize) throw new IOException("Der SM86-Download ist unvollständig.");
+            if (total != expectedSize) throw new IOException(GetText("ModDownloadService.TheSM86DownloadIsIncomplete"));
             output.Flush(flushToDisk: true);
         }
     }
@@ -143,10 +144,10 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
     private static void Extract(string zipPath, string directory, string hash, CancellationToken token)
     {
         using var stream = File.Open(zipPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        if (DurableFiles.Hash(stream, token) != hash) throw new IOException("SM86-Archiv im Cache wurde verändert.");
+        if (DurableFiles.Hash(stream, token) != hash) throw new IOException(GetText("ModDownloadService.TheCachedSM86ArchiveChanged"));
         stream.Position = 0;
         using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
-        if (zip.Entries.Count > 1024) throw new IOException("Das SM86-Archiv enthält zu viele Einträge.");
+        if (zip.Entries.Count > 1024) throw new IOException(GetText("ModDownloadService.TheSM86ArchiveContainsTooManyEntries"));
         long total = 0;
         var buffer = new byte[64 * 1024];
         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -156,14 +157,14 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
             var relative = entry.FullName.Replace('\\', '/');
             var target = SafePaths.Child(directory, relative.TrimEnd('/'));
             if (entry.Name.Length == 0) continue;
-            if (!paths.Add(target)) throw new IOException("Doppelte Datei im SM86-Archiv.");
+            if (!paths.Add(target)) throw new IOException(GetText("ModDownloadService.DuplicateFileInTheSM86Archive"));
             var isDll = relative.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
             if (!relative.Equals("dlssg_sm86.ini", StringComparison.OrdinalIgnoreCase) &&
                 !(isDll && (relative.StartsWith("dlssg_sm86/", StringComparison.OrdinalIgnoreCase) ||
                     relative.StartsWith("alternatives/", StringComparison.OrdinalIgnoreCase) ||
                     relative.Equals("version.dll", StringComparison.OrdinalIgnoreCase))))
                 continue;
-            if (entry.Length > MaxBytes - total) throw new IOException("Entpacktes SM86-Paket ist zu groß.");
+            if (entry.Length > MaxBytes - total) throw new IOException(GetText("ModDownloadService.TheExtractedSM86PackageIsTooLarge"));
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             using var input = entry.Open();
             using var output = File.Open(target, FileMode.CreateNew, FileAccess.Write, FileShare.None);
@@ -172,7 +173,7 @@ public sealed class ModDownloadService(HttpClient client, string cacheDirectory)
             {
                 token.ThrowIfCancellationRequested();
                 total += count;
-                if (total > MaxBytes) throw new IOException("Entpacktes SM86-Paket ist zu groß.");
+                if (total > MaxBytes) throw new IOException(GetText("ModDownloadService.TheExtractedSM86PackageIsTooLarge"));
                 output.Write(buffer, 0, count);
             }
         }

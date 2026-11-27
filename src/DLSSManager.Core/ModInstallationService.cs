@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Reflection.PortableExecutable;
 
 namespace DLSSManager.Core;
@@ -19,7 +20,7 @@ public sealed record ModPackage(string Proxy, IReadOnlyList<ModPackageFile> File
 
     public static ModPackage Read(string source, string proxy, CancellationToken token = default, bool backupLayout = false)
     {
-        if (!DllDetectionService.IsProxy(proxy)) throw new IOException("Unbekannter SM86-Proxy.");
+        if (!DllDetectionService.IsProxy(proxy)) throw new IOException(GetText("ModInstallationService.UnknownSM86Proxy"));
         var root = SafePaths.Root(source);
         var mod = SafePaths.Child(root, "dlssg_sm86");
         var files = new List<ModPackageFile>();
@@ -35,9 +36,9 @@ public sealed record ModPackage(string Proxy, IReadOnlyList<ModPackageFile> File
             SafePaths.RejectLinks(directory);
             foreach (var path in Directory.EnumerateFileSystemEntries(directory))
             {
-                var attributes = SafePaths.Attributes(path) ?? throw new IOException("SM86-Paketdatei fehlt.");
+                var attributes = SafePaths.Attributes(path) ?? throw new IOException(GetText("ModInstallationService.AnSM86PackageFileIsMissing"));
                 if (attributes.HasFlag(FileAttributes.ReparsePoint))
-                    throw new IOException("SM86-Paket enthält eine Verknüpfung.");
+                    throw new IOException(GetText("ModInstallationService.TheSM86PackageContainsALink"));
                 if (attributes.HasFlag(FileAttributes.Directory)) pending.Push(path);
                 else if (Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase))
                     Add(Path.GetRelativePath(root, path), path);
@@ -47,7 +48,7 @@ public sealed record ModPackage(string Proxy, IReadOnlyList<ModPackageFile> File
         var paths = files.Select(f => f.RelativePath.Replace('\\', '/')).ToHashSet(StringComparer.OrdinalIgnoreCase);
         if (!paths.IsSupersetOf(["dlssg_sm86/backend/sm86_backend.dll", "dlssg_sm86/kernels/fg_kernels.dll",
                 "dlssg_sm86/runtime/nvngx_dlssg.dll"]))
-            throw new IOException("Das SM86-Paket enthält nicht alle benötigten FG-Komponenten.");
+            throw new IOException(GetText("ModInstallationService.TheSM86PackageIsMissingRequiredFG"));
         return new(proxy, files);
 
         void Add(string relative, string path)
@@ -56,12 +57,12 @@ public sealed record ModPackage(string Proxy, IReadOnlyList<ModPackageFile> File
             {
                 var metadata = DllDetectionService.Inspect(path, token);
                 if (!metadata.IsDll || metadata.Machine != Machine.Amd64)
-                    throw new IOException($"SM86-Paketdatei ist keine x64-DLL: {relative}");
+                    throw new IOException(GetText("ModInstallationService.SM86PackageFileIsNotAnX64", relative));
                 files.Add(new(relative, path, metadata.Sha256));
             }
             else
                 files.Add(new(relative, path, DurableFiles.Hash(path, token) ??
-                    throw new IOException($"SM86-Paketdatei fehlt: {relative}")));
+                    throw new IOException(GetText("ModInstallationService.SM86PackageFileMissing", relative))));
         }
     }
 }
@@ -77,7 +78,7 @@ public sealed class ModInstallationService(FileTransactions transactions, ModIni
         if (!Path.GetFileName(frameGeneration).Equals("nvngx_dlssg.dll", StringComparison.OrdinalIgnoreCase) ||
             nativeFrameGenerationDll.Split('/', '\\').Contains("dlssg_sm86", StringComparer.OrdinalIgnoreCase) ||
             DllDetectionService.Inspect(frameGeneration, token) is not { IsDll: true, Machine: Machine.Amd64 })
-            throw new IOException("Eine native x64-Frame-Generation-DLL wird benötigt.");
+            throw new IOException(GetText("ModInstallationService.ANativeX64FrameGenerationDLLIs"));
 
         return Apply(game, executable, package, previous, token, revision, recordUnchanged);
     }
@@ -92,7 +93,7 @@ public sealed class ModInstallationService(FileTransactions transactions, ModIni
         var root = SafePaths.Root(game.Root);
         var exe = SafePaths.Child(root, executable);
         if (!game.Executables.Any(p => StringComparer.OrdinalIgnoreCase.Equals(SafePaths.Child(root, p), exe)))
-            throw new IOException("Die Ziel-EXE gehört nicht zur bestätigten Installation.");
+            throw new IOException(GetText("Ini.TheTargetExecutableIsOutsideTheVerified"));
         var target = Path.GetDirectoryName(exe)!;
         var oldFiles = Index(previous);
         var newFiles = Index(desired);
@@ -116,7 +117,7 @@ public sealed class ModInstallationService(FileTransactions transactions, ModIni
             if (!ownsIni && current is not null && current != oldFiles.GetValueOrDefault(key)?.Sha256)
             {
                 if (isIni || (next is null && desired is null)) continue;
-                throw new IOException($"Fremde oder geänderte Datei blockiert die SM86-Installation: {key}");
+                throw new IOException(GetText("ModInstallationService.AnExternalOrModifiedFileIsBlocking", key));
             }
             if (current == next?.Sha256) continue;
             // Keep an existing INI on update so custom values and comments survive.
@@ -131,7 +132,7 @@ public sealed class ModInstallationService(FileTransactions transactions, ModIni
     {
         var result = new Dictionary<string, ModPackageFile>(StringComparer.OrdinalIgnoreCase);
         if (package is null) return result;
-        if (!DllDetectionService.IsProxy(package.Proxy)) throw new IOException("Unbekannter SM86-Proxy.");
+        if (!DllDetectionService.IsProxy(package.Proxy)) throw new IOException(GetText("ModInstallationService.UnknownSM86Proxy"));
         foreach (var file in package.Files)
         {
             var relative = file.RelativePath.Replace('\\', '/');
@@ -140,7 +141,7 @@ public sealed class ModInstallationService(FileTransactions transactions, ModIni
                 relative.Equals(package.Proxy, StringComparison.OrdinalIgnoreCase)) ||
                 file.Sha256.Length != 64 || !file.Sha256.All(Uri.IsHexDigit) ||
                 !result.TryAdd(relative, file with { Sha256 = file.Sha256.ToUpperInvariant() }))
-                throw new IOException($"Ungültiger SM86-Paketpfad oder Hash: {relative}");
+                throw new IOException(GetText("ModInstallationService.InvalidSM86PackagePathOrHash", relative));
         }
         return result;
     }

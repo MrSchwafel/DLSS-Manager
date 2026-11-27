@@ -1,21 +1,21 @@
 <Window x:Class="DLSSManager.App.GameEntryWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Spieleintrag" Width="580" SizeToContent="Height"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:DLSSManager.App" Title="{local:Loc GameEntry.GameEntry}" Width="580" SizeToContent="Height"
         WindowStartupLocation="CenterOwner" Style="{StaticResource CustomCaptionWindow}" Background="#101622" Foreground="#E5EDF8">
     <StackPanel Margin="18">
-        <Label Content="Spielname" Foreground="#E5EDF8" Target="{Binding ElementName=TitleInput}"/>
+        <Label Content="{local:Loc GameEntry.GameTitle}" Foreground="#E5EDF8" Target="{Binding ElementName=TitleInput}"/>
         <TextBox x:Name="TitleInput"/>
-        <Label Content="Installationsordner" Foreground="#E5EDF8" Target="{Binding ElementName=PathInput}"/>
-        <DockPanel><Button DockPanel.Dock="Right" Content="Ordner wählen" Click="PickFolder"/><TextBox x:Name="PathInput"/></DockPanel>
-        <Label Content="Spiel-EXE" Foreground="#E5EDF8" Target="{Binding ElementName=ExeInput}"/>
-        <DockPanel><Button DockPanel.Dock="Right" Content="Datei wählen" Click="PickExe"/><TextBox x:Name="ExeInput"/></DockPanel>
-        <Label Content="Startparameter" Foreground="#E5EDF8" Target="{Binding ElementName=ArgumentsInput}"/>
+        <Label Content="{local:Loc GameEntry.InstallationFolder}" Foreground="#E5EDF8" Target="{Binding ElementName=PathInput}"/>
+        <DockPanel><Button DockPanel.Dock="Right" Content="{local:Loc GameEntry.ChooseFolder}" Click="PickFolder"/><TextBox x:Name="PathInput"/></DockPanel>
+        <Label Content="{local:Loc GameEntry.GameExecutable}" Foreground="#E5EDF8" Target="{Binding ElementName=ExeInput}"/>
+        <DockPanel><Button DockPanel.Dock="Right" Content="{local:Loc GameEntry.ChooseFile}" Click="PickExe"/><TextBox x:Name="ExeInput"/></DockPanel>
+        <Label Content="{local:Loc GameEntry.LaunchArguments}" Foreground="#E5EDF8" Target="{Binding ElementName=ArgumentsInput}"/>
         <TextBox x:Name="ArgumentsInput"/>
-        <Label Content="Spiel-Icon" Foreground="#E5EDF8" Target="{Binding ElementName=IconInput}"/>
-        <DockPanel><Button DockPanel.Dock="Right" Content="Datei wählen" Click="PickIcon"/><TextBox x:Name="IconInput"/></DockPanel>
+        <Label Content="{local:Loc GameEntry.GameIcon}" Foreground="#E5EDF8" Target="{Binding ElementName=IconInput}"/>
+        <DockPanel><Button DockPanel.Dock="Right" Content="{local:Loc GameEntry.ChooseFile}" Click="PickIcon"/><TextBox x:Name="IconInput"/></DockPanel>
         <TextBlock x:Name="ErrorText" Foreground="#FFB3B3" TextWrapping="Wrap" Margin="0,8"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Abbrechen" IsCancel="True" Margin="0,0,8,0"/>
-            <Button Content="Speichern" IsDefault="True" Click="Save"/>
+            <Button Content="{local:Loc Common.Cancel}" IsCancel="True" Margin="0,0,8,0"/>
+            <Button Content="{local:Loc Common.Save}" IsDefault="True" Click="Save"/>
         </StackPanel>
     </StackPanel>
 </Window>

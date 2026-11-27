@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -26,15 +27,16 @@ public partial class DriverHistoryWindow : Window
     {
         public SourceStatusPill(HotfixSourceStatus status)
         {
+            var sourceName = status.SourceName == "Google Suche" ? GetText("Drivers.GoogleSearch") : status.SourceName;
             var isPositive = status.Status is HotfixSourceFetchStatus.Success or HotfixSourceFetchStatus.CacheHit;
             var isBlocked = status.Status == HotfixSourceFetchStatus.Blocked403_429;
             var isError = status.Status == HotfixSourceFetchStatus.TimeoutOrError;
 
             Label = status.Status switch
             {
-                HotfixSourceFetchStatus.Blocked403_429 => $"{status.SourceName} (blockiert)",
-                HotfixSourceFetchStatus.TimeoutOrError => $"{status.SourceName} (Fehler)",
-                _ => $"{status.SourceName} ({status.FoundCount})"
+                HotfixSourceFetchStatus.Blocked403_429 => GetText("Drivers.Blocked", sourceName),
+                HotfixSourceFetchStatus.TimeoutOrError => GetText("Drivers.Error", sourceName),
+                _ => $"{sourceName} ({status.FoundCount})"
             };
 
             if (isBlocked || isError)
@@ -58,14 +60,14 @@ public partial class DriverHistoryWindow : Window
 
             var statusText = status.Status switch
             {
-                HotfixSourceFetchStatus.Success => "Live abgefragt",
-                HotfixSourceFetchStatus.CacheHit => "Aus HTTP-Cache (304)",
-                HotfixSourceFetchStatus.Blocked403_429 => "Blockiert (HTTP 403/429)",
-                HotfixSourceFetchStatus.TimeoutOrError => "Timeout oder Netzwerkfehler",
-                _ => "Unbekannt"
+                HotfixSourceFetchStatus.Success => GetText("Drivers.CheckedLive"),
+                HotfixSourceFetchStatus.CacheHit => GetText("Drivers.FromHTTPCache"),
+                HotfixSourceFetchStatus.Blocked403_429 => GetText("Drivers.BlockedHTTP"),
+                HotfixSourceFetchStatus.TimeoutOrError => GetText("Drivers.TimeoutOrNetworkError"),
+                _ => GetText("Drivers.Unknown")
             };
             var localTime = DateTime.SpecifyKind(status.LastCheckedUtc, DateTimeKind.Utc).ToLocalTime();
-            ToolTip = $"{status.SourceName}: {statusText} · {status.FoundCount} Treffer · {localTime:HH:mm}";
+            ToolTip = GetText("Drivers.ResultsHHMm", sourceName, statusText, status.FoundCount, localTime);
         }
 
         public string Label { get; }
@@ -141,7 +143,7 @@ public partial class DriverHistoryWindow : Window
             else if (installedVersion is not null && driver.ParsedVersion == installedVersion)
             {
                 IsInstalledAction = true;
-                ActionLabel = "Installiert";
+                ActionLabel = GetText("Drivers.Installed");
                 CanSelectAction = false;
             }
             else
@@ -284,7 +286,7 @@ public partial class DriverHistoryWindow : Window
         Deactivated += (_, _) => CloseSummaryHover();
         LocationChanged += (_, _) => CloseSummaryHover();
         this.driverCacheFolder = driverCacheFolder;
-        this.clientLanguage = ClientLanguageProvider.GetLanguageCode(clientLanguage);
+        this.clientLanguage = NormalizePreference(clientLanguage) == Auto ? LocalizationService.Language : NormalizePreference(clientLanguage);
         this.translator = translator;
         this.onTranslateChanged = onTranslateChanged;
         this.installedParsedVersion = installedParsedVersion ?? (Version.TryParse(installedVersion, out var parsed) ? parsed : null);
@@ -294,15 +296,14 @@ public partial class DriverHistoryWindow : Window
         this.hotfixChecked = hotfixChecked;
         this.onRefreshHotfixSources = onRefreshHotfixSources;
 
-        var canTranslate = translator is not null && ClientLanguageProvider.CanTranslateFromEnglish(this.clientLanguage);
+        var canTranslate = translator is not null && this.clientLanguage == German;
         this.translateEnabled = canTranslate && translateEnabled;
 
-        SubtitleText.Text = $"Aktuell installiert: {gpuName} · GeForce v{installedVersion}";
+        SubtitleText.Text = GetText("Drivers.CurrentlyInstalledGeForceV", gpuName, installedVersion);
         RefreshSourcesButton.Visibility = onRefreshHotfixSources is not null ? Visibility.Visible : Visibility.Collapsed;
 
         if (canTranslate)
         {
-            TranslateToggleButton.Content = $"Auf {ClientLanguageProvider.GetDisplayName(this.clientLanguage)} übersetzen";
             TranslateToggleButton.IsChecked = this.translateEnabled;
             TranslateToggleButton.Visibility = Visibility.Visible;
         }
@@ -385,21 +386,21 @@ public partial class DriverHistoryWindow : Window
 
         if (isRefreshingSources)
         {
-            SourceTimestampText.Text = "Scanne …";
+            SourceTimestampText.Text = GetText("Drivers.Scanning");
         }
         else if (fromCache && lastScanUtc is { } cachedAt)
         {
             var age = DateTimeOffset.UtcNow - cachedAt;
             if (age < TimeSpan.FromMinutes(1))
-                SourceTimestampText.Text = "Aus Cache · gerade eben";
+                SourceTimestampText.Text = GetText("Drivers.FromCacheJustNow");
             else if (age < TimeSpan.FromHours(1))
-                SourceTimestampText.Text = $"Aus Cache · vor {(int)Math.Max(1, Math.Floor(age.TotalMinutes))} Min.";
+                SourceTimestampText.Text = GetText("Drivers.FromCacheMinAgo", (int)Math.Max(1, Math.Floor(age.TotalMinutes)));
             else
-                SourceTimestampText.Text = $"Aus Cache · {cachedAt.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture)}";
+                SourceTimestampText.Text = GetText("Drivers.FromCache", cachedAt.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture));
         }
         else if (lastScanUtc is { } scanAt)
         {
-            SourceTimestampText.Text = $"Stand: {scanAt.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture)}";
+            SourceTimestampText.Text = GetText("Drivers.AsOf", scanAt.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture));
         }
         else
         {
@@ -559,7 +560,7 @@ public partial class DriverHistoryWindow : Window
             filtered.Length > 0 &&
             !filtered.Any(r => r.Driver?.ParsedVersion is { } dv && dv.Major / 100 >= gen))
         {
-            GenerationHintText.Text = $"Für die aktuelle {gen}xx-Serie wurde aktuell kein neuerer Hotfix veröffentlicht.";
+            GenerationHintText.Text = GetText("Drivers.NoNewerHotfixHasBeenReleasedFor", gen);
             GenerationHintBanner.Visibility = Visibility.Visible;
         }
         else
@@ -575,7 +576,7 @@ public partial class DriverHistoryWindow : Window
             displayList.AddRange(currentOrNewer);
             if (olderGen.Length > 0)
             {
-                displayList.Add(DriverRow.Divider("Ältere Treiber-Generationen"));
+                displayList.Add(DriverRow.Divider(GetText("Drivers.EarlierDriverGenerations")));
                 displayList.AddRange(olderGen);
             }
         }
@@ -585,12 +586,12 @@ public partial class DriverHistoryWindow : Window
         }
 
         DriverList.ItemsSource = displayList;
-        CountText.Text = filtered.Length == 1 ? "1 Version" : $"{filtered.Length} Versionen";
+        CountText.Text = filtered.Length == 1 ? GetText("Drivers.Version") : GetText("Drivers.Versions", filtered.Length);
         EmptyStateText.Text = activeFilter switch
         {
-            "Hotfix" => "Keine Hotfix-Versionen automatisch gefunden oder im Cache. Nutze „Hotfix-Seite öffnen ↗“ oder „Lokale Treiber-.exe wählen…“.",
-            "Cached" => "Keine älteren Treiber-Installer lokal im Cache vorhanden.",
-            _ => "Keine Treiberversionen für diesen Filter gefunden."
+            "Hotfix" => GetText("Drivers.NoHotfixVersionsWereFoundOnlineOr"),
+            "Cached" => GetText("Drivers.NoOlderDriverInstallersAreCachedLocally"),
+            _ => GetText("Drivers.NoDriverVersionsMatchThisFilter")
         };
         EmptyStateText.Visibility = filtered.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         UpdateSourceStatusBar();
@@ -750,9 +751,9 @@ public partial class DriverHistoryWindow : Window
             : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var picker = new OpenFileDialog
         {
-            Title = "Lokalen NVIDIA Treiber-Installer (.exe) auswählen",
+            Title = GetText("Drivers.SelectALocalNVIDIADriverInstallerExe"),
             InitialDirectory = initialDir,
-            Filter = "NVIDIA Treiber-Installer (*.exe)|*.exe"
+            Filter = GetText("Drivers.NVIDIADriverInstallerExeExe")
         };
         if (picker.ShowDialog(this) == true)
         {

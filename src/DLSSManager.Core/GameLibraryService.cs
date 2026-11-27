@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Text.Json;
 
 namespace DLSSManager.Core;
@@ -33,7 +34,7 @@ public sealed class GameLibraryService(string storage)
     {
         var path = SafePaths.Child(SafePaths.Root(storage), "settings-v1.json");
         return File.Exists(path) ? JsonSerializer.Deserialize<ManagerSettings>(File.ReadAllText(path))
-            ?? throw new IOException("Einstellungen konnten nicht gelesen werden.") : new([]);
+            ?? throw new IOException(GetText("GameLibraryService.CouldNotReadSettings")) : new([]);
     }
 
     public void SaveSettings(ManagerSettings settings)
@@ -60,7 +61,7 @@ public sealed class GameLibraryService(string storage)
     {
         var path = SafePaths.Child(SafePaths.Root(storage), "library-v1.json");
         return File.Exists(path) ? JsonSerializer.Deserialize<GameLibraryEntry[]>(File.ReadAllText(path))
-            ?? throw new IOException("Spielebibliothek konnte nicht gelesen werden.") : null;
+            ?? throw new IOException(GetText("GameLibraryService.CouldNotReadTheGameLibrary")) : null;
     }
 
     public void Save(GameLibraryEntry[] entries)

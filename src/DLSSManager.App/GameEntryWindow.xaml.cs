@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Windows;
 using DLSSManager.Core;
@@ -32,7 +33,7 @@ public partial class GameEntryWindow : Window
 
     private void PickExe(object sender, RoutedEventArgs e)
     {
-        Pick(ExeInput, "Programme|*.exe");
+        Pick(ExeInput, GetText("GameEntry.ProgramsExe"));
         if (ExeInput.Text.Length == 0 || PathInput.Text.Length != 0) return;
         PathInput.Text = Path.GetDirectoryName(ExeInput.Text);
         if (TitleInput.Text.Length == 0) TitleInput.Text = Path.GetFileNameWithoutExtension(ExeInput.Text);
@@ -54,14 +55,14 @@ public partial class GameEntryWindow : Window
             var exe = ExeInput.Text.Trim();
             var icon = IconInput.Text.Trim();
             if (title.Length == 0 || !Path.IsPathFullyQualified(folder) || !Directory.Exists(folder))
-                throw new IOException("Spielname und vorhandener Installationsordner sind erforderlich.");
+                throw new IOException(GetText("GameEntry.AGameTitleAndAnExistingInstallation"));
             folder = SafePaths.Root(folder);
             if (exe.Length != 0 && (!Path.IsPathFullyQualified(exe) || !File.Exists(exe) ||
                 !exe.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || !SafePaths.Contains(folder, exe)))
-                throw new IOException("Die Spiel-EXE muss im Installationsordner liegen.");
+                throw new IOException(GetText("GameEntry.TheGameExecutableMustBeInsideThe"));
             if (icon.Length != 0 && (!Path.IsPathFullyQualified(icon) || !File.Exists(icon) ||
                 Path.GetExtension(icon).ToLowerInvariant() is not (".ico" or ".png" or ".jpg" or ".jpeg" or ".exe" or ".dll")))
-                throw new IOException("Eine vorhandene Bilddatei für das Spiel-Icon auswählen.");
+                throw new IOException(GetText("GameEntry.SelectAnExistingImageFileForThe"));
             Entry = new(title, folder, original?.Proxy ?? DefaultProxy, exe, Id: original?.Id ?? Guid.NewGuid(),
                 Icon: icon.Length == 0 ? null : icon, Ignored: original?.Ignored ?? false,
                 Launcher: original?.Launcher ?? "Lokal", Arguments: ArgumentsInput.Text, Overlay: original?.Overlay ?? false);

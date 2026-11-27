@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Net;
 using System.Text.Json;
 using System.Globalization;
@@ -48,21 +49,21 @@ public static partial class UpdateService
             request.Headers.Accept.ParseAdd("application/vnd.github+json");
             using var response = await client.SendAsync(request, timeout.Token).ConfigureAwait(false);
             if (response.RequestMessage?.RequestUri != uri)
-                throw new IOException("Unerwartete Weiterleitung bei der GitHub-Abfrage.");
+                throw new IOException(GetText("UpdateService.UnexpectedRedirectInTheGitHubRequest"));
             if (response.StatusCode == HttpStatusCode.TooManyRequests ||
                 (response.StatusCode == HttpStatusCode.Forbidden &&
                  response.Headers.TryGetValues("X-RateLimit-Remaining", out var remaining) && remaining.Contains("0")))
             {
                 var retry = response.Headers.RetryAfter?.ToString();
-                throw new IOException(retry is null ? "GitHub-Anfragelimit erreicht. Später erneut versuchen." :
-                    $"GitHub-Anfragelimit erreicht. Retry-After: {retry}.");
+                throw new IOException(retry is null ? GetText("ModDownloadService.GitHubRateLimitReachedTryAgainLater") :
+                    GetText("UpdateService.GitHubRateLimitReachedRetryAfter", retry));
             }
             response.EnsureSuccessStatusCode();
             await using var source = await response.Content.ReadAsStreamAsync(timeout.Token).ConfigureAwait(false);
             using var document = await JsonDocument.ParseAsync(source, cancellationToken: timeout.Token).ConfigureAwait(false);
             var root = document.RootElement;
             if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() > 100)
-                throw new IOException("GitHub lieferte eine ungültige Release-Liste.");
+                throw new IOException(GetText("UpdateService.GitHubReturnedAnInvalidReleaseList"));
 
             foreach (var item in root.EnumerateArray())
             {
@@ -77,12 +78,12 @@ public static partial class UpdateService
             if (root.GetArrayLength() < 100) return SelectUpdate(installed, channel, releases);
         }
 
-        throw new IOException("Die GitHub-Release-Liste konnte nicht vollständig ausgewertet werden.");
+        throw new IOException(GetText("UpdateService.CouldNotParseTheCompleteGitHubRelease"));
     }
 
     public static ReleaseCandidate? SelectUpdate(string installed, ReleaseChannel channel, IEnumerable<ReleaseCandidate> releases)
     {
-        var current = Parse(installed) ?? throw new ArgumentException("Installierte Release-Version ist ungültig.", nameof(installed));
+        var current = Parse(installed) ?? throw new ArgumentException(GetText("UpdateService.TheInstalledReleaseVersionIsInvalid"), nameof(installed));
         ReleaseCandidate? selected = null;
         foreach (var release in releases)
         {

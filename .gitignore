@@ -6,6 +6,9 @@ artifacts/
 *.user
 
 # Internal development documentation
-/docs/
+/docs/*
+!/docs/guides/
+!/docs/screenshots/
+/docs/intern/
 /tests/
 /Matrix.md

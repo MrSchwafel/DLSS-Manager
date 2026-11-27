@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -19,12 +20,12 @@ public sealed class WindowsInstallationGuard : IInstallationGuard
     public void RequireClosed(Installation installation)
     {
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException();
-        if (installation.Executables.Length == 0) throw new IOException("Keine verifizierte Spiel-EXE hinterlegt.");
+        if (installation.Executables.Length == 0) throw new IOException(GetText("FileTransactions.NoVerifiedGameExecutableIsConfigured"));
         var names = installation.Executables.Select(path =>
         {
             var executable = SafePaths.Child(installation.Root, path);
             if (!executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || !File.Exists(executable))
-                throw new IOException($"Spiel-EXE konnte nicht bestätigt werden: {path}");
+                throw new IOException(GetText("FileTransactions.CouldNotVerifyTheGameExecutable", path));
             return Path.GetFileNameWithoutExtension(executable);
         }).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -37,16 +38,16 @@ public sealed class WindowsInstallationGuard : IInstallationGuard
                 try
                 {
                     if (names.Contains(process.ProcessName))
-                        throw new GameRunningException("Spiel oder gleichnamiger Prozess läuft.");
+                        throw new GameRunningException(GetText("FileTransactions.TheGameOrAProcessWithThe"));
                     var executable = process.MainModule?.FileName;
                     if (executable is not null && SafePaths.Contains(installation.Root, executable))
-                        throw new GameRunningException("Ein Prozess aus dem Installationsordner läuft.");
+                        throw new GameRunningException(GetText("FileTransactions.AProcessFromTheInstallationFolderIs"));
                 }
                 catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
                 {
                     // A named game process is blocked above even if its executable path is unreadable.
                     if (ex is System.ComponentModel.Win32Exception { NativeErrorCode: not (5 or 299 or 87) })
-                        throw new IOException("Prozesszustand konnte nicht geprüft werden.", ex);
+                        throw new IOException(GetText("FileTransactions.CouldNotCheckProcessState"), ex);
                 }
             }
         }
@@ -65,17 +66,17 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
         using var transactionLock = Lock(storage);
         RequireNoPending(storage, root);
         if (mod is not null && LatestMod(storage, root, mod.Slot)?.Id != mod.Predecessor)
-            throw new IOException("Die SM86-Zuordnung wurde zwischenzeitlich geändert.");
+            throw new IOException(GetText("FileTransactions.TheSM86AssociationHasChanged"));
         if (component is not null)
         {
             var heads = ComponentHeads(Journals(storage).Select(x => x.Journal), component);
             if (heads.Any(x => !x.ComponentRemoved && Overlap(x.Root, root) &&
                 !x.Root.Equals(root, StringComparison.OrdinalIgnoreCase)) ||
                 heads.SingleOrDefault(x => x.Root.Equals(root, StringComparison.OrdinalIgnoreCase))?.Id != componentPredecessor)
-                throw new IOException($"Die {component}-Zuordnung wurde zwischenzeitlich geändert.");
+                throw new IOException(GetText("FileTransactions.TheAssociationHasChanged", component));
         }
         if (changes.Count == 0 && mod is null && component is null)
-            throw new ArgumentException("Dateiplan ist leer.", nameof(changes));
+            throw new ArgumentException(GetText("FileTransactions.TheFileOperationPlanIsEmpty"), nameof(changes));
         guard.RequireClosed(installation);
 
         var entries = new List<TransactionEntry>();
@@ -93,24 +94,24 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
                 var change = changes[i];
                 var target = SafePaths.Child(root, change.RelativePath);
                 if (!targets.Add(target))
-                    throw new IOException($"Doppeltes Ziel: {change.RelativePath}");
+                    throw new IOException(GetText("FileTransactions.DuplicateTarget", change.RelativePath));
                 for (var parent = Path.GetDirectoryName(target)!; !Directory.Exists(parent); parent = Path.GetDirectoryName(parent)!)
                 {
                     if (!createTargetDirectories || change.Payload is null || SafePaths.Attributes(parent) is not null)
-                        throw new IOException($"Zielordner fehlt oder ist blockiert: {parent}");
+                        throw new IOException(GetText("FileTransactions.TheTargetFolderIsMissingOrBlocked", parent));
                     missingDirectories.Add(parent);
                 }
                 var before = NormalizeHash(change.ExpectedSha256);
                 var after = NormalizeHash(change.PayloadSha256);
                 if ((change.Payload is null) != (after is null) || before == after)
-                    throw new IOException("Dateiplan enthält eine leere oder inkonsistente Änderung.");
+                    throw new IOException(GetText("FileTransactions.TheFileOperationPlanContainsAnEmpty"));
                 RequireHash(target, before);
                 if (before is not null) CopyVerified(target, Asset(folder, i, "original"), before, token);
                 if (after is not null) CopyVerified(Path.GetFullPath(change.Payload!), Asset(folder, i, "payload"), after, token);
                 entries.Add(new(change.RelativePath, before, after));
             }
             if (missingDirectories.Overlaps(targets))
-                throw new IOException("Datei- und Ordnerziele überschneiden sich.");
+                throw new IOException(GetText("FileTransactions.FileAndFolderTargetsOverlap"));
             token.ThrowIfCancellationRequested();
             journal = new TransactionJournal(id, root, [.. entries], 0, TransactionState.Applying,
                 SchemaVersion: mod is null ? (missingDirectories.Count == 0 ? 1 : 2) : 3,
@@ -149,7 +150,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
             try { Restore(installation, folder, journal); }
             catch (Exception restoreError)
             {
-                throw new AggregateException($"Änderung {id} fehlgeschlagen; Rollback bleibt ausstehend.",
+                throw new AggregateException(GetText("FileTransactions.ChangeFailedRollbackIsPending", id),
                     original, restoreError);
             }
             throw;
@@ -178,19 +179,19 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
         var visited = new HashSet<Guid>();
         var ancestors = records.Values.Select(j => j.Mod!.Predecessor).OfType<Guid>().ToHashSet();
         var heads = records.Values.Where(j => !ancestors.Contains(j.Id)).ToArray();
-        if (heads.Length != 1) throw new IOException("Die SM86-Versionshistorie ist mehrdeutig.");
+        if (heads.Length != 1) throw new IOException(GetText("FileTransactions.TheSM86VersionHistoryIsAmbiguous"));
         TransactionJournal? record = heads[0];
         while (record is not null)
         {
             if (!visited.Add(record.Id))
-                throw new IOException("Die SM86-Versionshistorie enthält einen Zyklus.");
+                throw new IOException(GetText("FileTransactions.TheSM86VersionHistoryContainsACycle"));
             yield return record;
             if (record.Mod!.Predecessor is not Guid id) break;
             if (!records.TryGetValue(id, out record))
-                throw new IOException("Eine frühere SM86-Transaktion fehlt.");
+                throw new IOException(GetText("FileTransactions.AnEarlierSM86TransactionIsMissing"));
         }
         if (visited.Count != records.Count)
-            throw new IOException("Die SM86-Versionshistorie ist unvollständig.");
+            throw new IOException(GetText("FileTransactions.TheSM86VersionHistoryIsIncomplete"));
 
     }
 
@@ -211,11 +212,11 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
         RequireNoPending(storage, root);
         var target = SafePaths.Child(root, relativeDll);
         if (!target.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-            throw new IOException("Das Backup muss zu einer DLL gehören.");
+            throw new IOException(GetText("FileTransactions.TheBackupMustBelongToADLL"));
         var backup = new FileInfo(SafePaths.Child(root, relativeDll + ".bak"));
         if (!backup.Exists) return;
         if (expectedWriteTime is { } writeTime && (backup.Length != expectedSize || backup.LastWriteTimeUtc != writeTime))
-            throw new IOException("Das Backup wurde seit dem Scan geändert. Bitte erneut scannen.");
+            throw new IOException(GetText("FileTransactions.TheBackupChangedSinceTheScanScan"));
         guard.RequireClosed(installation with { Root = root });
         token.ThrowIfCancellationRequested();
         SafePaths.RejectLinks(backup.FullName);
@@ -226,7 +227,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
     {
         if (Journals(storage).Any(x => Overlap(x.Journal.Root, root) &&
             x.Journal.State is TransactionState.Applying or TransactionState.RollingBack))
-            throw new IOException("Ausstehendes Rollback für diese Installation.");
+            throw new IOException(GetText("FileTransactions.ARollbackIsPendingForThisInstallation"));
     }
 
     public TransactionJournal[] InstalledComponents(string component, string? root = null)
@@ -264,7 +265,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
         {
             var previous = Load(SafePaths.Child(storage, id.ToString("N")));
             if (!visited.Add(id) || previous.Component != head.Component || !previous.Root.Equals(head.Root, StringComparison.OrdinalIgnoreCase))
-                throw new IOException("Ungültige Komponenten-Historie.");
+                throw new IOException(GetText("FileTransactions.InvalidComponentHistory"));
             if (previous.ComponentRemoved) break;
             history.Add(previous);
         }
@@ -281,22 +282,22 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
         var folder = SafePaths.Child(storage, id.ToString("N"));
         var journal = Load(folder);
         if (!StringComparer.OrdinalIgnoreCase.Equals(root, journal.Root))
-            throw new IOException("Journal gehört zu einer anderen Installation.");
+            throw new IOException(GetText("FileTransactions.TheJournalBelongsToADifferentInstallation"));
         if (journal.State == TransactionState.RolledBack) return;
         if (journal.State == TransactionState.Committed && journal.Mod is not null &&
             LatestMod(storage, root, journal.Mod.Slot)?.Id != id)
-            throw new IOException("Eine neuere SM86-Transaktion ist vorhanden.");
+            throw new IOException(GetText("FileTransactions.ANewerSM86TransactionExists"));
         if (journal.State == TransactionState.Committed && journal.Component is { } component)
         {
             var heads = ComponentHeads(Journals(storage).Select(x => x.Journal), component);
             if (!heads.Any(x => x.Id == id) ||
                 heads.Any(x => x.Id != id && !x.ComponentRemoved && Overlap(x.Root, root)))
-                throw new IOException("Eine neuere Komponenten-Transaktion ist vorhanden.");
+                throw new IOException(GetText("FileTransactions.ANewerComponentTransactionExists"));
         }
         // Do not roll back an older committed operation across an incomplete overlapping operation.
         if (Journals(storage).Any(x => x.Journal.Id != id && Overlap(x.Journal.Root, root) &&
                 x.Journal.State is TransactionState.Applying or TransactionState.RollingBack))
-            throw new IOException("Eine andere Transaktion wartet auf Wiederherstellung.");
+            throw new IOException(GetText("FileTransactions.AnotherTransactionIsPendingRecovery"));
         Restore(installation with { Root = root }, folder, journal);
     }
 
@@ -305,7 +306,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
         var root = SafePaths.Root(installation.Root);
         var storage = SafePaths.Root(journalStorage);
         if (!Directory.Exists(root) || Path.GetPathRoot(root) == root || Overlap(root, storage))
-            throw new IOException("Installations- und Journalordner müssen getrennt und eindeutig sein.");
+            throw new IOException(GetText("FileTransactions.TheInstallationAndJournalFoldersMustBe"));
         Directory.CreateDirectory(storage);
         return (root, storage);
     }
@@ -340,12 +341,12 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
             journal.Armed < 0 || journal.Armed > journal.Entries.Length || !Enum.IsDefined(journal.State) ||
             journal.Entries.Select(x => SafePaths.Child(journal.Root, x.Path))
                 .Distinct(StringComparer.OrdinalIgnoreCase).Count() != journal.Entries.Length)
-            throw new InvalidDataException("Ungültiges Transaktionsjournal.");
+            throw new InvalidDataException(GetText("FileTransactions.InvalidTransactionJournal"));
 
         if (journal.Mod is { } mod &&
             (string.IsNullOrWhiteSpace(mod.Slot) || (mod.Slot != "." && !SafePaths.Contains(journal.Root,
                 SafePaths.Child(journal.Root, mod.Slot)))))
-            throw new InvalidDataException("Ungültiger SM86-Zielordner im Journal.");
+            throw new InvalidDataException(GetText("FileTransactions.InvalidSM86TargetFolderInTheJournal"));
         var directories = journal.CreatedDirectories ?? [];
         if (directories.Length > 0 && journal.SchemaVersion == 1 ||
             directories.Distinct(StringComparer.OrdinalIgnoreCase).Count() != directories.Length ||
@@ -355,7 +356,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
                 return !journal.Entries.Any(entry => entry.Before is null && entry.After is not null &&
                     SafePaths.Contains(path, Path.GetDirectoryName(SafePaths.Child(journal.Root, entry.Path))!));
             }))
-            throw new InvalidDataException("Ungültige Transaktionsordner im Journal.");
+            throw new InvalidDataException(GetText("FileTransactions.InvalidTransactionFoldersInTheJournal"));
         return journal;
     }
 
@@ -372,7 +373,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
                 if (journal.Component == "OptiScaler" && journal.State != TransactionState.Applying && entry.Before is null &&
                     Path.GetFileName(entry.Path).Equals("OptiScaler.ini", StringComparison.OrdinalIgnoreCase))
                     preserved.Add(i);
-                else throw new IOException($"Fremdänderung blockiert Rollback: {entry.Path}");
+                else throw new IOException(GetText("FileTransactions.AnExternalChangeIsBlockingRollback", entry.Path));
             }
             if (entry.Before is not null) RequireHash(Asset(folder, i, "original"), entry.Before);
         }
@@ -387,7 +388,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
             if (DurableFiles.Hash(staged) is { } hash)
             {
                 if (hash != entry.Before && hash != entry.After)
-                    throw new IOException($"Unbekannte Staging-Datei: {staged}");
+                    throw new IOException(GetText("FileTransactions.UnknownStagingFile", staged));
                 guard.RequireClosed(installation);
                 File.Delete(staged);
             }
@@ -418,7 +419,7 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
                 var hash = DurableFiles.Hash(staged);
                 if (hash != desired)
                 {
-                    if (hash != expected) throw new IOException($"Unbekannte Staging-Datei: {staged}");
+                    if (hash != expected) throw new IOException(GetText("FileTransactions.UnknownStagingFile", staged));
                     File.Delete(staged);
                 }
             }
@@ -442,18 +443,18 @@ public sealed class FileTransactions(string journalStorage, IInstallationGuard g
 
     private static string? NormalizeHash(string? hash) => hash is null ? null :
         hash.Length == 64 && hash.All(Uri.IsHexDigit) ? hash.ToUpperInvariant() :
-        throw new ArgumentException("SHA-256 erwartet.");
+        throw new ArgumentException(GetText("FileTransactions.ExpectedASHAValue"));
 
     private static void CopyVerified(string source, string target, string hash, CancellationToken token)
     {
         DurableFiles.Copy(source, target, token);
         if (DurableFiles.Hash(target, token) != hash)
-            throw new IOException($"Dateizustand entspricht nicht dem Plan: {target}");
+            throw new IOException(GetText("FileTransactions.FileStateDoesNotMatchThePlan", target));
     }
 
     private static void RequireHash(string path, string? expected)
     {
         if (DurableFiles.Hash(path) != expected)
-            throw new IOException($"Dateizustand entspricht nicht dem Plan: {path}");
+            throw new IOException(GetText("FileTransactions.FileStateDoesNotMatchThePlan", path));
     }
 }

@@ -1,4 +1,4 @@
-using System.Globalization;
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Windows.Input;
 using DLSSManager.Core;
@@ -7,12 +7,11 @@ namespace DLSSManager.App;
 
 public sealed record BackupRow(ScanGame Game, DllFinding Dll)
 {
-    private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-DE");
-
     public string File => Path.GetFileName(Dll.Path) + ".bak";
     public string Target => Dll.Path;
-    public string Size => (Dll.BackupSize / 1024d).ToString("N0", German) + " KiB";
-    public string Saved => Dll.BackupDate?.ToLocalTime().ToString("dd.MM.yyyy HH:mm", German) ?? "—";
+    public LocalizedText Size => LocalizedText.Message("Recovery.BackupSizeValue", Dll.BackupSize / 1024d);
+    public LocalizedText Saved => Dll.BackupDate is { } saved
+        ? LocalizedText.Message("Recovery.BackupDateValue", saved.ToLocalTime()) : "—";
     public string Type => Dll.Kind switch
     {
         "SR" => "DLSS",
@@ -31,7 +30,6 @@ public sealed record BackupRow(ScanGame Game, DllFinding Dll)
 
 public sealed record BackupGame(ScanRoot Root, int Count, BackupRow[] Rows, bool Expanded)
 {
-    public string CountLabel => Count == 1 ? "1 Backup" : $"{Count} Backups";
     public string ShortPath => Root.Path.Length > 72 ? $"{Root.Path[..24]}…{Root.Path[^47..]}" : Root.Path;
 }
 
@@ -42,10 +40,11 @@ public sealed partial class LibraryViewModel
 
     public BackupRow[] Backups { get; private set; } = [];
     public BackupGame[] BackupGames { get; private set; } = [];
-    public string RecoverySummary => $"{Backups.Length} {(Backups.Length == 1 ? "Backup" : "Backups")} · " +
-        $"{BackupGameCount} {(BackupGameCount == 1 ? "Spiel" : "Spiele")}";
+    public string RecoverySummary =>
+        (Backups.Length == 1 ? GetText("Recovery.OneBackup") : GetText("Recovery.Backups", Backups.Length)) + " · " +
+        (BackupGameCount == 1 ? GetText("BatchUpdate.Game") : GetText("BatchUpdate.Games", BackupGameCount));
     public bool HasVisibleBackups => BackupGames.Length > 0;
-    public string BackupEmptyMessage => Backups.Length == 0 ? "Keine Original-Backups vorhanden." : "Keine Backups zur Suche gefunden.";
+    public string BackupEmptyMessage => Backups.Length == 0 ? GetText("Recovery.NoOriginalBackupsAvailable") : GetText("Recovery.NoBackupsMatchTheSearch");
     private int BackupGameCount { get; set; }
 
     public string BackupQuery
@@ -120,11 +119,11 @@ public sealed partial class LibraryViewModel
 
     private Task DeleteBackupAsync(BackupRow row) => RunAsync(async token =>
     {
-        if (!Confirm("Backup-Datei endgültig löschen", $"{row.Target}.bak\n\nDieses Original-Backup endgültig löschen?")) return;
+        if (!Confirm(GetText("Recovery.PermanentlyDeleteBackupFile"), GetText("Recovery.BakPermanentlyDeleteThisOriginalBackup", row.Target))) return;
         var installation = InstallationFor(row.Game);
         await Task.Run(() => CreateTransactions().DeleteOriginalBackup(installation,
             Path.GetRelativePath(installation.Root, row.Target), row.Dll.BackupSize, row.Dll.BackupDate, token), token);
         await RefreshGameInventoryAsync(row.Game, installation.Executables[0]);
-        Toast = Status = $"{row.File} wurde gelöscht.";
+        Toast = Status = Message("Recovery.Deleted", row.File);
     });
 }

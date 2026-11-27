@@ -142,20 +142,20 @@
                     </Border>
                     <TextBlock Grid.Column="1" Text="{Binding File}" ToolTip="{Binding Target}" TextTrimming="CharacterEllipsis"
                                FontFamily="Cascadia Mono, Consolas" Foreground="#F1F5F9" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" Text="{Binding Size}" HorizontalAlignment="Right" VerticalAlignment="Center"
-                               ToolTip="Backup-Größe" Foreground="#CBD5E1" Typography.NumeralAlignment="Tabular"/>
-                    <TextBlock Grid.Column="3" Text="{Binding Saved}" HorizontalAlignment="Right" VerticalAlignment="Center"
-                               ToolTip="Gesichert am" Foreground="#94A3B8" Margin="0,0,22,0" Typography.NumeralAlignment="Tabular"/>
+                    <TextBlock Grid.Column="2" Text="{local:Loc Path=Size}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                               ToolTip="{local:Loc Recovery.BackupSize}" Foreground="#CBD5E1" Typography.NumeralAlignment="Tabular"/>
+                    <TextBlock Grid.Column="3" Text="{local:Loc Path=Saved}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                               ToolTip="{local:Loc Recovery.BackedUpOn}" Foreground="#94A3B8" Margin="0,0,22,0" Typography.NumeralAlignment="Tabular"/>
                     <StackPanel Grid.Column="4" Orientation="Horizontal">
                         <Button Style="{StaticResource RestoreAction}" CommandParameter="{Binding}"
                                 Command="{Binding DataContext.RestoreFile, RelativeSource={RelativeSource AncestorType=local:RecoveryView}}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE7A7;" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <TextBlock Text="Wiederherstellen"/>
+                                <TextBlock Text="{local:Loc Recovery.Restore}"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource DeleteBackupAction}" Margin="6,0,0,0"
-                                ToolTip="Backup-Datei endgültig löschen" AutomationProperties.Name="Backup-Datei endgültig löschen"
+                                ToolTip="{local:Loc Recovery.PermanentlyDeleteBackupFile}" AutomationProperties.Name="{local:Loc Recovery.PermanentlyDeleteBackupFile}"
                                 CommandParameter="{Binding}"
                                 Command="{Binding DataContext.DeleteBackup, RelativeSource={RelativeSource AncestorType=local:RecoveryView}}">
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;"/>
@@ -179,14 +179,14 @@
                     <Button Style="{StaticResource RestoreAllAction}" MinHeight="34" Command="{Binding RestoreAllGames}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE7A7;" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                            <TextBlock Text="Alle Backups wiederherstellen"/>
+                            <TextBlock Text="{local:Loc Recovery.RestoreAllBackups}"/>
                         </StackPanel>
                     </Button>
-                    <Button Content="Alle aktualisieren" Command="{Binding BatchUpdate}" Margin="12,0,8,0"/>
-                    <Button Content="+ Spiel" Command="{Binding AddGame}" Style="{StaticResource Secondary}" Margin="0"/>
+                    <Button Content="{local:Loc Updates.UpdateAll}" Command="{Binding BatchUpdate}" Margin="12,0,8,0"/>
+                    <Button Content="{local:Loc Workspace.Game}" Command="{Binding AddGame}" Style="{StaticResource Secondary}" Margin="0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Wiederherstellung" Style="{StaticResource PageHeading}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{local:Loc Recovery.Title}" Style="{StaticResource PageHeading}" VerticalAlignment="Center"/>
                     <Border Style="{StaticResource RecoveryPill}" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="{Binding RecoverySummary}"/>
                     </Border>
@@ -196,8 +196,8 @@
         <DockPanel Grid.Row="1" Margin="0,12,0,12" LastChildFill="False">
             <Grid DockPanel.Dock="Right" Width="240" Height="34">
                 <TextBox x:Name="BackupSearchBox" Text="{Binding BackupQuery, UpdateSourceTrigger=PropertyChanged}"
-                         VerticalContentAlignment="Center" Padding="10,0" AutomationProperties.Name="Spiel oder DLL suchen"/>
-                <TextBlock Text="Spiel oder DLL suchen..." Foreground="#94A3B8" IsHitTestVisible="False"
+                         VerticalContentAlignment="Center" Padding="10,0" AutomationProperties.Name="{local:Loc Recovery.SearchByGameOrDLL}"/>
+                <TextBlock Text="{local:Loc Recovery.SearchByGameOrDLL2}" Foreground="#94A3B8" IsHitTestVisible="False"
                            Margin="11,0" VerticalAlignment="Center">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -213,12 +213,12 @@
             </Grid>
             <Border DockPanel.Dock="Left" Background="#0AFFFFFF" BorderBrush="#1AFFFFFF" BorderThickness="1" CornerRadius="8" Padding="4">
                 <ListBox SelectedIndex="{Binding BackupMode, Mode=TwoWay}" ItemContainerStyle="{StaticResource RecoveryModeItem}"
-                         Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Wiederherstellungsmodus">
+                         Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="{local:Loc Recovery.RecoveryMode}">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
-                    <ListBoxItem Content="DLL wiederherstellen" Style="{StaticResource RecoveryModeItem}"/>
-                    <ListBoxItem Content="Spiel wiederherstellen" Style="{StaticResource RecoveryModeItem}"/>
+                    <ListBoxItem Content="{local:Loc Recovery.RestoreDLL}" Style="{StaticResource RecoveryModeItem}"/>
+                    <ListBoxItem Content="{local:Loc Recovery.RestoreGame}" Style="{StaticResource RecoveryModeItem}"/>
                 </ListBox>
             </Border>
         </DockPanel>
@@ -259,16 +259,27 @@
                                                 <TextBlock DockPanel.Dock="Left" Text="{Binding Root.Title}" FontSize="14" FontWeight="SemiBold"
                                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding Root.Title}" VerticalAlignment="Center"/>
                                                 <Border DockPanel.Dock="Left" Style="{StaticResource RecoveryPill}" Margin="9,0,0,0">
-                                                    <TextBlock Text="{Binding CountLabel}"/>
+                                                    <TextBlock>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="{local:Loc Recovery.Backups, Path=Count}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Count}" Value="1">
+                                                                        <Setter Property="Text" Value="{local:Loc Recovery.OneBackup}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
                                                 </Border>
                                             </DockPanel>
                                             <TextBlock Text="{Binding ShortPath}" ToolTip="{Binding Root.Path}" Foreground="#94A3B8"
                                                        FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                                         </StackPanel>
                                     </ToggleButton>
-                                    <Button Grid.Column="1" Content="Spiel wiederherstellen" Style="{StaticResource RestoreAction}"
+                                    <Button Grid.Column="1" Content="{local:Loc Recovery.RestoreGame}" Style="{StaticResource RestoreAction}"
                                             VerticalAlignment="Center" Margin="12,0,0,0" CommandParameter="{Binding}"
-                                            ToolTip="Alle Original-DLLs dieses Spiels wiederherstellen"
+                                            ToolTip="{local:Loc Recovery.RestoreAllOriginalDLLsForThisGame}"
                                             Command="{Binding DataContext.RestoreGame, RelativeSource={RelativeSource AncestorType=local:RecoveryView}}"/>
                                 </Grid>
                                 <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource BackupRowTemplate}"
@@ -293,8 +304,8 @@
             <StackPanel>
                 <DockPanel Margin="14,10">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Button Content="Journale aktualisieren" Style="{StaticResource RecoveryAction}" Command="{Binding RefreshRecovery}"/>
-                        <Button Content="Auswahl wiederherstellen" Style="{StaticResource Primary}" MinHeight="30" Margin="8,0,0,0"
+                        <Button Content="{local:Loc Recovery.RefreshJournals}" Style="{StaticResource RecoveryAction}" Command="{Binding RefreshRecovery}"/>
+                        <Button Content="{local:Loc Recovery.RestoreSelection}" Style="{StaticResource Primary}" MinHeight="30" Margin="8,0,0,0"
                                 Command="{Binding RollbackPending}" Visibility="{Binding HasPendingJournals, Converter={StaticResource ShowWhenTrue}}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -313,7 +324,7 @@
                             </TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="{Binding PendingJournalHeading}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <TextBlock Text="Keine offenen Datei-Operationen vorhanden." Foreground="#94A3B8" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{local:Loc Recovery.NoPendingFileOperations}" Foreground="#94A3B8" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
@@ -327,11 +338,11 @@
                 <ListBox ItemsSource="{Binding PendingJournals}" SelectedItem="{Binding SelectedJournal}" MaxHeight="170"
                          Visibility="{Binding HasPendingJournals, Converter={StaticResource ShowWhenTrue}}"
                          Background="Transparent" BorderThickness="0" Padding="0,0,0,4" ItemContainerStyle="{StaticResource JournalRow}"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="Ausstehende Transaktionen">
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="{local:Loc Recovery.PendingTransactions}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding Armed, StringFormat={}{0} Dateischritte}"
+                                <TextBlock DockPanel.Dock="Right" Text="{local:Loc Common.FileOperations, Path=Armed}"
                                            Foreground="#CBD5E1" Margin="12,0,0,0" VerticalAlignment="Center"/>
                                 <StackPanel>
                                     <TextBlock Text="{Binding Root}" ToolTip="{Binding Root}" TextTrimming="CharacterEllipsis" FontWeight="SemiBold"/>

@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -35,7 +36,7 @@ public sealed partial class LibraryViewModel
         SaveAutoUpdateInterval = new Command(() => RunAsync(async token =>
         {
             if (!int.TryParse(AutoUpdateIntervalText, out var minutes) || minutes is < 1 or > 1440)
-                throw new ArgumentException("Das Prüfintervall muss zwischen 1 und 1440 Minuten liegen.");
+                throw new ArgumentException(GetText("AutoUpdates.EnterACheckIntervalBetweenAndMinutes"));
             await SaveSettingsAsync(settings with { AutoUpdateIntervalMinutes = minutes }, token);
             AutoUpdateIntervalText = minutes.ToString();
             nextAutoUpdate = DateTimeOffset.UtcNow.AddMinutes(minutes);
@@ -97,9 +98,9 @@ public sealed partial class LibraryViewModel
 
             if (result.Updated > 0) RefreshModCockpit(force: true);
             if (result.Errors.Count > 0) Notes = [.. Notes, .. result.Errors];
-            var summary = result.Updated == 0 ? "Keine Updates angewendet." : $"{result.Updated} Updates angewendet.";
-            if (result.Deferred > 0) summary += $" {result.Deferred} wegen laufender Spiele verschoben.";
-            if (result.Errors.Count > 0) summary += $" {result.Errors.Count} Hinweise unter „Hinweise und Messwerte“.";
+            var summary = result.Updated == 0 ? Message("AutoUpdates.NoUpdatesApplied") : Message("AutoUpdates.UpdatesApplied", result.Updated);
+            if (result.Deferred > 0) summary += Message("Updates.DeferredGames", result.Deferred);
+            if (result.Errors.Count > 0) summary += Message("AutoUpdates.MessagesUnderNotesAndDiagnostics", result.Errors.Count);
             Status = summary;
             if (reportStatus || result.Updated > 0 || result.Deferred > 0 || result.Errors.Count > 0)
                 Toast = summary;
@@ -108,7 +109,7 @@ public sealed partial class LibraryViewModel
 
     private async Task UpdateNativeDllsAsync(LibraryRow[] rows, AutoUpdateResult result, CancellationToken token)
     {
-        Status = "DLL-Katalog wird auf neue Versionen geprüft …";
+        Status = Message("AutoUpdates.CheckingTheDLLCatalogForUpdates");
         var release = await Task.Run(() => catalog.RefreshAsync(token), token);
         await LoadCatalogAsync(release.Entries, token);
         if (release.Notice is { } notice) result.Errors.Add(notice);
@@ -139,7 +140,7 @@ public sealed partial class LibraryViewModel
     {
         var sm86 = mod == IniMod.Sm86;
         var label = sm86 ? "SM86" : "OptiScaler";
-        Status = $"{label} · Installationen werden geprüft …";
+        Status = Message("AutoUpdates.CheckingInstallations", label);
         var opti = new OptiScalerService(CreateTransactions(), IniProfiles());
         var sm86History = ManagedMods();
         var optiPackages = OptiPackages;
@@ -199,7 +200,7 @@ public sealed partial class LibraryViewModel
             });
         if (ready.Count == 0) return;
 
-        Status = $"{label} {release.Tag} · Update wird geladen …";
+        Status = Message("AutoUpdates.DownloadingUpdate", label, release.Tag);
         var unlockerPackage = sm86 ? await UnlockerDownloads().GetLatestAsync(token) : null;
         var optiPackage = sm86 ? null : await GetOptiReleaseAsync(token);
         var tagToInstall = unlockerPackage?.Tag ?? (optiPackage is null ? null : OptiScalerService.PackageReleaseTag(optiPackage));
@@ -261,6 +262,6 @@ public sealed partial class LibraryViewModel
     {
         public int Updated { get; set; }
         public int Deferred { get; set; }
-        public List<string> Errors { get; } = [];
+        public List<LocalizedText> Errors { get; } = [];
     }
 }

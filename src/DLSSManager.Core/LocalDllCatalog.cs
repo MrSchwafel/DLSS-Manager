@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Reflection.PortableExecutable;
 
 namespace DLSSManager.Core;
@@ -10,7 +11,7 @@ public sealed class LocalDllCatalog(string directory)
     {
         var name = Path.GetFileName(source);
         var kind = DllDetectionService.UpscalerKind(name)
-            ?? throw new IOException($"Unbekannte DLL: {name}");
+            ?? throw new IOException(GetText("LocalDllCatalog.UnknownDLL", name));
         var metadata = Inspect(source, token);
         var root = SafePaths.Root(directory);
         Directory.CreateDirectory(root);
@@ -18,7 +19,7 @@ public sealed class LocalDllCatalog(string directory)
         if (File.Exists(target))
         {
             if (DurableFiles.Hash(target, token) != metadata.Sha256)
-                throw new IOException("Die lokale Katalogdatei ist beschädigt.");
+                throw new IOException(GetText("LocalDllCatalog.TheLocalCatalogFileIsCorrupt"));
         }
         else
         {
@@ -27,7 +28,7 @@ public sealed class LocalDllCatalog(string directory)
             {
                 DurableFiles.Copy(source, staged, token);
                 if (DurableFiles.Hash(staged, token) != metadata.Sha256)
-                    throw new IOException("Die DLL wurde während des Imports verändert.");
+                    throw new IOException(GetText("LocalDllCatalog.TheDLLChangedDuringImport"));
                 File.Move(staged, target);
             }
             finally { File.Delete(staged); }
@@ -64,7 +65,7 @@ public sealed class LocalDllCatalog(string directory)
     {
         var metadata = DllDetectionService.Inspect(path, token);
         if (!metadata.IsDll || metadata.Machine != Machine.Amd64)
-            throw new IOException("Nur x64-PE-DLLs können importiert werden.");
+            throw new IOException(GetText("LocalDllCatalog.OnlyX64PEDLLsCanBeImported"));
         return metadata;
     }
 

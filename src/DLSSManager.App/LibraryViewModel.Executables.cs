@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -17,7 +18,7 @@ public sealed partial class LibraryViewModel
     private ExecutableChoice? executableChoice;
     public ExecutableChoice[] ExecutableChoices { get; private set; } = [];
     public string CurrentExecutableName => SelectedLibraryGame?.Executable is { Length: > 0 } path
-        ? Path.GetFileName(path) : "Keine EXE ausgewählt";
+        ? Path.GetFileName(path) : GetText("Executables.NoExecutableSelected");
     public bool HasExecutableChoices => ExecutableChoices.Length > 0;
     public ExecutableChoice? SelectedExecutableChoice
     {
@@ -38,7 +39,7 @@ public sealed partial class LibraryViewModel
         {
             var game = SelectedLibraryGame!;
             var root = SafePaths.Root(game.Path);
-            var picker = new OpenFileDialog { Title = "Spiel-EXE auswählen", InitialDirectory = root, Filter = "Programme|*.exe" };
+            var picker = new OpenFileDialog { Title = GetText("Library.SelectExecutable"), InitialDirectory = root, Filter = GetText("GameEntry.ProgramsExe") };
             if (picker.ShowDialog(Application.Current.MainWindow) == true)
                 await SaveExecutableAsync(game, picker.FileName, token);
         }), HasGame);
@@ -63,10 +64,10 @@ public sealed partial class LibraryViewModel
         var root = SafePaths.Root(game.Path);
         var path = SafePaths.Child(root, Path.GetRelativePath(root, executable));
         if (!path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || !File.Exists(path))
-            throw new IOException("Wähle eine vorhandene EXE im Installationsordner.");
+            throw new IOException(GetText("Executables.ChooseAnExistingExecutableInsideTheInstallation"));
         if (allGames.Any(row => row.Id != game.Id && SamePath(row.Path, root) && SamePath(row.Executable, path)))
-            throw new IOException("Diese Spiel-EXE ist bereits einem anderen Bibliothekseintrag zugeordnet.");
+            throw new IOException(GetText("Executables.ThisExecutableIsAlreadyAssignedToAnother"));
         await SaveGamesAsync(allGames.Select(row => row.Id == game.Id ? row with { Executable = path } : row).ToArray(), token);
-        Toast = Status = $"Spiel-EXE gespeichert: {Path.GetFileName(path)}";
+        Toast = Status = Message("Executables.SavedGameExecutable", Path.GetFileName(path));
     }
 }

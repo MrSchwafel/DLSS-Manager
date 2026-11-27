@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -11,7 +12,10 @@ using Microsoft.Win32;
 
 namespace DLSSManager.App;
 
-public sealed record PresetChoice(string Label, uint Value);
+public sealed record PresetChoice(string LabelKey, uint Value)
+{
+    public string Label => GetText(LabelKey);
+}
 
 public sealed class InspectorDll(LibraryViewModel model, ScanGame game, DllFinding dll, DllCatalogEntry[] versions)
 {
@@ -26,8 +30,8 @@ public sealed class InspectorDll(LibraryViewModel model, ScanGame game, DllFindi
         folders.Zip(folders.Skip(1)).Any(pair =>
             pair.First.Equals("Binaries", StringComparison.OrdinalIgnoreCase) &&
             pair.Second.Equals("Win64", StringComparison.OrdinalIgnoreCase));
-    public string FolderLabel => folders.Length == 0 ? "Spielordner" : "\\" + string.Join("\\", folders);
-    public string Security => dll.Metadata?.OfficialSignature == true ? "Offizielle Signatur" : "Unsigniert oder nicht verifiziert";
+    public string FolderLabelKey => folders.Length == 0 ? "Library.GameFolder" : "\\" + string.Join("\\", folders);
+    public string SecurityLabelKey => dll.Metadata?.OfficialSignature == true ? "Workspace.OfficialSignature" : "Workspace.UnsignedOrUnverified";
     public string SecurityIcon => dll.Metadata?.OfficialSignature == true ? "\uEA18" : "\uE7BA";
     public string SecurityColor => dll.Metadata?.OfficialSignature == true ? "#A6D962" : "#F7C56C";
     public DllFinding File => dll;
@@ -51,28 +55,24 @@ public sealed partial class LibraryViewModel
     private readonly Dictionary<string, ScanGame> inventories = new(StringComparer.OrdinalIgnoreCase);
     private ManagerSettings settings = new([]);
     private DllCatalogEntry[] onlineCatalog = [];
-    private string libraryFilter = "Alle Spiele";
+    private string libraryFilter = "All";
     private LibraryFilterCounts filterCounts = new(0, 0, 0, 0, 0, 0);
     private DateTime? lastScan;
-    private string[] activity = [];
-    private string toast = "";
+    private LocalizedText[] activity = [];
+    private LocalizedText toast = "";
     private string toastKind = "Success";
-    private string toastActionLabel = "";
+    private LocalizedText toastActionLabel = "";
     private Func<Task>? toastAction;
-    private string gpu = "Grafikkarte wird ermittelt …";
+    private LocalizedText gpu = Message("Workspace.DetectingGraphicsCard");
     private DllCatalogEntry? selectedOptiPackage;
     private bool overlay;
-    private string presetStatus = "NVIDIA-Anwendungsprofil lesen";
+    private LocalizedText presetStatus = Message("Workspace.ReadNVIDIAApplicationProfile");
     private bool isPathCopied;
     private bool isExeCopied;
 
     public bool IsPathCopied { get => isPathCopied; private set => Set(ref isPathCopied, value); }
     public bool IsExeCopied { get => isExeCopied; private set => Set(ref isExeCopied, value); }
 
-    public string[] LibraryFilters { get; } =
-        ["Alle Spiele", "Mit DLSS", "Mit FrameGen", "DLL geändert", "FG & MFG Unlocker", "OptiScaler",
-            "Update verfügbar", "Modifiziert", "Nur DLSS SR", "Ausgeschlossen",
-            "Steam", "Epic", "Ubisoft", "GOG", "Xbox", "Lokal"];
     public string LibraryFilter
     {
         get => libraryFilter;
@@ -85,13 +85,13 @@ public sealed partial class LibraryViewModel
         private set => Set(ref filterCounts, value);
     }
     public bool ShowEmptyLibraryFilter => Games.Length == 0 &&
-        (LibraryFilter != LibraryFilters[0] || !string.IsNullOrWhiteSpace(LibraryQuery) ||
+        (LibraryFilter != LibraryFilterOptions[0].Code || !string.IsNullOrWhiteSpace(LibraryQuery) ||
             SelectedFeature?.Feature is not (null or RtxFeature.None));
     public ICommand ResetLibraryFilters { get; }
 
     private void ResetLibraryFilter()
     {
-        Set(ref libraryFilter, LibraryFilters[0], nameof(LibraryFilter));
+        Set(ref libraryFilter, LibraryFilterOptions[0].Code, nameof(LibraryFilter));
         Set(ref libraryQuery, "", nameof(LibraryQuery));
         Set(ref selectedFeature, FeatureFilters[0], nameof(SelectedFeature));
         FilterLibrary();
@@ -100,18 +100,18 @@ public sealed partial class LibraryViewModel
     public string AppVersion => "v" + typeof(LibraryViewModel).Assembly
         .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
         .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().Single().InformationalVersion.Split('+')[0];
-    public string LibraryStorageSummary => $"{Backups.Length} gesicherte DLLs · Letzter Scan: {lastScan?.ToString("g") ?? "—"}";
-    public string[] Activity { get => activity; private set => Set(ref activity, value); }
-    public string[] Logs => [.. Notes, .. Activity.Reverse()];
+    public string LibraryStorageSummary => GetText("Workspace.BackedUpDLLsLastScan", Backups.Length, lastScan?.ToString("g", Culture) ?? "—");
+    public LocalizedText[] Activity { get => activity; private set => Set(ref activity, value); }
+    public string[] Logs => [.. Notes.Concat(Activity.Reverse()).Select(message => message.Text)];
     private System.Windows.Threading.DispatcherTimer? toastTimer;
-    public string Toast
+    public LocalizedText Toast
     {
         get => toast;
         private set
         {
             toastTimer?.Stop();
             toastAction = null;
-            Set(ref toastActionLabel, "", nameof(ToastActionLabel));
+            Set(ref toastActionLabel, (LocalizedText)"", nameof(ToastActionLabel));
             Notify(nameof(HasToastAction));
             Set(ref toastKind, "Success", nameof(ToastKind));
             Set(ref toast, value);
@@ -126,7 +126,7 @@ public sealed partial class LibraryViewModel
         }
     }
     public string ToastKind { get => toastKind; private set => Set(ref toastKind, value); }
-    public string ToastActionLabel
+    public LocalizedText ToastActionLabel
     {
         get => toastActionLabel;
         private set
@@ -154,11 +154,11 @@ public sealed partial class LibraryViewModel
         toastAction = null;
         ToastActionLabel = "";
         ToastKind = "Success";
-        Set(ref toast, "", nameof(Toast));
+        Set(ref toast, (LocalizedText)"", nameof(Toast));
         CommandManager.InvalidateRequerySuggested();
     }
 
-    internal void SetPinnedToast(string message, string kind = "Active", string? actionLabel = null, Func<Task>? action = null)
+    internal void SetPinnedToast(LocalizedText message, string kind = "Active", LocalizedText? actionLabel = null, Func<Task>? action = null)
     {
         toastTimer?.Stop();
         toastAction = action;
@@ -168,7 +168,7 @@ public sealed partial class LibraryViewModel
         CommandManager.InvalidateRequerySuggested();
     }
 
-    internal void SetTimedToast(string message, string kind = "Success", int seconds = 6, string? actionLabel = null, Func<Task>? action = null)
+    internal void SetTimedToast(LocalizedText message, string kind = "Success", int seconds = 6, LocalizedText? actionLabel = null, Func<Task>? action = null)
     {
         toastTimer?.Stop();
         toastAction = action;
@@ -184,26 +184,25 @@ public sealed partial class LibraryViewModel
     }
 
     internal void ShowStatusToast() => Toast = Status;
-    public string Gpu { get => gpu; private set => Set(ref gpu, value); }
+    public LocalizedText Gpu { get => gpu; private set => Set(ref gpu, value); }
     public string DataPath => storage;
     public bool ScanLaunchersOnStartup => settings.ScanLaunchersOnStartup;
     public bool ExcludeAntiCheatGames => settings.ExcludeAntiCheatGames;
     public Task ScanOnStartupAsync() => ScanLaunchersOnStartup ? ScanAsync(null, quick: true) : Task.CompletedTask;
     private bool CanAddScanGame(ScanGame game) => !ExcludeAntiCheatGames || game.AntiCheat is not { Length: > 0 };
-    public string ScanPaths => settings.ScanFolders.Length == 0 ? "Keine zusätzlichen Ordner" : string.Join(Environment.NewLine, settings.ScanFolders);
+    public string ScanPaths => settings.ScanFolders.Length == 0 ? GetText("Workspace.NoAdditionalFolders") : string.Join(Environment.NewLine, settings.ScanFolders);
     public string BatchTargets => settings.BatchTargets is { Length: > 0 } targets ?
-        string.Join("  ·  ", targets.Select(t => $"{t.Kind} {t.Version}")) : "Neueste Online-Version je DLL-Typ";
-    public string[] ProxyChoices { get; } = ["Keine", "version.dll", "winmm.dll", "dxgi.dll"];
-    public string DefaultProxy { get; set; } = "Keine";
+        string.Join("  ·  ", targets.Select(t => $"{t.Kind} {t.Version}")) : GetText("Workspace.LatestOnlineVersionPerDLLType");
+    public string DefaultProxy { get; set; } = "";
     public string? AntiCheatNotice => SelectedLibraryGame?.Inventory?.AntiCheat is { Length: > 0 } names ?
-        $"Anti-Cheat erkannt ({string.Join(", ", names)}). Dateiänderungen aus dem Cockpit erfordern eine Sicherheitsabfrage." : null;
+        GetText("Workspace.AntiCheatDetectedChangingFilesFromThe", string.Join(", ", names)) : null;
     public bool OptiInstalled => optiInstalledProxy is not null ||
         SelectedLibraryGame is { } row && managedOpti.Contains(row.Path);
-    public string OptiStatus => OptiInstalled ? optiInstalledProxy is { } proxy ? $"Installiert · {proxy}" : "Installiert" :
-        SelectedLibraryGame?.Inventory?.OptiScalerPresent == true ? "OptiScaler-Dateien erkannt" : "Nicht installiert";
+    public string OptiStatus => OptiInstalled ? optiInstalledProxy is { } proxy ? GetText("Workspace.Installed", proxy) : GetText("Drivers.Installed") :
+        SelectedLibraryGame?.Inventory?.OptiScalerPresent == true ? GetText("Workspace.OptiScalerFilesDetected") : GetText("Cockpit.NotInstalled");
     public bool OptiHasFiles => OptiInstalled || SelectedLibraryGame?.Inventory?.OptiScalerPresent == true;
-    public string OptiBadge => OptiInstalled ? "Installiert" : OptiHasFiles ? "Erkannt" : "Fehlt";
-    public string OptiInstallLabel => OptiHasFiles ? "Neu installieren" : "Installieren";
+    public string OptiBadge => OptiInstalled ? GetText("Drivers.Installed") : OptiHasFiles ? GetText("Cockpit.Detected") : GetText("Cockpit.Missing");
+    public string OptiInstallLabel => OptiHasFiles ? GetText("Cockpit.Reinstall") : GetText("Cockpit.Install");
 
     private void NotifyOptiCard()
     {
@@ -215,10 +214,10 @@ public sealed partial class LibraryViewModel
     }
 
     public bool OverlayEnabled { get => overlay; private set { Set(ref overlay, value); Notify(nameof(OverlayStatus)); } }
-    public string OverlayStatus => OverlayEnabled ? "AN" : "AUS";
-    public PresetChoice[] Presets { get; } = [new("Profilvorgabe", 0),
+    public string OverlayStatus => OverlayEnabled ? GetText("Workspace.ON") : GetText("Workspace.OFF");
+    public PresetChoice[] Presets { get; } = [new("Workspace.ProfileDefault", 0),
         .. Enumerable.Range(1, 15).Select(n => new PresetChoice(n is >= 10 ? $"{(char)('A' + n - 1)} · Transformer" :
-            $"{(char)('A' + n - 1)}", (uint)n)), new("Neuester Treiber-Preset", 0x00ffffff)];
+            $"{(char)('A' + n - 1)}", (uint)n)), new("Workspace.LatestDriverPreset", 0x00ffffff)];
     private PresetChoice? gamePreset;
     public PresetChoice? GamePreset
     {
@@ -230,18 +229,28 @@ public sealed partial class LibraryViewModel
             CommandManager.InvalidateRequerySuggested();
         }
     }
-    public string PresetStatus { get => presetStatus; private set => Set(ref presetStatus, value); }
+    public LocalizedText PresetStatus { get => presetStatus; private set => Set(ref presetStatus, value); }
     public bool GameOverlay => SelectedLibraryGame?.Overlay == true;
     public bool HasInventory => SelectedLibraryGame?.Inventory is not null;
-    public string InventoryCount => InspectorDlls.Length == 1 ? "1 Datei erkannt" : $"{InspectorDlls.Length} Dateien erkannt";
-    public string? InventoryStatus => !HasInventory ? "DLLs scannen, um installierte Versionen zu erfassen." :
-        InspectorDlls.Length == 0 ? "Keine unterstützten Upscaling-DLLs gefunden." :
-        CatalogEntries.Length == 0 ? "Zielversionen im DLL-Katalog laden." : null;
+    public string InventoryCount => InspectorDlls.Length == 1 ? GetText("Workspace.FileDetected") : GetText("Workspace.FilesDetected", InspectorDlls.Length);
+    public string? InventoryStatus => !HasInventory ? GetText("Workspace.ScanDLLsToDetectInstalledVersions") :
+        InspectorDlls.Length == 0 ? GetText("Workspace.NoSupportedUpscalingDLLsFound") :
+        CatalogEntries.Length == 0 ? GetText("Workspace.LoadTargetVersionsInTheDLLCatalog") : null;
     public bool HasBatchTargets => settings.BatchTargets is { Length: > 0 };
     public InspectorDll[] InspectorDlls { get; private set; } = [];
     public bool HasInspectorDlls => InspectorDlls.Length > 0;
     public DllCatalogEntry[] OptiPackages => CatalogEntries.Where(c => c.Kind == "OptiScaler").ToArray();
-    public DllCatalogEntry? SelectedOptiPackage { get => selectedOptiPackage; set => Set(ref selectedOptiPackage, value); }
+    public DllCatalogEntry? SelectedOptiPackage
+    {
+        get => selectedOptiPackage;
+        set
+        {
+            Set(ref selectedOptiPackage, value);
+            Notify(nameof(SelectedOptiPackageLabel));
+        }
+    }
+    public string? SelectedOptiPackageLabel => SelectedOptiPackage is { } package
+        ? $"{package.Version} · {GetText(package.SourceLabelKey)}" : null;
 
     public ICommand ToggleStartupScan { get; private set; } = null!;
     public ICommand ToggleAntiCheatFilter { get; private set; } = null!;
@@ -293,7 +302,7 @@ public sealed partial class LibraryViewModel
         InitializeRecoveryCommands();
         RestoreLibraryGame = new Command(() => ExecuteRestore(Backups.Where(b => SamePath(b.Game.Root.Path, SelectedLibraryGame!.Path)).ToArray()),
             () => HasGame() && SelectedLibraryGame!.HasBackup);
-        SaveDefaults = new Command(() => RunAsync(t => SaveSettingsAsync(settings with { DefaultProxy = ProxyValue(DefaultProxy) }, t)), () => !IsBusy);
+        SaveDefaults = new Command(() => RunAsync(t => SaveSettingsAsync(settings with { DefaultProxy = DefaultProxy }, t)), () => !IsBusy);
         EditScanPaths = new Command(() => RunAsync(EditScanPathsAsync), () => !IsBusy);
         ClearScanPaths = new Command(() => RunAsync(t => SaveSettingsAsync(settings with { ScanFolders = [] }, t)),
             () => !IsBusy && settings.ScanFolders.Length > 0);
@@ -344,25 +353,25 @@ public sealed partial class LibraryViewModel
         var value = await Task.Run(() => NvidiaProfiles.Read(ProfileExecutable(game)), token);
         if (SelectedLibraryGame?.Id != game.Id) return;
         GamePreset = Presets.FirstOrDefault(p => p.Value == value);
-        PresetStatus = value is null ? "Kein NVIDIA-Profil für diese EXE gefunden." :
-            $"Treiberprofil: {GamePreset?.Label ?? value.ToString()}";
+        PresetStatus = value is null ? Message("Workspace.NoNVIDIAProfileWasFoundForThis") :
+            Message("Workspace.DriverProfile", GamePreset is { } preset ? Message(preset.LabelKey) : value);
     }
 
     private async Task SavePresetAsync(CancellationToken token)
     {
         var game = SelectedLibraryGame!;
         var preset = GamePreset!;
-        if (!Confirm("NVIDIA-Anwendungsprofil ändern", $"{game.Title}\n{game.Executable}\nDLSS SR: {preset.Label}")) return;
+        if (!Confirm(GetText("Workspace.ChangeNVIDIAApplicationProfile"), $"{game.Title}\n{game.Executable}\nDLSS SR: {preset.Label}")) return;
         await Task.Run(() => NvidiaProfiles.Write(ProfileExecutable(game), preset.Value), token);
         if (SelectedLibraryGame?.Id == game.Id) await ReadPresetAsync(CancellationToken.None);
-        Toast = Status = "DLSS-Preset im NVIDIA-Profil gespeichert.";
+        Toast = Status = Message("Workspace.SavedDLSSPresetInTheNVIDIAProfile");
     }
 
     private static string ProfileExecutable(LibraryRow game)
     {
         var executable = SafePaths.Child(SafePaths.Root(game.Path), Path.GetRelativePath(game.Path, game.Executable));
         if (!File.Exists(executable) || !executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-            throw new IOException("Spiel-EXE für das Treiberprofil prüfen.");
+            throw new IOException(GetText("Workspace.CheckTheGameExecutableForTheDriver"));
         return executable;
     }
     public void OpenScanDetails()
@@ -372,8 +381,6 @@ public sealed partial class LibraryViewModel
         SelectedFinding = game;
         SelectedTab = 3;
     }
-    private static string ProxyValue(string choice) => choice == "Keine" ? "" : choice;
-    private static string ProxyLabel(string? proxy) => string.IsNullOrWhiteSpace(proxy) ? "Keine" : proxy;
 
     private ICommand CreateCopyCommand(Func<LibraryRow, string> getPath, Action<bool> setCopied)
     {
@@ -386,12 +393,12 @@ public sealed partial class LibraryViewModel
                 try
                 {
                     Clipboard.SetText(getPath(SelectedLibraryGame!));
-                    Status = "Pfad kopiert.";
+                    Status = Message("Workspace.PathCopied");
                     copied = true;
                 }
                 catch (ExternalException e)
                 {
-                    Status = $"Pfad konnte nicht kopiert werden: {e.Message}";
+                    Status = Message("Workspace.CouldNotCopyPath", e.Message);
                 }
                 return Task.CompletedTask;
             });
@@ -411,12 +418,15 @@ public sealed partial class LibraryViewModel
             await Task.Run(() => DataFolders.Initialize(storage), token);
             await LoadCachedUnlockerAsync(token);
             settings = await Task.Run(library.ReadSettings, token);
+            languageSettingsReady = true;
+            Notify(nameof(LanguagePreference));
+            Notify(nameof(CanChangeLanguage));
             driverTooltipSettingsReady = true;
             Notify(nameof(DriverPreviewStyle));
             Notify(nameof(CanChooseDriverTooltipStyle));
             lastScan = settings.LastScan;
             Notify(nameof(LastScanLabel));
-            DefaultProxy = ProxyLabel(settings.DefaultProxy);
+            DefaultProxy = string.IsNullOrWhiteSpace(settings.DefaultProxy) ? "" : settings.DefaultProxy;
             Notify(nameof(DefaultProxy));
             Notify(nameof(ScanPaths));
             Notify(nameof(ScanLaunchersOnStartup));
@@ -459,10 +469,10 @@ public sealed partial class LibraryViewModel
             await RefreshDriverCacheSizeAsync();
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        { Notes = [.. Notes, $"Treiber-Cache: {e.Message}"]; }
+        { Notes = [.. Notes, Message("Workspace.DriverCache", e.Message)]; }
         try { OverlayEnabled = await Task.Run(ReadOverlay, token); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-        { Notes = [.. Notes, $"DLSS-Indikator: {e.Message}"]; }
+        { Notes = [.. Notes, Message("Workspace.DLSSIndicator", e.Message)]; }
     }
 
     private async Task RefreshDetectedGpuAsync(CancellationToken token)
@@ -473,13 +483,13 @@ public sealed partial class LibraryViewModel
             var version = gpu.Name?.Contains("GeForce", StringComparison.OrdinalIgnoreCase) == true
                 ? NvidiaDriverLookup.GeForceVersion(gpu.Driver) : null;
             detectedGeForce = version is null ? null : (gpu.Name!, version);
-            Gpu = gpu.Name is null ? "GPU nicht erkannt" : $"{gpu.Name}\nWindows {gpu.Driver}" +
+            Gpu = gpu.Name is null ? Message("Workspace.NoGPUDetected") : $"{gpu.Name}\nWindows {gpu.Driver}" +
                 (version is null ? "" : $" · GeForce {NvidiaDriverLookup.Display(version)}");
             drsStatus = await Task.Run(NvidiaProfiles.AccessStatus, token);
             Notify(nameof(DrsStatus));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-        { Gpu = "GPU-Daten nicht verfügbar"; Notes = [.. Notes, e.Message]; }
+        { Gpu = Message("Workspace.GPUDataUnavailable"); Notes = [.. Notes, e.Message]; }
     }
 
     private static (string? Name, string Driver) ReadGpu()
@@ -515,11 +525,11 @@ public sealed partial class LibraryViewModel
         await Task.Run(() =>
         {
             using var key = Registry.LocalMachine.OpenSubKey(NgxKey, writable: true)
-                ?? throw new IOException("Der NVIDIA NGXCore-Registrierungsschlüssel fehlt.");
+                ?? throw new IOException(GetText("Workspace.TheNVIDIANGXCoreRegistryKeyIsMissing"));
             key.SetValue("ShowDlssIndicator", enabled ? 1024 : 0, RegistryValueKind.DWord);
         }, token);
         OverlayEnabled = enabled;
-        Status = enabled ? "Globaler DLSS-Indikator aktiviert." : "Globaler DLSS-Indikator deaktiviert.";
+        Status = enabled ? Message("Workspace.GlobalDLSSIndicatorEnabled") : Message("Workspace.GlobalDLSSIndicatorDisabled");
     }
 
     private static Task OpenNvidiaAsync()
@@ -527,7 +537,7 @@ public sealed partial class LibraryViewModel
         var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "NVIDIA Corporation", "NVIDIA app");
         var path = new[] { Path.Combine(root, "CEF", "NVIDIA app.exe"), Path.Combine(root, "NVIDIA app.exe") }
             .FirstOrDefault(File.Exists);
-        if (path is null) throw new IOException("Die NVIDIA App wurde am Standardpfad nicht gefunden.");
+        if (path is null) throw new IOException(GetText("Workspace.TheNVIDIAAppWasNotFoundAt"));
         return OpenShell(path);
     }
 
@@ -558,12 +568,12 @@ public sealed partial class LibraryViewModel
         CommandManager.InvalidateRequerySuggested();
         Notify(nameof(CatalogRows));
         FilterLibrary();
-        Status = "Einstellungen gespeichert.";
+        Status = Message("Settings.Saved");
     }
 
     private async Task EditScanPathsAsync(CancellationToken token)
     {
-        var dialog = new OpenFolderDialog { Title = "Benutzerdefinierte Scanordner wählen", Multiselect = true };
+        var dialog = new OpenFolderDialog { Title = GetText("Workspace.ChooseCustomScanFolders"), Multiselect = true };
         if (dialog.ShowDialog(Application.Current.MainWindow) == true)
             await SaveSettingsAsync(settings with { ScanFolders = dialog.FolderNames }, token);
     }
@@ -577,7 +587,7 @@ public sealed partial class LibraryViewModel
         ResetLibraryFilter();
         SelectedLibraryGame = Games.FirstOrDefault(g => g.Id == row.Id);
         SelectedTab = 0;
-        Toast = $"{row.Title} zur Bibliothek hinzugefügt.";
+        Toast = Message("Workspace.AddedToTheLibrary", row.Title);
     }
 
     private DllDownloadService Downloader() => new(Http, Path.Combine(storage, "Katalog", "DLLs"));
@@ -608,7 +618,7 @@ public sealed partial class LibraryViewModel
 
     private async Task ImportDllAsync(CancellationToken token)
     {
-        var picker = new OpenFileDialog { Title = "Lokale Upscaling-DLL importieren", Filter = "DLL-Dateien|*.dll", Multiselect = true };
+        var picker = new OpenFileDialog { Title = GetText("Workspace.ImportLocalUpscalingDLL"), Filter = GetText("Workspace.DLLFilesDll"), Multiselect = true };
         if (picker.ShowDialog(Application.Current.MainWindow) != true) return;
         foreach (var file in picker.FileNames)
         {
@@ -617,7 +627,7 @@ public sealed partial class LibraryViewModel
         }
         await LoadCatalogAsync(onlineCatalog, token);
         Notify(nameof(OptiPackages));
-        Toast = Status = "Lokale DLLs importiert.";
+        Toast = Status = Message("Workspace.LocalDLLsImported");
     }
 
     private Task<DllCatalogEntry> GetOptiReleaseAsync(CancellationToken token) =>
@@ -626,14 +636,14 @@ public sealed partial class LibraryViewModel
 
     private async Task DownloadOptiAsync(CancellationToken token)
     {
-        Status = "OptiScaler-Release wird geladen und per SHA-256 geprüft …";
+        Status = Message("Workspace.DownloadingOptiScalerReleaseAndVerifyingSHA");
         Indeterminate = true;
         var entry = await GetOptiReleaseAsync(token);
         CatalogEntries = CatalogEntries.Where(e => e.LocalPath != entry.LocalPath).Append(entry)
             .OrderBy(e => e.Kind).ThenByDescending(e => e.Version).ToArray();
         Notify(nameof(OptiPackages));
         SelectedOptiPackage = entry;
-        Toast = Status = $"{entry.Source}: Proxy-DLL im lokalen Katalog.";
+        Toast = Status = Message("Workspace.ProxyDLLInTheLocalCatalog", Message(entry.SourceLabelKey));
     }
 
     private async Task RememberInventoriesAsync(IEnumerable<ScanGame> games)
@@ -644,14 +654,14 @@ public sealed partial class LibraryViewModel
         var snapshot = inventories.Values.ToArray();
         try { await Task.Run(() => library.SaveInventories(snapshot)); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        { Notes = [.. Notes, $"DLL-Inventar konnte nicht gespeichert werden. {e.Message}"]; }
+        { Notes = [.. Notes, Message("Workspace.CouldNotSaveTheDLLInventory", e.Message)]; }
     }
 
     private void RefreshInspector()
     {
         RefreshExecutableChoices();
         GamePreset = null;
-        PresetStatus = "NVIDIA-Anwendungsprofil lesen";
+        PresetStatus = Message("Workspace.ReadNVIDIAApplicationProfile");
         RefreshModCockpit();
         var game = SelectedLibraryGame?.Inventory;
         InspectorDlls = game is null ? [] : game.Dlls.Where(IsSupportedUpscaler)
@@ -710,10 +720,10 @@ public sealed partial class LibraryViewModel
         var updates = UpdateCandidates(game, pinnedOnly: true).ToArray();
         var rows = updates.Select(u => new BatchUpdateWindow.UpdateRow(game.Root.Title,
             $"{Path.GetRelativePath(game.Root.Path, u.Dll.Path)}  ·  {u.Dll.Version} → {u.Target.Version}")).ToArray();
-        var dialog = new BatchUpdateWindow(rows, 1, "Batch-Ziel anwenden") { Owner = Application.Current.MainWindow };
+        var dialog = new BatchUpdateWindow(rows, 1, GetText("Workspace.ApplyBatchTarget")) { Owner = Application.Current.MainWindow };
         if (dialog.ShowDialog() != true) return;
         await ApplyUpdatesAsync(game, updates, token);
-        Toast = Status = $"Gespeicherte Batch-Ziele für {game.Root.Title} angewendet.";
+        Toast = Status = Message("Workspace.AppliedSavedBatchTargetsTo", game.Root.Title);
     }
 
     internal ICommand DllCommand(ScanGame game, DllFinding dll, Func<DllCatalogEntry?> selection) =>
@@ -721,14 +731,15 @@ public sealed partial class LibraryViewModel
         {
             var target = selection()!;
             if (!ConfirmAntiCheat(game)) return;
-            if (!Confirm("DLL anwenden", $"{dll.Path}\n{dll.Version} → {target.Version}\nQuelle: {target.Source}")) return;
+            if (!Confirm(GetText("Workspace.ApplyDLL"),
+                    GetText("Workspace.ApplyDllDetails", dll.Path, dll.Version, target.Version, GetText(target.SourceLabelKey)))) return;
             await ApplyUpdatesAsync(game, [(dll, target)], token, game.AntiCheat);
-            Toast = Status = "DLL geprüft und angewendet.";
+            Toast = Status = Message("Workspace.DLLVerifiedAndApplied");
         }), () => !IsBusy && CanReplace(dll) &&
             ExecutableFor(game) is not null && selection() is not null);
 
     private static bool Confirm(string title, string message) =>
-        MessageBox.Show(Application.Current.MainWindow, message, title, MessageBoxButton.OKCancel,
+        ConfirmationDialog.Show(Application.Current.MainWindow, message, title, MessageBoxButton.OKCancel,
             MessageBoxImage.Warning, MessageBoxResult.Cancel) == MessageBoxResult.OK;
 
     private static bool IsPackageFailure(Exception error) => error is IOException or UnauthorizedAccessException or
@@ -746,10 +757,10 @@ public sealed partial class LibraryViewModel
         if (plan.Length == 0)
         {
             Toast = Status = allGames.Any(g => !g.Ignored && UpdateCandidates(g.Inventory).Any())
-                ? "Updates verfügbar. Weise den betroffenen Spielen zuerst eine Spiel-EXE zu."
+                ? Message("Workspace.UpdatesAreAvailableAssignAGameExecutable")
                 : !allGames.Any(g => !g.Ignored && g.Inventory is not null)
-                    ? "Starte zuerst einen Schnell-Scan, um die installierten DLLs zu erfassen."
-                    : "Keine neueren DLLs für die gescannten Spiele und gewählten Batch-Ziele verfügbar.";
+                    ? Message("Workspace.RunAQuickScanFirstToDetect")
+                    : Message("Workspace.NoNewerDLLsAreAvailableForThe");
             return;
         }
         var rows = plan.SelectMany(g => g.Updates.Select(u => new BatchUpdateWindow.UpdateRow(
@@ -767,21 +778,21 @@ public sealed partial class LibraryViewModel
             { failures.Add($"{item.Game.Root.Title}: {e.Message}"); }
             Percent = 100d * ++processed / plan.Length;
         }
-        Notes = [.. Notes, .. failures];
-        Toast = Status = $"{successful}/{plan.Length} Spiele aktualisiert." +
-            (failures.Count > 0 ? $" {failures.Count} fehlgeschlagen. Details unter Hinweise und Messwerte." : "");
+        Notes = [.. Notes, .. failures.Select(message => (LocalizedText)message)];
+        Toast = Status = Message("Workspace.UpdatedGames", successful, plan.Length) +
+            (failures.Count > 0 ? Message("Workspace.FailedSeeNotesAndDiagnosticsForDetails", failures.Count) : "");
     }
 
     private Installation InstallationFor(ScanGame game)
     {
-        var executable = ExecutableFor(game) ?? throw new IOException($"Spiel-EXE für {game.Root.Title} auswählen.");
+        var executable = ExecutableFor(game) ?? throw new IOException(GetText("Workspace.SelectTheGameExecutableFor", game.Root.Title));
         return new(game.Root.Path, [Path.GetRelativePath(game.Root.Path, executable)]);
     }
 
     private async Task ApplyUpdatesAsync(ScanGame game, (DllFinding Dll, DllCatalogEntry Target)[] updates, CancellationToken token, IReadOnlyCollection<string>? acknowledged = null)
     {
         var installation = InstallationFor(game);
-        Status = $"{game.Root.Title} · Downloads und Originaldateien werden geprüft …";
+        Status = Message("Workspace.VerifyingDownloadsAndOriginalFiles", game.Root.Title);
         var id = await Task.Run(async () =>
         {
             GameScanner.RequireModifiable(game.Root.Path, token, acknowledged);
@@ -797,7 +808,7 @@ public sealed partial class LibraryViewModel
         }, token);
         if (id is not null)
         {
-            Notes = [.. Notes, $"Transaktion {id} · {game.Root.Path} · Originale SHA-256-geprüft"];
+            Notes = [.. Notes, Message("Workspace.TransactionOriginalFilesVerifiedAgainstSHA", id, game.Root.Path)];
             await RefreshGameInventoryAsync(game, installation.Executables[0]);
         }
     }
@@ -805,9 +816,9 @@ public sealed partial class LibraryViewModel
     private Task ExecuteRestore(BackupRow[] backups) => RunAsync(async token =>
     {
         var message = backups.Length == 1
-            ? $"{backups[0].Target}\n\nDiese DLL aus ihrem Original-Backup wiederherstellen?"
-            : $"{backups.Length} Original-DLLs aus den zugehörigen .bak-Dateien wiederherstellen?";
-        if (!Confirm("Originale wiederherstellen", message)) return;
+            ? GetText("Workspace.RestoreThisDLLFromItsOriginalBackup", backups[0].Target)
+            : GetText("Workspace.RestoreOriginalDLLsFromTheirBakFiles", backups.Length);
+        if (!Confirm(GetText("Workspace.RestoreOriginals"), message)) return;
         var restored = 0;
         var processed = 0;
         foreach (var group in backups.GroupBy(b => b.Game.Root.Path, StringComparer.OrdinalIgnoreCase))
@@ -817,17 +828,17 @@ public sealed partial class LibraryViewModel
             try
             {
                 var installation = InstallationFor(game);
-                Status = $"{game.Root.Title} · Originale werden geprüft …";
+                Status = Message("Workspace.VerifyingOriginalFiles", game.Root.Title);
                 var id = await Task.Run(() =>
                 {
                     var files = group.Select(b => (Path.GetRelativePath(installation.Root, b.Dll.Path),
-                        b.Dll.Metadata?.Sha256 ?? throw new IOException("Aktive DLL konnte nicht gelesen werden."),
+                        b.Dll.Metadata?.Sha256 ?? throw new IOException(GetText("Workspace.CouldNotReadTheActiveDLL")),
                         DllDetectionService.Inspect(b.Dll.Path + ".bak", token).Sha256)).ToArray();
                     return new DllReplacementService(CreateTransactions()).RestoreAll(installation, files, token);
                 }, token);
                 if (id is not null)
                 {
-                    Notes = [.. Notes, $"Wiederherstellung {id} · {game.Root.Path}"];
+                    Notes = [.. Notes, Message("Workspace.Recovery", id, game.Root.Path)];
                     await RefreshGameInventoryAsync(game, installation.Executables[0]);
                 }
                 restored += group.Count();
@@ -837,7 +848,7 @@ public sealed partial class LibraryViewModel
             processed += group.Count();
             Percent = 100d * processed / backups.Length;
         }
-        Toast = Status = $"{restored}/{backups.Length} Original-DLLs wiederhergestellt oder bereits vorhanden.";
+        Toast = Status = Message("Workspace.OriginalDLLsRestoredOrAlreadyPresent", restored, backups.Length);
         await RefreshRecoveryAsync(CancellationToken.None, reportStatus: false);
     });
 
@@ -865,7 +876,7 @@ public sealed partial class LibraryViewModel
             optiInstalledProxy ?? OptiProxy, OptiProxies, optiInstalledProxy);
         if (proxy is not null) OptiProxy = proxy;
         if (!remove && proxy is null) return;
-        if (remove && !Confirm("OptiScaler entfernen", row.Title)) return;
+        if (remove && !Confirm(GetText("Workspace.RemoveOptiScaler"), row.Title)) return;
         var id = await Task.Run(() =>
         {
             var service = new OptiScalerService(CreateTransactions(), IniProfiles());
@@ -874,7 +885,7 @@ public sealed partial class LibraryViewModel
                 GameScanner.RequireModifiable(game.Root.Path, token, game.AntiCheat);
                 return service.Install(installation, installation.Executables[0], package!, proxy!, token);
             }
-            var existing = service.Installed(installation.Root)?.Id ?? throw new IOException("OptiScaler-Zuordnung fehlt.");
+            var existing = service.Installed(installation.Root)?.Id ?? throw new IOException(GetText("Workspace.NoOptiScalerPackageIsAssociatedWithThis"));
             service.Remove(installation, existing, token);
             return existing;
         }, token);
@@ -883,7 +894,7 @@ public sealed partial class LibraryViewModel
         await RefreshGameInventoryAsync(game, installation.Executables[0]);
         RefreshModCockpit(force: true);
         RefreshInspector();
-        Notes = [.. Notes, $"OptiScaler · Transaktion {id}"];
-        Toast = Status = remove ? "OptiScaler-Proxy entfernt." : "OptiScaler installiert oder aktualisiert.";
+        Notes = [.. Notes, Message("Workspace.OptiScalerTransaction", id)];
+        Toast = Status = remove ? Message("Workspace.OptiScalerProxyRemoved") : Message("Workspace.OptiScalerInstalledOrUpdated");
     }
 }

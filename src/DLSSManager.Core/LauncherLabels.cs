@@ -2,6 +2,14 @@ namespace DLSSManager.Core;
 
 public static class LauncherLabels
 {
+    public static string LabelKey(string launcher) => launcher switch
+    {
+        "Lokal" => "Common.Local",
+        "Manuell" => "Library.Manual",
+        "Laufwerk" => "Library.Drive",
+        _ => launcher
+    };
+
     public static string FromPath(string path)
     {
         var parts = path.Split('\\', '/').ToHashSet(StringComparer.OrdinalIgnoreCase);

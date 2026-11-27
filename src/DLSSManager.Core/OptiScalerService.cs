@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 namespace DLSSManager.Core;
 
 public sealed class OptiScalerService(FileTransactions transactions, ModIniProfiles? profiles = null)
@@ -31,23 +32,23 @@ public sealed class OptiScalerService(FileTransactions transactions, ModIniProfi
         CancellationToken token, Guid? expectedInstallation = null)
     {
         if (!Proxies.Contains(proxy))
-            throw new IOException("Einen unterstützten OptiScaler-Proxy wählen.");
+            throw new IOException(GetText("OptiScalerService.SelectASupportedOptiScalerProxy"));
         if (!game.Executables.Any(e => SafePaths.Child(game.Root, e).Equals(
             SafePaths.Child(game.Root, executable), StringComparison.OrdinalIgnoreCase)))
-            throw new IOException("Die Ziel-EXE gehört nicht zur bestätigten Installation.");
+            throw new IOException(GetText("Ini.TheTargetExecutableIsOutsideTheVerified"));
         if (package is not { Kind: Component, LocalPath: { } source })
-            throw new IOException("OptiScaler.dll zuerst in den Katalog importieren.");
+            throw new IOException(GetText("OptiScalerService.ImportOptiScalerDllIntoTheCatalogFirst"));
         var metadata = DllDownloadService.VerifyCatalogFile(source, package, token);
         var directory = Path.GetDirectoryName(SafePaths.Child(game.Root, executable))!;
         var target = Path.GetRelativePath(game.Root, SafePaths.Child(directory, proxy));
         var predecessor = transactions.ComponentHead(Component, SafePaths.Root(game.Root));
         var existing = predecessor is { ComponentRemoved: false } ? predecessor : null;
         if (expectedInstallation is Guid expected && existing?.Id != expected)
-            throw new IOException("Die OptiScaler-Zuordnung wurde zwischenzeitlich geändert.");
-        if (profiles is null && existing is not null) throw new IOException("OptiScaler wird bereits für diese Installation verwaltet.");
+            throw new IOException(GetText("OptiScalerService.TheOptiScalerAssociationHasChanged"));
+        if (profiles is null && existing is not null) throw new IOException(GetText("OptiScalerService.OptiScalerIsAlreadyManagedForThisInstallation"));
         var oldProxy = existing is null ? null : InstalledProxy(existing);
         if (oldProxy is not null && !string.Equals(Path.GetDirectoryName(oldProxy), Path.GetDirectoryName(target), StringComparison.OrdinalIgnoreCase))
-            throw new IOException("OptiScaler ist an eine andere Spiel-EXE gebunden. Zum Wechsel zuerst entfernen.");
+            throw new IOException(GetText("OptiScalerService.OptiScalerIsAssociatedWithADifferentGame"));
 
         var history = existing is null ? [] : transactions.ComponentHistory(existing);
         var owned = history.SelectMany(j => j.Entries).DistinctBy(e => e.Path, StringComparer.OrdinalIgnoreCase)
@@ -76,7 +77,7 @@ public sealed class OptiScalerService(FileTransactions transactions, ModIniProfi
             var hash = DurableFiles.Hash(payload, token);
             if (name.EndsWith(".dll", StringComparison.Ordinal) && DllDetectionService.Inspect(payload, token) is not
                 { IsDll: true, Machine: System.Reflection.PortableExecutable.Machine.Amd64 })
-                throw new IOException($"Ungültige OptiScaler-Paketdatei: {name}");
+                throw new IOException(GetText("OptiScalerService.InvalidOptiScalerPackageFile", name));
             Add(relative, payload, hash);
         }
         var tag = PackageReleaseTag(package);
@@ -89,7 +90,7 @@ public sealed class OptiScalerService(FileTransactions transactions, ModIniProfi
         {
             var current = DurableFiles.Hash(SafePaths.Child(game.Root, relative), token);
             if (!isIni && current != owned.GetValueOrDefault(relative)?.After)
-                throw new IOException($"Fremde oder geänderte Datei blockiert OptiScaler: {relative}");
+                throw new IOException(GetText("OptiScalerService.AnExternalOrModifiedFileIsBlocking", relative));
             if (current != hash) changes.Add(new(relative, current, payload, hash));
         }
     }
@@ -98,7 +99,7 @@ public sealed class OptiScalerService(FileTransactions transactions, ModIniProfi
     {
         var journal = Installed(game.Root);
         if (journal?.Id != expected)
-            throw new IOException("Die OptiScaler-Zuordnung hat sich geändert.");
+            throw new IOException(GetText("OptiScalerService.TheOptiScalerAssociationHasChanged2"));
         if (profiles is null && journal.ComponentPredecessor is null)
         {
             transactions.Rollback(game, expected);
@@ -117,7 +118,7 @@ public sealed class OptiScalerService(FileTransactions transactions, ModIniProfi
             if (current == first.entry.Before) continue;
             var isIni = Path.GetFileName(path.Key).Equals(IniName, StringComparison.OrdinalIgnoreCase);
             if (!isIni && current != latest.After)
-                throw new IOException($"Fremdänderung blockiert OptiScaler-Deinstallation: {path.Key}");
+                throw new IOException(GetText("OptiScalerService.AnExternalChangeIsBlockingOptiScalerRemoval", path.Key));
             changes.Add(new(path.Key, current, first.entry.Before is null ? null :
                 transactions.ComponentOriginal(first.journal, first.index), first.entry.Before));
         }

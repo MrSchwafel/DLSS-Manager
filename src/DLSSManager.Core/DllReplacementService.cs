@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Reflection.PortableExecutable;
 
 namespace DLSSManager.Core;
@@ -57,7 +58,7 @@ public sealed class DllReplacementService(FileTransactions transactions)
         if (DllDetectionService.UpscalerKind(Path.GetFileName(target)) is not ("SR" or "FG" or "RR" or "XeSS" or "FSR") ||
             Path.GetRelativePath(root, target).Split(Path.DirectorySeparatorChar)
                 .Contains("dlssg_sm86", StringComparer.OrdinalIgnoreCase))
-            throw new IOException("Nur native Upscaling-Dateien können einzeln ausgetauscht werden.");
+            throw new IOException(GetText("DllReplacementService.OnlyNativeUpscalingFilesCanBeReplaced"));
         return target;
     }
 
@@ -65,9 +66,9 @@ public sealed class DllReplacementService(FileTransactions transactions)
     {
         var dll = DllDetectionService.Inspect(path, token);
         if (!dll.IsDll || dll.Machine != Machine.Amd64)
-            throw new IOException("Datei ist keine x64-PE-DLL.");
+            throw new IOException(GetText("DllReplacementService.TheFileIsNotAnX64PE"));
         if (expectedHash is not null && !StringComparer.OrdinalIgnoreCase.Equals(expectedHash, dll.Sha256))
-            throw new IOException("SHA-256-Prüfung der DLL fehlgeschlagen.");
+            throw new IOException(GetText("DllReplacementService.DLLSHAVerificationFailed"));
         return dll;
     }
 }

@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -31,7 +32,7 @@ public sealed class ModIniProfiles(string storage, int? recommendedFrames = null
         using var input = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
         var profile = JsonSerializer.Deserialize<IniProfile>(input);
         if (profile is not { Values: not null, Expert: not null })
-            throw new IOException("Ungültiges INI-Profil.");
+            throw new IOException(GetText("Ini.InvalidINIProfile"));
         Validate(mod, profile.Values.Concat(profile.Expert));
         return profile;
     }
@@ -87,7 +88,7 @@ public sealed class ModIniProfiles(string storage, int? recommendedFrames = null
                 (IsRemovedSm86Key(setting.Section, setting.Key) ||
                  (setting.Matches("DLSSG", "Preset") || setting.Matches("Runtime", "Mode")) &&
                  setting.Value.Equals("auto", StringComparison.OrdinalIgnoreCase)))
-                throw new ArgumentException($"Veraltete SM86-Einstellung: {setting.ExpertLine}");
+                throw new ArgumentException(GetText("Ini.ObsoleteSM86Setting", setting.ExpertLine));
         }
     }
 
@@ -118,10 +119,10 @@ public sealed class ModIniProfiles(string storage, int? recommendedFrames = null
 
     public byte[] ReadOptiBase(string hash)
     {
-        if (hash.Length != 64 || !hash.All(Uri.IsHexDigit)) throw new IOException("Ungültige OptiScaler-INI-Referenz.");
+        if (hash.Length != 64 || !hash.All(Uri.IsHexDigit)) throw new IOException(GetText("Ini.InvalidOptiScalerINIReference"));
         var path = SafePaths.Child(SafePaths.Root(storage), Path.Combine("OptiScaler", hash + ".ini"));
         var original = ModIniService.ReadFile(path);
-        if (Convert.ToHexString(SHA256.HashData(original)) != hash) throw new IOException("OptiScaler-INI-Basis wurde verändert.");
+        if (Convert.ToHexString(SHA256.HashData(original)) != hash) throw new IOException(GetText("Ini.TheOptiScalerBaseINIChanged"));
         return original;
     }
 }

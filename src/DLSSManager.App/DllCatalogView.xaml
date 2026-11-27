@@ -51,15 +51,15 @@
     <DockPanel>
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12" LastChildFill="True">
             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <Button Content="↻  Katalog aktualisieren" Command="{Binding RefreshCatalog}" Style="{StaticResource CatalogPrimary}" Margin="0,0,6,0"/>
-                <Button Content="+  Lokale DLL importieren" Command="{Binding ImportDll}" Margin="0,0,6,0"/>
-                <Button x:Name="DownloadSelection" Content="↓  Auswahl herunterladen" Command="local:DllCatalogView.Download"
+                <Button Content="{local:Loc DllCatalog.RefreshCatalog}" Command="{Binding RefreshCatalog}" Style="{StaticResource CatalogPrimary}" Margin="0,0,6,0"/>
+                <Button Content="{local:Loc DllCatalog.ImportLocalDLL}" Command="{Binding ImportDll}" Margin="0,0,6,0"/>
+                <Button x:Name="DownloadSelection" Content="{local:Loc DllCatalog.DownloadSelection}" Command="local:DllCatalogView.Download"
                         Style="{StaticResource CatalogDownload}" Margin="0"
-                        ToolTip="Markierte Online-DLLs laden. Strg oder Umschalt für Mehrfachauswahl."
+                        ToolTip="{local:Loc DllCatalog.DownloadSelectedOnlineDLLsUseCtrlOr}"
                         ToolTipService.ShowOnDisabled="True"/>
             </WrapPanel>
             <WrapPanel VerticalAlignment="Center">
-                <TextBlock Text="DLL-Katalog" Style="{StaticResource PageHeading}" Margin="0,0,10,0"/>
+                <TextBlock Text="{local:Loc DllCatalog.DLLCatalog}" Style="{StaticResource PageHeading}" Margin="0,0,10,0"/>
                 <Border Style="{StaticResource CatalogPill}">
                     <TextBlock Text="{Binding CatalogCounts}" Style="{StaticResource LibraryBadgeText}"/>
                 </Border>
@@ -68,29 +68,32 @@
         <Border DockPanel.Dock="Top" Background="#08FFFFFF" BorderBrush="#14FFFFFF" BorderThickness="1"
                 CornerRadius="8" Padding="12,8">
             <DockPanel>
-                <Button DockPanel.Dock="Right" Content="⚑  Als Batch-Ziel speichern" Command="local:DllCatalogView.Pin"
+                <Button DockPanel.Dock="Right" Content="{local:Loc DllCatalog.SaveAsBatchTarget}" Command="local:DllCatalogView.Pin"
                         VerticalAlignment="Center" Style="{StaticResource CatalogSmallAction}" Margin="10,0,0,0"
-                        ToolTip="Markierte lokale DLL als Zielversion für 'Alle aktualisieren' festlegen"
+                        ToolTip="{local:Loc DllCatalog.SetTheSelectedLocalDLLAsThe}"
                         ToolTipService.ShowOnDisabled="True"/>
                 <WrapPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Margin="0,2,14,2">
                         <TextBlock Text="&#xE8B7;" Style="{StaticResource Glyph}" Foreground="#81C784"/>
                         <TextBlock Text="{Binding UnlockerCacheLabel}" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"/>
-                        <Button Content="Aktualisieren / Laden" Command="{Binding DownloadMod}" Style="{StaticResource CatalogSmallAction}"/>
+                        <Button Content="{local:Loc DllCatalog.RefreshDownload}" Command="{Binding DownloadMod}" Style="{StaticResource CatalogSmallAction}"/>
                         <Button Content="↻" Command="{Binding CheckModReleases}" Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
-                                ToolTip="GitHub-Releases prüfen" AutomationProperties.Name="GitHub-Releases prüfen"/>
+                                ToolTip="{local:Loc DllCatalog.CheckGitHubReleases}" AutomationProperties.Name="{local:Loc DllCatalog.CheckGitHubReleases}"/>
                         <Button Content="↗" Click="OpenUnlockerReleases" Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
-                                ToolTip="Unlocker-Releases öffnen" AutomationProperties.Name="Unlocker-Releases öffnen"/>
+                                ToolTip="{local:Loc DllCatalog.OpenUnlockerReleases}" AutomationProperties.Name="{local:Loc DllCatalog.OpenUnlockerReleases}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                         <TextBlock Text="&#xE8B7;" Style="{StaticResource Glyph}" Foreground="#D8B4FE"/>
-                        <TextBlock Text="OptiScaler:" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"/>
+                        <TextBlock Text="{local:Loc DllCatalog.OptiScaler}" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"/>
                         <Grid Width="128" Margin="0,0,6,0">
                             <ComboBox ItemsSource="{Binding OptiPackages}" SelectedItem="{Binding SelectedOptiPackage}"
-                                      DisplayMemberPath="Source" Height="28" MinHeight="0" FontSize="11"
+                                      Height="28" MinHeight="0" FontSize="11"
                                       HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                      ToolTip="{Binding SelectedOptiPackage.Display}"
-                                      AutomationProperties.Name="Lokales OptiScaler-Release auswählen">
+                                      ToolTip="{Binding SelectedOptiPackageLabel}"
+                                      AutomationProperties.Name="{local:Loc DllCatalog.SelectLocalOptiScalerRelease}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate><TextBlock Text="{local:Loc Path=SourceLabelKey, KeyFromPath=True}"/></DataTemplate>
+                                </ComboBox.ItemTemplate>
                                 <ComboBox.Style>
                                     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
                                         <Style.Triggers>
@@ -101,7 +104,7 @@
                                     </Style>
                                 </ComboBox.Style>
                             </ComboBox>
-                            <TextBlock Text="Kein Paket" VerticalAlignment="Center" FontSize="11"
+                            <TextBlock Text="{local:Loc DllCatalog.NoPackage}" VerticalAlignment="Center" FontSize="11"
                                        Foreground="{StaticResource Muted}" IsHitTestVisible="False">
                                 <TextBlock.Style><Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -113,9 +116,9 @@
                                 </Style></TextBlock.Style>
                             </TextBlock>
                         </Grid>
-                        <Button Content="Aktualisieren / Laden" Command="{Binding DownloadOpti}" Style="{StaticResource CatalogSmallAction}"/>
+                        <Button Content="{local:Loc DllCatalog.RefreshDownload}" Command="{Binding DownloadOpti}" Style="{StaticResource CatalogSmallAction}"/>
                         <Button Content="↗" Command="{Binding OpenOptiReleases}" Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
-                                ToolTip="OptiScaler-Releases öffnen" AutomationProperties.Name="OptiScaler-Releases öffnen"/>
+                                ToolTip="{local:Loc DllCatalog.OpenOptiScalerReleases}" AutomationProperties.Name="{local:Loc DllCatalog.OpenOptiScalerReleases}"/>
                     </StackPanel>
                 </WrapPanel>
             </DockPanel>
@@ -123,8 +126,8 @@
         <DockPanel DockPanel.Dock="Top" Margin="0,12,0,8">
             <Grid DockPanel.Dock="Right" Width="240" Height="32" Margin="12,0,0,0">
                 <TextBox x:Name="CatalogSearchBox" Text="{Binding CatalogSearch, UpdateSourceTrigger=PropertyChanged}"
-                         VerticalContentAlignment="Center" Padding="9,0" AutomationProperties.Name="Version oder Hash suchen"/>
-                <TextBlock Text="Version oder Hash suchen..." Foreground="#94A3B8" IsHitTestVisible="False"
+                         VerticalContentAlignment="Center" Padding="9,0" AutomationProperties.Name="{local:Loc DllCatalog.SearchByVersionOrHash}"/>
+                <TextBlock Text="{local:Loc DllCatalog.SearchByVersionOrHash2}" Foreground="#94A3B8" IsHitTestVisible="False"
                            Margin="10,0" VerticalAlignment="Center">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -139,11 +142,11 @@
                 </TextBlock>
             </Grid>
             <WrapPanel VerticalAlignment="Center" Margin="0,4,0,0">
-            <Button Tag="Alle" Content="Alle" Click="ChangeFilter">
+            <Button Tag="All" Content="{local:Loc Common.All}" Click="ChangeFilter">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CatalogFilter}" Value="Alle">
+                            <DataTrigger Binding="{Binding CatalogFilter}" Value="All">
                                 <Setter Property="Background" Value="#384CAF50"/>
                                 <Setter Property="BorderBrush" Value="#8C4CAF50"/>
                                 <Setter Property="Foreground" Value="#E2E8F0"/>
@@ -152,7 +155,7 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button Tag="SR" Content="DLSS (SR)" Click="ChangeFilter">
+            <Button Tag="SR" Content="{local:Loc DllCatalog.DLSSSR}" Click="ChangeFilter">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
                         <Style.Triggers>
@@ -165,7 +168,7 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button Tag="FG" Content="FrameGen (FG)" Click="ChangeFilter">
+            <Button Tag="FG" Content="{local:Loc DllCatalog.FrameGenerationFG}" Click="ChangeFilter">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
                         <Style.Triggers>
@@ -178,11 +181,11 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button Tag="Lokal" Content="Lokal verfügbar" Click="ChangeFilter">
+            <Button Tag="Local" Content="{local:Loc DllCatalog.AvailableLocally}" Click="ChangeFilter">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CatalogFilter}" Value="Lokal">
+                            <DataTrigger Binding="{Binding CatalogFilter}" Value="Local">
                                 <Setter Property="Background" Value="#3D10B981"/>
                                 <Setter Property="BorderBrush" Value="#8C10B981"/>
                                 <Setter Property="Foreground" Value="#6EE7B7"/>
@@ -191,7 +194,7 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button Tag="Online" Content="Online verfügbar" Click="ChangeFilter">
+            <Button Tag="Online" Content="{local:Loc DllCatalog.AvailableOnline}" Click="ChangeFilter">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource LibraryFilterChip}">
                         <Style.Triggers>
@@ -214,7 +217,7 @@
                           CanUserResizeColumns="False" CanUserReorderColumns="False" EnableRowVirtualization="True"
                           BorderThickness="0" Background="Transparent" GridLinesVisibility="None"
                           RowHeight="40" ColumnHeaderHeight="38" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                          AutomationProperties.Name="DLL-Katalog">
+                          AutomationProperties.Name="{local:Loc DllCatalog.DLLCatalog}">
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Foreground" Value="#94A3B8"/>
@@ -262,7 +265,7 @@
                         </Style>
                     </DataGrid.CellStyle>
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Typ" Width="0.65*">
+                        <DataGridTemplateColumn Header="{local:Loc DllCatalog.Type}" Width="0.65*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border>
@@ -292,12 +295,12 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="Version" Width="1.45*">
+                        <DataGridTemplateColumn Header="{local:Loc DllCatalog.Version}" Width="1.45*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <DockPanel>
                                         <TextBlock DockPanel.Dock="Right" Text="⚑" Foreground="#81C784" Margin="4,0,0,0"
-                                                   ToolTip="Batch-Ziel" AutomationProperties.Name="Batch-Ziel"
+                                                   ToolTip="{local:Loc DllCatalog.BatchTarget}" AutomationProperties.Name="{local:Loc DllCatalog.BatchTarget}"
                                                    Visibility="{Binding IsBatchTarget, Converter={StaticResource ShowWhenTrue}}"/>
                                         <TextBlock Text="{Binding Entry.Version}" Style="{StaticResource CatalogCellMono}" FontWeight="SemiBold"
                                                    Foreground="#F1F5F9" ToolTip="{Binding Entry.Version}"/>
@@ -305,21 +308,21 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="Datei" Width="1.6*">
+                        <DataGridTemplateColumn Header="{local:Loc DllCatalog.File}" Width="1.6*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Entry.DllName}" Style="{StaticResource CatalogCellMono}">
                                         <TextBlock.ToolTip>
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Entry.DllName}"/>
-                                                <TextBlock Text="{Binding Entry.Source}" Foreground="{StaticResource Muted}"/>
+                                                <TextBlock Text="{local:Loc Path=Entry.SourceLabelKey, KeyFromPath=True}" Foreground="{StaticResource Muted}"/>
                                             </StackPanel>
                                         </TextBlock.ToolTip>
                                     </TextBlock>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="Status" Width="0.9*">
+                        <DataGridTemplateColumn Header="{local:Loc DllCatalog.Status}" Width="0.9*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border>
@@ -337,12 +340,12 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <TextBlock Text="{Binding Entry.Availability, StringFormat='● {0}'}" Style="{StaticResource LibraryBadgeText}"/>
+                                        <TextBlock Text="{local:Loc DllCatalog.AvailabilityBadge, Path=AvailabilityLabel}" Style="{StaticResource LibraryBadgeText}"/>
                                     </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="Größe" Width="0.95*">
+                        <DataGridTemplateColumn Header="{local:Loc DllCatalog.Size}" Width="0.95*">
                             <DataGridTemplateColumn.HeaderTemplate>
                                 <DataTemplate><TextBlock Text="{Binding}" TextAlignment="Right"/></DataTemplate>
                             </DataGridTemplateColumn.HeaderTemplate>
@@ -352,20 +355,20 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="Datum" Width="0.95*">
+                        <DataGridTemplateColumn Header="{local:Loc DllCatalog.Date}" Width="0.95*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding DateLabel}" ToolTip="{Binding DateLabel}" Style="{StaticResource CatalogCellText}" Foreground="#94A3B8"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="SHA-256" Width="1.95*">
+                        <DataGridTemplateColumn Header="{local:Loc DllCatalog.SHA}" Width="1.95*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <DockPanel>
                                         <Button DockPanel.Dock="Right" Content="⧉" Command="local:DllCatalogView.CopyHash" CommandParameter="{Binding}"
                                                 Style="{StaticResource CatalogIconAction}" Margin="4,0,0,0"
-                                                ToolTip="Vollständigen SHA-256 kopieren" AutomationProperties.Name="SHA-256 kopieren"/>
+                                                ToolTip="{local:Loc DllCatalog.CopyFullSHA}" AutomationProperties.Name="{local:Loc Catalog.CopySha256}"/>
                                         <TextBlock Text="{Binding HashLabel}" ToolTip="{Binding Entry.Sha256}" Style="{StaticResource CatalogCellMono}"/>
                                     </DockPanel>
                                 </DataTemplate>
@@ -376,10 +379,10 @@
                                 <DataTemplate>
                                     <Grid>
                                         <Button Content="↓" Command="local:DllCatalogView.Download" CommandParameter="{Binding}"
-                                                Style="{StaticResource CatalogIconAction}" ToolTip="DLL herunterladen" AutomationProperties.Name="DLL herunterladen"
+                                                Style="{StaticResource CatalogIconAction}" ToolTip="{local:Loc Catalog.DownloadDll}" AutomationProperties.Name="{local:Loc Catalog.DownloadDll}"
                                                 Visibility="{Binding IsOnline, Converter={StaticResource ShowWhenTrue}}"/>
                                         <Button Content="⚑" Command="local:DllCatalogView.Pin" CommandParameter="{Binding}"
-                                                Style="{StaticResource CatalogIconAction}" ToolTip="Als Batch-Ziel speichern" AutomationProperties.Name="Als Batch-Ziel speichern"
+                                                Style="{StaticResource CatalogIconAction}" ToolTip="{local:Loc Catalog.SaveBatchTarget}" AutomationProperties.Name="{local:Loc Catalog.SaveBatchTarget}"
                                                 Visibility="{Binding CanPin, Converter={StaticResource ShowWhenTrue}}"/>
                                     </Grid>
                                 </DataTemplate>
@@ -387,7 +390,7 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
-                <TextBlock Text="Keine DLLs gefunden" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <TextBlock Text="{local:Loc DllCatalog.NoDLLsFound}" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed"/>

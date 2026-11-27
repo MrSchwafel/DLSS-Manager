@@ -1,8 +1,8 @@
 <Window x:Class="DLSSManager.App.DriverHistoryWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:DLSSManager.App"
         xmlns:core="clr-namespace:DLSSManager.Core;assembly=DLSSManager.Core"
-        Title="Treiber-Übersicht &amp; Rollback" Width="680" Height="520"
+        Title="{local:Loc Drivers.DriverOverviewRollback}" Width="680" Height="520"
         Style="{StaticResource CustomCaptionWindow}" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
         Background="#181B20" Foreground="{StaticResource Ink}"
         FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13">
@@ -192,21 +192,21 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0">
-                <TextBlock Text="Treiber-Übersicht &amp; Rollback" FontSize="17" FontWeight="SemiBold" Foreground="#F8FAFC"/>
+                <TextBlock Text="{local:Loc Drivers.DriverOverviewRollback}" FontSize="17" FontWeight="SemiBold" Foreground="#F8FAFC"/>
                 <TextBlock x:Name="SubtitleText" Foreground="#94A3B8" FontSize="12" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
             </StackPanel>
             <ToggleButton x:Name="TranslateToggleButton" Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
-                          Content="Auf Deutsch übersetzen" Style="{StaticResource HistoryTranslateToggle}"
+                          Content="{local:Loc Drivers.TranslateIntoGerman}" Style="{StaticResource HistoryTranslateToggle}"
                           Click="ToggleTranslation" Visibility="Collapsed"/>
         </Grid>
 
         <DockPanel Grid.Row="1" Margin="20,0,20,8">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <TextBlock x:Name="CountText" VerticalAlignment="Center" Foreground="#94A3B8" FontSize="11.5" Margin="0,0,12,0"/>
-                <TextBlock Text="Vorschau:" VerticalAlignment="Center" Foreground="#94A3B8" FontSize="11.5" Margin="0,0,6,0"/>
+                <TextBlock Text="{local:Loc Drivers.Preview}" VerticalAlignment="Center" Foreground="#94A3B8" FontSize="11.5" Margin="0,0,6,0"/>
                 <ListBox x:Name="PreviewStyleSegments" Height="26" VerticalAlignment="Center" Background="#0AFFFFFF"
                          BorderBrush="#24FFFFFF" BorderThickness="1" Padding="1" ItemContainerStyle="{StaticResource HistoryPreviewSegment}"
-                         AutomationProperties.Name="Vorschau" IsEnabled="{Binding CanChooseDriverTooltipStyle}"
+                         AutomationProperties.Name="{local:Loc Drivers.Preview2}" IsEnabled="{Binding CanChooseDriverTooltipStyle}"
                          SelectedValuePath="Tag" SelectedValue="{Binding DriverPreviewStyle, Mode=TwoWay}">
                     <ListBox.Template>
                         <ControlTemplate TargetType="ListBox">
@@ -221,15 +221,15 @@
                             <StackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
-                    <ListBoxItem Content="Kompakt" Tag="{x:Static core:DriverTooltipStyle.Compact}"/>
-                    <ListBoxItem Content="Details" Tag="{x:Static core:DriverTooltipStyle.Detailed}"/>
+                    <ListBoxItem Content="{local:Loc Drivers.Compact}" Tag="{x:Static core:DriverTooltipStyle.Compact}"/>
+                    <ListBoxItem Content="{local:Loc Drivers.Details}" Tag="{x:Static core:DriverTooltipStyle.Detailed}"/>
                 </ListBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="FilterAllButton" Content="Alle" Tag="Active" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
-                <Button x:Name="FilterWhqlButton" Content="WHQL (Stabil)" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
-                <Button x:Name="FilterHotfixButton" Content="Hotfix" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
-                <Button x:Name="FilterCachedButton" Content="Im Cache" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+                <Button x:Name="FilterAllButton" Content="{local:Loc Common.All}" Tag="Active" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+                <Button x:Name="FilterWhqlButton" Content="{local:Loc Drivers.WHQLStable}" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+                <Button x:Name="FilterHotfixButton" Content="{local:Loc Drivers.Hotfix}" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
+                <Button x:Name="FilterCachedButton" Content="{local:Loc Drivers.Cached}" Style="{StaticResource HistoryFilterChip}" Click="SelectFilter"/>
             </StackPanel>
         </DockPanel>
 
@@ -239,13 +239,13 @@
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                     <TextBlock x:Name="SourceTimestampText" Foreground="#94A3B8" FontSize="11.5" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <Button x:Name="RefreshSourcesButton" Content="↻" Style="{StaticResource SourceRefreshButton}"
-                            ToolTip="Hotfix-Quellen jetzt neu durchsuchen" Click="RefreshHotfixSources" Visibility="Collapsed"/>
+                            ToolTip="{local:Loc Drivers.RescanHotfixSourcesNow}" Click="RefreshHotfixSources" Visibility="Collapsed"/>
                 </StackPanel>
                 <DockPanel VerticalAlignment="Center">
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,7,0">
                         <TextBlock Text="&#xE774;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="11.5"
                                    Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                        <TextBlock Text="Hotfix-Quellen:" FontSize="11.5" FontWeight="SemiBold" Foreground="#CBD5E1"
+                        <TextBlock Text="{local:Loc Drivers.HotfixSources}" FontSize="11.5" FontWeight="SemiBold" Foreground="#CBD5E1"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                     <ItemsControl x:Name="SourceStatusList" VerticalAlignment="Center">
@@ -281,9 +281,9 @@
                         <TextBlock DockPanel.Dock="Left" Text="&#xE946;" Style="{StaticResource InspectorGlyph}"
                                    Foreground="#F59E0B" VerticalAlignment="Top" Margin="0,2,8,0"/>
                         <TextBlock Foreground="#E2E8F0" FontSize="11.5" TextWrapping="Wrap"
-                                   Text="NVIDIA blockiert aktuell die automatische Hotfix-Abfrage (nvidia.custhelp.com). Hotfix-Versionen (z. B. Zwischen-Updates) können direkt im Browser geladen und unten als lokale .exe ausgewählt werden."/>
+                                   Text="{local:Loc Drivers.NVIDIAIsCurrentlyBlockingAutomatedHotfixChecks}"/>
                     </DockPanel>
-                    <Button Grid.Column="1" Content="Hotfix-Seite öffnen ↗" Click="OpenHotfixPortal" VerticalAlignment="Center"
+                    <Button Grid.Column="1" Content="{local:Loc Drivers.OpenHotfixPage}" Click="OpenHotfixPortal" VerticalAlignment="Center"
                             Margin="10,0,0,0" Height="26" MinHeight="26" Padding="9,0" FontSize="11.5"
                             Background="#252A34" BorderBrush="#3DF59E0B" Foreground="#FCD34D"/>
                 </Grid>
@@ -331,25 +331,25 @@
                                                                Foreground="#F8FAFC" VerticalAlignment="Center"/>
                                                     <Border Style="{StaticResource RollbackHotfixBadge}" Margin="8,0,0,0"
                                                             Visibility="{Binding IsHotfix, Converter={StaticResource ShowWhenTrue}}">
-                                                        <TextBlock Text="Hotfix"/>
+                                                        <TextBlock Text="{local:Loc Drivers.Hotfix}"/>
                                                     </Border>
                                                     <Border Background="#294CAF50" BorderBrush="#664CAF50" BorderThickness="1" CornerRadius="4"
                                                             Padding="6,1" Margin="6,0,0,0"
                                                             Visibility="{Binding IsLatestHotfixUpdate, Converter={StaticResource ShowWhenTrue}}">
-                                                        <TextBlock Text="Neuester Hotfix" Foreground="#81C784" FontSize="10.5" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{local:Loc Drivers.LatestHotfix}" Foreground="#81C784" FontSize="10.5" FontWeight="SemiBold"/>
                                                     </Border>
                                                     <Border Background="#24F59E0B" BorderBrush="#55F59E0B" BorderThickness="1" CornerRadius="4"
                                                             Padding="6,1" Margin="6,0,0,0"
                                                             Visibility="{Binding IsPreviousHotfix, Converter={StaticResource ShowWhenTrue}}">
-                                                        <TextBlock Text="Letzter Hotfix" Foreground="#FCD34D" FontSize="10.5" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{local:Loc Drivers.PreviousHotfix}" Foreground="#FCD34D" FontSize="10.5" FontWeight="SemiBold"/>
                                                     </Border>
                                                     <Border Style="{StaticResource RollbackWhqlBadge}" Margin="8,0,0,0"
                                                             Visibility="{Binding IsWhql, Converter={StaticResource ShowWhenTrue}}">
-                                                        <TextBlock Text="WHQL"/>
+                                                        <TextBlock Text="{local:Loc Drivers.WHQL}"/>
                                                     </Border>
                                                     <Border Style="{StaticResource RollbackCachedBadge}" Margin="6,0,0,0"
                                                             Visibility="{Binding IsCached, Converter={StaticResource ShowWhenTrue}}">
-                                                        <TextBlock Text="Im Cache"/>
+                                                        <TextBlock Text="{local:Loc Drivers.Cached}"/>
                                                     </Border>
                                                     <TextBlock Text="{Binding ReleaseDateLabel}" Foreground="#94A3B8" FontSize="11.5"
                                                                VerticalAlignment="Center" Margin="8,0,0,0"
@@ -363,7 +363,7 @@
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                                                 <Button Style="{StaticResource DriverSplitIconButton}" Content="↗" Margin="0,0,6,0"
                                                         Tag="{Binding ReleasePageUrl}" Click="OpenDriverDetails"
-                                                        AutomationProperties.Name="Release-Details im Browser öffnen"
+                                                        AutomationProperties.Name="{local:Loc Drivers.OpenReleaseDetailsInBrowser}"
                                                         Visibility="{Binding HasReleasePage, Converter={StaticResource ShowWhenTrue}}"/>
                                                 <Button Content="{Binding ActionLabel}" Style="{StaticResource HistoryRowActionButton}"
                                                         IsEnabled="{Binding CanSelectAction}"
@@ -376,7 +376,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <TextBlock x:Name="EmptyStateText" Text="Keine Treiberversionen für diesen Filter gefunden."
+                <TextBlock x:Name="EmptyStateText" Text="{local:Loc Drivers.NoDriverVersionsMatchThisFilter}"
                            Foreground="#94A3B8" FontSize="12.5" HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" Visibility="Collapsed"/>
             </Grid>
@@ -384,14 +384,14 @@
 
         <DockPanel Grid.Row="5" Margin="20,14,20,18">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                <Button Content="Lokale Treiber-.exe wählen…" Click="PickLocalInstaller" Height="30" MinHeight="30"
+                <Button Content="{local:Loc Drivers.SelectLocalDriverInstaller}" Click="PickLocalInstaller" Height="30" MinHeight="30"
                         Padding="12,0" FontSize="12" Margin="0,0,8,0"
                         Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#E2E8F0"/>
-                <Button Content="Download-Ordner öffnen" Click="OpenCacheFolder" Height="30" MinHeight="30"
+                <Button Content="{local:Loc Drivers.OpenDownloadFolder}" Click="OpenCacheFolder" Height="30" MinHeight="30"
                         Padding="12,0" FontSize="12" Margin="0"
                         Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#CBD5E1"/>
             </StackPanel>
-            <Button DockPanel.Dock="Right" Content="Schließen" IsCancel="True" HorizontalAlignment="Right"
+            <Button DockPanel.Dock="Right" Content="{local:Loc Common.Close}" IsCancel="True" HorizontalAlignment="Right"
                     Height="30" MinHeight="30" Padding="14,0" FontSize="12" Margin="0"
                     Background="#252A34" BorderBrush="#1FFFFFFF" Foreground="#CBD5E1"/>
         </DockPanel>
@@ -427,23 +427,23 @@
                                            FontSize="14" VerticalAlignment="Center"/>
                                 <Border Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource RollbackWhqlBadge}"
                                         Visibility="{Binding IsWhql, Converter={StaticResource ShowWhenTrue}}">
-                                    <TextBlock Text="WHQL"/>
+                                    <TextBlock Text="{local:Loc Drivers.WHQL}"/>
                                 </Border>
                                 <Border Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource RollbackHotfixBadge}"
                                         Visibility="{Binding IsHotfix, Converter={StaticResource ShowWhenTrue}}">
-                                    <TextBlock Text="Hotfix"/>
+                                    <TextBlock Text="{local:Loc Drivers.Hotfix}"/>
                                 </Border>
                                 <TextBlock Grid.Column="2" Text="{Binding ReleaseDateLabel}" Foreground="#94A3B8"
                                            VerticalAlignment="Center" TextAlignment="Right" Margin="10,0,0,0"
                                            TextTrimming="CharacterEllipsis"/>
                             </Grid>
                             <StackPanel Visibility="{Binding HoverSummary.HasHighlights, Converter={StaticResource ShowWhenTrue}}">
-                                <TextBlock Text="Highlights" Style="{StaticResource HistorySummaryHeading}"/>
+                                <TextBlock Text="{local:Loc Drivers.Highlights}" Style="{StaticResource HistorySummaryHeading}"/>
                                 <TextBlock Text="{Binding HoverSummary.Highlights}" Style="{StaticResource HistorySummaryLine}"
                                            TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" LineHeight="16" MaxHeight="32"/>
                             </StackPanel>
                             <StackPanel Visibility="{Binding HoverSummary.HasFixes, Converter={StaticResource ShowWhenTrue}}">
-                                <TextBlock Text="Wichtigste Fixes" Style="{StaticResource HistorySummaryHeading}"/>
+                                <TextBlock Text="{local:Loc Drivers.KeyFixes}" Style="{StaticResource HistorySummaryHeading}"/>
                                 <ItemsControl ItemsSource="{Binding HoverSummary.Fixes}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -492,21 +492,21 @@
                                                    VerticalAlignment="Center"/>
                                         <Border Grid.Column="1" Margin="7,0,0,0" CornerRadius="8" Style="{StaticResource RollbackWhqlBadge}"
                                                 Visibility="{Binding IsWhql, Converter={StaticResource ShowWhenTrue}}">
-                                            <TextBlock Text="WHQL"/>
+                                            <TextBlock Text="{local:Loc Drivers.WHQL}"/>
                                         </Border>
                                         <Border Grid.Column="1" Margin="7,0,0,0" CornerRadius="8" Style="{StaticResource RollbackHotfixBadge}"
                                                 Visibility="{Binding IsHotfix, Converter={StaticResource ShowWhenTrue}}">
-                                            <TextBlock Text="Hotfix"/>
+                                            <TextBlock Text="{local:Loc Drivers.Hotfix}"/>
                                         </Border>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal">
                                             <Border Margin="6,0,0,0" CornerRadius="8" Style="{StaticResource RollbackCachedBadge}"
                                                     Visibility="{Binding IsCached, Converter={StaticResource ShowWhenTrue}}">
-                                                <TextBlock Text="Im Cache"/>
+                                                <TextBlock Text="{local:Loc Drivers.Cached}"/>
                                             </Border>
                                             <Border Margin="6,0,0,0" CornerRadius="8" Style="{StaticResource RollbackMenuBadge}"
                                                     Background="#2494A3B8" BorderBrush="#4894A3B8" TextElement.Foreground="#CBD5E1"
                                                     Visibility="{Binding IsInstalledAction, Converter={StaticResource ShowWhenTrue}}">
-                                                <TextBlock Text="Installiert"/>
+                                                <TextBlock Text="{local:Loc Drivers.Installed}"/>
                                             </Border>
                                         </StackPanel>
                                         <TextBlock Grid.Column="3" Text="{Binding ReleaseDateLabel}" Foreground="#94A3B8"
@@ -514,7 +514,7 @@
                                     </Grid>
                                 </Border>
                                 <StackPanel Visibility="{Binding HoverSummary.HasDetailedHighlights, Converter={StaticResource ShowWhenTrue}}">
-                                    <TextBlock Text="Highlights" Style="{StaticResource HistorySummaryHeading}"/>
+                                    <TextBlock Text="{local:Loc Drivers.Highlights}" Style="{StaticResource HistorySummaryHeading}"/>
                                     <TextBlock Text="{Binding HoverSummary.DetailedHighlights}" Foreground="#E2E8F0" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ItemsControl ItemsSource="{Binding HoverSummary.Badges}" Margin="0,9,0,0"
@@ -531,7 +531,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <StackPanel Visibility="{Binding HoverSummary.HasDetailedFixes, Converter={StaticResource ShowWhenTrue}}">
-                                    <TextBlock Text="Fixes" Style="{StaticResource HistorySummaryHeading}"/>
+                                    <TextBlock Text="{local:Loc Drivers.Fixes}" Style="{StaticResource HistorySummaryHeading}"/>
                                     <ItemsControl ItemsSource="{Binding HoverSummary.DetailedFixes}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>

@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -13,10 +14,10 @@ public sealed partial class LibraryViewModel
     public ICommand EditOptiIni { get; private set; } = null!;
     public ICommand ApplyUnlockerIni { get; private set; } = null!;
     public ICommand ApplyOptiIni { get; private set; } = null!;
-    public string UnlockerProfileStatus => unlockerProfileStatus;
-    public string OptiProfileStatus => optiProfileStatus;
-    private string unlockerProfileStatus = "Mod-Standard";
-    private string optiProfileStatus = "Mod-Standard";
+    public string UnlockerProfileStatus => unlockerProfileStatus.Text;
+    public string OptiProfileStatus => optiProfileStatus.Text;
+    private LocalizedText unlockerProfileStatus = Message("Ini.ModDefault");
+    private LocalizedText optiProfileStatus = Message("Ini.ModDefault");
 
     private ModIniProfiles IniProfiles(int? recommendedFrames = null) =>
         new(Path.Combine(storage, "Mod-INI"), recommendedFrames);
@@ -41,15 +42,15 @@ public sealed partial class LibraryViewModel
             unlockerProfileStatus = Label(IniMod.Sm86);
             optiProfileStatus = Label(IniMod.OptiScaler);
 
-            string Label(IniMod mod) =>
-                row is not null && profiles.Read(mod, row.Path).HasOverrides ? "Eigenes Spielprofil" :
-                profiles.Read(mod).HasOverrides ? "Globaler Standard" :
-                mod == IniMod.Sm86 && RecommendedFrames(row?.Title) is int frames ? $"DLSSdb-Empfehlung aktiv · {frames + 1}X" :
-                "Mod-Standard";
+            LocalizedText Label(IniMod mod) =>
+                row is not null && profiles.Read(mod, row.Path).HasOverrides ? Message("Ini.CustomGameProfile") :
+                profiles.Read(mod).HasOverrides ? Message("Ini.GlobalDefault") :
+                mod == IniMod.Sm86 && RecommendedFrames(row?.Title) is int frames ? Message("Ini.DLSSdbRecommendationActiveX", frames + 1) :
+                Message("Ini.ModDefault");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
         {
-            unlockerProfileStatus = optiProfileStatus = "INI-Profil nicht lesbar";
+            unlockerProfileStatus = optiProfileStatus = Message("Ini.CouldNotReadINIProfile");
             Notes = [.. Notes, e.Message];
         }
         Notify(nameof(UnlockerProfileStatus));
@@ -98,7 +99,7 @@ public sealed partial class LibraryViewModel
             }
             return (changed, warnings);
         }, token);
-        if (result.warnings.Count > 0) Notes = [.. Notes, .. result.warnings];
+        if (result.warnings.Count > 0) Notes = [.. Notes, .. result.warnings.Select(message => (LocalizedText)message)];
         return result.changed;
 
         static bool OverridesFrames(IniProfile profile) => profile.Values.Concat(profile.Expert)
@@ -147,7 +148,7 @@ public sealed partial class LibraryViewModel
         if (editor.ShowDialog() != true) return;
         if (editor.Changes.Count == 0)
         {
-            Toast = Status = "Keine INI-Änderung.";
+            Toast = Status = Message("Ini.NoINIChanges");
             return;
         }
 
@@ -157,7 +158,7 @@ public sealed partial class LibraryViewModel
                 profiles.Save(mod, gameRoot, profile);
         }, token);
         RefreshIniStatus();
-        Toast = Status = gameRoot is null ? "Globale INI-Standards gespeichert." : "Spiel-INI-Profil gespeichert.";
+        Toast = Status = gameRoot is null ? Message("Ini.GlobalINIDefaultsSaved") : Message("Ini.GameINIProfileSaved");
 
         if (target is not { } selected) return;
         var installed = editor.Changes.Keys.Where(mod => IsIniModInstalled(mod, selected)).ToArray();
@@ -169,8 +170,8 @@ public sealed partial class LibraryViewModel
             catch (Exception e) when (e is IOException or UnauthorizedAccessException or AggregateException or ArgumentException)
             { errors.Add($"{ModIniProfiles.FileName(mod)} · {e.Message}"); }
         }
-        Toast = Status = errors.Count == 0 ? "Spiel-INI-Profile gespeichert und angewendet." :
-            "Spiel-INI-Profile gespeichert. Anwenden fehlgeschlagen · " + string.Join(" · ", errors);
+        Toast = Status = errors.Count == 0 ? Message("Ini.GameINIProfilesSavedAndApplied") :
+            Message("Ini.GameINIProfilesSavedCouldNotApply") + string.Join(" · ", errors);
     }
 
     private Task ApplyLibraryIni(IniMod mod)
@@ -182,7 +183,7 @@ public sealed partial class LibraryViewModel
             if (!ConfirmAntiCheat(target.Scan)) return;
             var profiles = IniProfiles(RecommendedFrames(row.Title));
             await ApplyIniAsync(mod, target, ReadIniBase(mod, target, profiles), profiles, token);
-            Toast = Status = $"{ModIniProfiles.FileName(mod)} wiederhergestellt.";
+            Toast = Status = Message("Ini.Restored", ModIniProfiles.FileName(mod));
         });
     }
 

@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -12,11 +13,11 @@ namespace DLSSManager.App;
 public sealed partial class LibraryViewModel
 {
     private const string ProjectUrl = "https://github.com/MrSchwafel/DLSS-Manager";
-    private const string UnlockerName = "FrameGen & MFG Unlocker";
+    private const string UnlockerName = "FG & MFG Unlocker";
     private string optiProxy = "version.dll";
     private readonly HashSet<string> driftedGames = new(StringComparer.OrdinalIgnoreCase);
-    private string drsStatus = "DRS wird geprüft …";
-    private string releaseStatus = "";
+    private LocalizedText drsStatus = Message("Cockpit.CheckingNVIDIADRS");
+    private LocalizedText releaseStatus = "";
     private bool modUpdatesAvailable;
     private ModVersion? unlocker;
     private bool unlockerUpdatesPaused;
@@ -29,22 +30,22 @@ public sealed partial class LibraryViewModel
     public string CatalogBadge => (CatalogEntries.Count(e => e.Availability == "Lokal") +
         (modPackageDirectory is null ? 0 : 1)).ToString();
     public bool ModUpdatesAvailable { get => modUpdatesAvailable; private set => Set(ref modUpdatesAvailable, value); }
-    public string ReleaseStatus { get => releaseStatus; private set => Set(ref releaseStatus, value); }
+    public LocalizedText ReleaseStatus { get => releaseStatus; private set => Set(ref releaseStatus, value); }
     public string BackupBadge => Backups.Length.ToString();
     public string LastScanLabel => lastScan is { } scan
-        ? $"{(scan.Date == DateTime.Today ? "Heute" : scan.ToString("dd.MM."))}, {scan:HH:mm}" : "—";
-    public string CatalogSummary => $"Katalog: SR {HighestLocal("SR")} · FG {HighestLocal("FG")}";
+        ? GetText("Cockpit.LastScanAt", scan.Date == DateTime.Today ? GetText("Cockpit.Today") : scan.ToString("d", Culture), scan) : "—";
+    public string CatalogSummary => GetText("Cockpit.CatalogSRFG", HighestLocal("SR"), HighestLocal("FG"));
     public bool HasUpdateDrift => driftedGames.Count > 0;
-    public string LibraryHealth => HasUpdateDrift ? $"Update-Drift erkannt · {driftedGames.Count} Spiele" :
-        $"{allGames.Length} Spiele · {allGames.Count(g => g.Modified)} modifiziert";
-    public string DrsStatus => drsStatus;
-    public string UnlockerStatus => unlocker is { } version ? $"FG / MFG installiert · {version.Display}" + (unlockerUpdatesPaused ? " · Updates pausiert" : "") :
-        SelectedLibraryGame?.Inventory?.Dlls.Any(d => d.ModComponent) == true ? "Mod-Dateien erkannt" : "Nicht installiert";
+    public string LibraryHealth => HasUpdateDrift ? GetText("Cockpit.UpdatesAvailableGames", driftedGames.Count) :
+        GetText("Cockpit.GamesModified", allGames.Length, allGames.Count(g => g.Modified));
+    public string DrsStatus => drsStatus.Text;
+    public string UnlockerStatus => unlocker is { } version ? GetText("Cockpit.FGMFGInstalled", version.Display) + (unlockerUpdatesPaused ? GetText("Cockpit.UpdatesPaused") : "") :
+        SelectedLibraryGame?.Inventory?.Dlls.Any(d => d.ModComponent) == true ? GetText("Cockpit.ModFilesDetected") : GetText("Cockpit.NotInstalled");
     public bool UnlockerInstalled => unlocker is not null;
     public bool UnlockerHasFiles => UnlockerInstalled || SelectedLibraryGame?.Inventory?.Dlls.Any(d => d.ModComponent) == true;
-    public string UnlockerBadge => UnlockerInstalled ? "Installiert" : UnlockerHasFiles ? "Erkannt" : "Fehlt";
+    public string UnlockerBadge => UnlockerInstalled ? GetText("Drivers.Installed") : UnlockerHasFiles ? GetText("Cockpit.Detected") : GetText("Cockpit.Missing");
     public string UnlockerInstallLabel => UnlockerHasFiles
-        ? "Neu installieren" : "Installieren";
+        ? GetText("Cockpit.Reinstall") : GetText("Cockpit.Install");
 
     public ICommand QuickScan { get; private set; } = null!;
     public ICommand ClearSearch { get; private set; } = null!;
@@ -129,13 +130,13 @@ public sealed partial class LibraryViewModel
 
     private Task ChangeDataFolderAsync()
     {
-        var dialog = new OpenFolderDialog { Title = "Datenordner wählen", InitialDirectory = storage };
+        var dialog = new OpenFolderDialog { Title = GetText("Cockpit.ChooseDataFolder"), InitialDirectory = storage };
         if (dialog.ShowDialog(Application.Current.MainWindow) != true || SamePath(storage, dialog.FolderName))
             return Task.CompletedTask;
-        if (!Confirm("Datenordner wechseln", $"{dialog.FolderName}\nDer Ordner wird beim nächsten Start verwendet. Die bestehenden Dateien bleiben am bisherigen Speicherort."))
+        if (!Confirm(GetText("Cockpit.ChangeDataFolder"), GetText("Cockpit.TheFolderWillBeUsedTheNext", dialog.FolderName)))
             return Task.CompletedTask;
         DataFolders.Choose(dialog.FolderName);
-        Toast = Status = "Datenordner gespeichert. DLSS Manager neu starten.";
+        Toast = Status = Message("Cockpit.DataFolderSavedRestartDLSSManager");
         return Task.CompletedTask;
     }
 
@@ -161,7 +162,7 @@ public sealed partial class LibraryViewModel
             dlssPreset = preset is null ? null : Presets.FirstOrDefault(p => p.Value == preset)?.Label ?? preset.ToString()
         }, new JsonSerializerOptions { WriteIndented = true });
         Clipboard.SetText(json);
-        Toast = Status = "Profil als JSON kopiert.";
+        Toast = Status = Message("Cockpit.CopiedProfileAsJSON");
     }
 
     private async Task ClearShaderCacheAsync(CancellationToken token)
@@ -191,8 +192,8 @@ public sealed partial class LibraryViewModel
             }
             return (bytes, skipped);
         }, token);
-        Toast = Status = $"NVIDIA-Shader-Cache: {result.bytes / 1048576d:N2} MiB freigegeben" +
-            (result.skipped > 0 ? $" · {result.skipped} Dateien übersprungen." : ".");
+        Toast = Status = Message("Cockpit.NVIDIAShaderCacheFreedN2MiB", result.bytes / 1048576d) +
+            (result.skipped > 0 ? Message("Cockpit.SkippedFiles", result.skipped) : ".");
     }
 
     private static string? ResolveProxy(Installation game, string executable, string preferred, IEnumerable<string> supported,
@@ -203,20 +204,20 @@ public sealed partial class LibraryViewModel
             SafePaths.Attributes(SafePaths.Child(directory, name)) is null;
         if (Free(preferred)) return preferred;
         var alternative = supported.FirstOrDefault(Free);
-        var message = $"{preferred} ist im Ordner der Spiel-EXE bereits belegt.";
+        var message = GetText("Cockpit.IsAlreadyInUseInTheGame", preferred);
         if (alternative is null)
         {
-            MessageBox.Show(Application.Current.MainWindow, message + "\nKein unterstützter Proxy-Name ist frei.", "Proxy-Konflikt");
+            ConfirmationDialog.Show(Application.Current.MainWindow, message + GetText("Cockpit.NoSupportedProxyNameIsAvailable"), GetText("Cockpit.ProxyConflict"));
             return null;
         }
-        return Confirm("Proxy-Konflikt", $"{message}\nMit {alternative} installieren?") ? alternative : null;
+        return Confirm(GetText("Cockpit.ProxyConflict"), GetText("Cockpit.InstallWith", message, alternative)) ? alternative : null;
     }
 
     private bool CanChangeLibraryUnlocker() => HasGame() &&
         SelectedLibraryGame?.Inventory is { } game && ExecutableFor(game) is not null;
 
     private static bool ConfirmAntiCheat(ScanGame game) => game.AntiCheat is not { Length: > 0 } names ||
-        Confirm("Anti-Cheat erkannt", $"{game.Root.Title}\n{string.Join(", ", names)}\nDLL- und Mod-Änderungen können zu Account-Sperren führen. Diesen Vorgang trotzdem ausführen?");
+        Confirm(GetText("Cockpit.AntiCheatDetected"), GetText("Cockpit.ChangingDLLsOrModsMayResultIn", game.Root.Title, string.Join(", ", names)));
 
     private bool CanInstallLibraryUnlocker() => CanChangeLibraryUnlocker() &&
         SelectedLibraryGame?.Inventory?.Dlls.Any(d => d.Kind == "FG" && !d.ModComponent && CanReplace(d)) == true;
@@ -234,13 +235,13 @@ public sealed partial class LibraryViewModel
             var service = ManagedMods(RecommendedFrames(row.Title));
             if (!remove && (newerOnly || modPackageDirectory is null))
             {
-                Status = "Stabiles Unlocker-Release wird geprüft …";
+                Status = Message("Cockpit.CheckingForAStableUnlockerRelease");
                 await FetchUnlockerAsync(token);
             }
             if (newerOnly && (installed?.ReleaseTag is not { } installedTag ||
                 !DllVersionService.IsUpgrade(installedTag.TrimStart('v', 'V'), modReleaseTag?.TrimStart('v', 'V'))))
             {
-                Toast = Status = "Für den installierten Unlocker ist kein neueres stabiles Release verfügbar.";
+                Toast = Status = Message("Cockpit.NoNewerStableReleaseIsAvailableFor");
                 return;
             }
             var preferred = newerOnly && installed is not null
@@ -249,7 +250,7 @@ public sealed partial class LibraryViewModel
             var proxy = remove ? null : ResolveProxy(target, exe, preferred, ModProxies, installed?.Proxy);
             if (!remove && proxy is null) return;
             if (proxy is not null) SelectedModProxy = proxy;
-            if (remove && !Confirm($"{UnlockerName} entfernen", game.Root.Title)) return;
+            if (remove && !Confirm(GetText("Cockpit.Remove", UnlockerName), game.Root.Title)) return;
             var id = await Task.Run(() =>
             {
                 if (remove) return service.Remove(target, exe, null, token);
@@ -261,8 +262,8 @@ public sealed partial class LibraryViewModel
             }, token);
             await RefreshGameInventoryAsync(game, exe);
             RefreshModCockpit(force: true);
-            Toast = Status = id is null ? "Dateien bereits aktuell oder Updates pausiert." :
-                remove ? "Unlocker entfernt." : newerOnly ? $"Unlocker auf {modReleaseTag} aktualisiert." : "Unlocker installiert.";
+            Toast = Status = id is null ? Message("Cockpit.FilesAreAlreadyUpToDateOr") :
+                remove ? Message("Cockpit.UnlockerRemoved") : newerOnly ? Message("Cockpit.UpdatedUnlockerTo", modReleaseTag) : Message("Cockpit.UnlockerInstalled");
         });
     }
 
@@ -279,7 +280,7 @@ public sealed partial class LibraryViewModel
             }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
-        { Notes = [.. Notes, $"Unlocker-Katalog: {e.Message}"]; }
+        { Notes = [.. Notes, Message("Cockpit.UnlockerCatalog", e.Message)]; }
     }
 
     private async Task FetchUnlockerAsync(CancellationToken token)
@@ -337,7 +338,7 @@ public sealed partial class LibraryViewModel
 
     private async Task CheckModReleasesAsync(CancellationToken token, bool reportStatus)
     {
-        if (reportStatus) Status = "GitHub-Releases werden geprüft …";
+        if (reportStatus) Status = Message("Cockpit.CheckingGitHubReleases");
         using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(token))
         {
             timeout.CancelAfter(TimeSpan.FromSeconds(20));
@@ -346,12 +347,12 @@ public sealed partial class LibraryViewModel
                 CheckModReleaseAsync("sdli1995/dlssg_for_sm86", "Unlocker", timeout.Token));
             token.ThrowIfCancellationRequested();
             ModUpdatesAvailable = releases.Any(r => r.Available);
-            ReleaseStatus = string.Join(" · ", releases.Select(r => r.Label));
+            ReleaseStatus = releases[0].Label + " · " + releases[1].Label;
             if (reportStatus) Toast = Status = ReleaseStatus;
         }
     }
 
-    private async Task<(string Label, bool Available, string? Tag)> CheckModReleaseAsync(string repository, string label, CancellationToken token)
+    private async Task<(LocalizedText Label, bool Available, string? Tag)> CheckModReleaseAsync(string repository, string label, CancellationToken token)
     {
         try
         {
@@ -360,15 +361,15 @@ public sealed partial class LibraryViewModel
             using var response = await Http.SendAsync(request, token);
             response.EnsureSuccessStatusCode();
             var release = await response.Content.ReadFromJsonAsync<ModRelease>(cancellationToken: token)
-                ?? throw new IOException("Release fehlt.");
+                ?? throw new IOException(GetText("Cockpit.ReleaseMissing"));
             var installed = label == "Unlocker" ? modReleaseTag : OptiPackages.FirstOrDefault()?.Source.Split(' ').LastOrDefault();
             token.ThrowIfCancellationRequested();
             var available = release.assets.Length > 0 && DllVersionService.Parse(release.tag_name.TrimStart('v')) is { } latest &&
                 (DllVersionService.Parse(installed?.TrimStart('v')) is not { } local || latest > local);
-            return ($"{label} {release.tag_name}" + (release.assets.Length == 0 ? " (kein GitHub-Paket)" : ""), available,
+            return ((LocalizedText)$"{label} {release.tag_name}" + (release.assets.Length == 0 ? Message("Cockpit.NoGitHubPackage") : ""), available,
                 release.assets.Length > 0 ? release.tag_name : null);
         }
         catch (Exception e) when (e is HttpRequestException or IOException or JsonException or OperationCanceledException)
-        { return ($"{label}: Abfrage fehlgeschlagen", false, null); }
+        { return (Message("Cockpit.CheckFailed", label), false, null); }
     }
 }

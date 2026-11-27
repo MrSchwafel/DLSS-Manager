@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -39,13 +40,13 @@ internal static class NvidiaProfiles
         [FieldOffset(8220)] public uint CurrentValue;
     }
 
-    public static string AccessStatus()
+    public static LocalizedText AccessStatus()
     {
         try { _ = Read("DLSSManager.App.exe"); }
-        catch (IOException) { return "DRS: Nicht verfügbar"; }
+        catch (IOException) { return LocalizedText.Message("NvidiaProfiles.NVIDIADRSUnavailable"); }
         using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
         return new System.Security.Principal.WindowsPrincipal(identity).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator)
-            ? "DRS: Bereit" : "DRS: Admin nötig";
+            ? LocalizedText.Message("NvidiaProfiles.NVIDIADRSReady") : LocalizedText.Message("NvidiaProfiles.NVIDIADRSAdminRequired");
     }
 
     public static uint? Read(string executable) => WithProfile(executable, (session, profile) =>
@@ -87,7 +88,7 @@ internal static class NvidiaProfiles
                 if (status != SettingNotFound) Require(status);
             }
         }) is null)
-            throw new IOException("Für diese EXE wurde kein NVIDIA-Anwendungsprofil gefunden.");
+            throw new IOException(GetText("NvidiaProfiles.NoNVIDIAApplicationProfileWasFoundFor"));
     }
 
     private static uint? WithProfile(string executable, Func<nint, nint, uint> action)
@@ -113,7 +114,7 @@ internal static class NvidiaProfiles
         }
         catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException)
         {
-            throw new IOException("Der NVIDIA-Treiber mit NVAPI ist nicht verfügbar.", e);
+            throw new IOException(GetText("NvidiaProfiles.TheNVIDIADriverWithNVAPIIsUnavailable"), e);
         }
     }
 
@@ -131,12 +132,12 @@ internal static class NvidiaProfiles
     private static T Resolve<T>(uint id) where T : Delegate
     {
         var fn = Query(id);
-        if (fn == 0) throw new IOException("Der NVIDIA-Treiber unterstützt die benötigte Profilfunktion nicht.");
+        if (fn == 0) throw new IOException(GetText("NvidiaProfiles.TheNVIDIADriverDoesNotSupportThe"));
         return Marshal.GetDelegateForFunctionPointer<T>(fn);
     }
 
     private static void Require(int status)
     {
-        if (status != 0) throw new IOException($"NVIDIA-Profilzugriff fehlgeschlagen (NVAPI {status}).");
+        if (status != 0) throw new IOException(GetText("NvidiaProfiles.NVIDIAProfileAccessFailedNVAPI", status));
     }
 }

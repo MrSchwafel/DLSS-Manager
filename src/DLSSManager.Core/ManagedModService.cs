@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Text.Json;
 
 namespace DLSSManager.Core;
@@ -65,7 +66,7 @@ public sealed class ManagedModService(FileTransactions transactions, string snap
         var current = history.FirstOrDefault();
         if (current is null || current.Id == revision) return null;
         var version = history.FirstOrDefault(j => j.Id == revision)?.Mod?.Version
-            ?? throw new IOException("Die ausgewählte SM86-Version gehört nicht zu dieser Installation.");
+            ?? throw new IOException(GetText("ManagedModService.TheSelectedSM86VersionBelongsToA"));
         var previous = current.Mod!.Version is { } installed ? Load(installed) : null;
         return new ModInstallationService(transactions, profiles).Install(game, executable, frameGeneration,
             Load(version), previous, token, new(slot, current.Id, version, true));
@@ -102,7 +103,7 @@ public sealed class ManagedModService(FileTransactions transactions, string snap
                 var path = SafePaths.Child(directory, FormattableString.Invariant($"{i}.bin"));
                 DurableFiles.Copy(file.Source, path, token);
                 if (DurableFiles.Hash(path, token) != file.Sha256)
-                    throw new IOException($"SM86-Paketdatei wurde verändert: {file.RelativePath}");
+                    throw new IOException(GetText("ManagedModService.SM86PackageFileChanged", file.RelativePath));
             }
             var manifest = SafePaths.Child(directory, "manifest.json");
             DurableFiles.Json(manifest, package.Files.Select(f => new SnapshotFile(f.RelativePath, f.Sha256)).ToArray());
@@ -121,10 +122,10 @@ public sealed class ManagedModService(FileTransactions transactions, string snap
         var manifest = SafePaths.Child(directory, "manifest.json");
         using var stream = File.Open(manifest, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (DurableFiles.Hash(stream, CancellationToken.None) != version.ManifestSha256)
-            throw new IOException("SM86-Paketsicherung wurde verändert.");
+            throw new IOException(GetText("ManagedModService.TheSM86PackageBackupChanged"));
         stream.Position = 0;
         var files = JsonSerializer.Deserialize<SnapshotFile[]>(stream)
-            ?? throw new IOException("SM86-Paketsicherung ist ungültig.");
+            ?? throw new IOException(GetText("ManagedModService.TheSM86PackageBackupIsInvalid"));
         return new(version.Proxy, files.Select((file, index) => new ModPackageFile(file.Path,
             SafePaths.Child(directory, FormattableString.Invariant($"{index}.bin")), file.Sha256)).ToArray());
     }

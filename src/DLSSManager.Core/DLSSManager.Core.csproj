@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <EmbeddedResource Include="Localization/Strings.*.json" WithCulture="false"
+                      LogicalName="DLSSManager.Core.Localization.%(Filename)%(Extension)" />
     <EmbeddedResource Include="IniDefaults/*.ini" />
     <None Update="IniDefaults/*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

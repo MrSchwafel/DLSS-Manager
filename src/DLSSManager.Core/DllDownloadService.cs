@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Security.Cryptography;
 using System.IO.Compression;
 using System.Reflection.PortableExecutable;
@@ -33,9 +34,9 @@ public sealed class DllDownloadService(HttpClient client, string cacheDirectory)
             StringComparer.OrdinalIgnoreCase.Equals(DurableFiles.Hash(stream, token, HashAlgorithmName.MD5), entry.DllMd5);
         if (!metadata.IsDll || metadata.Machine != Machine.Amd64 || !digestMatches ||
             (metadata.NumericFileVersion ?? new Version(0, 0)) != entry.Version)
-            throw new IOException($"DLL-Prüfsumme, Version oder Architektur konnte nicht bestätigt werden. Dateiversion {metadata.FileVersion}, Katalogversion {entry.Version}, Architektur {metadata.Machine}.");
+            throw new IOException(GetText("DllDownloadService.CouldNotVerifyTheDLLChecksumVersion", metadata.FileVersion, entry.Version, metadata.Machine));
         if (entry.LocalPath is null && !NvidiaSignature.IsValid(path, entry.Kind))
-            throw new IOException("Die vertrauenswürdige Herstellersignatur konnte nicht bestätigt werden.");
+            throw new IOException(GetText("DllDownloadService.CouldNotVerifyATrustedVendorSignature"));
         return metadata;
     }
 
@@ -45,11 +46,11 @@ public sealed class DllDownloadService(HttpClient client, string cacheDirectory)
         var requireNvidia = catalogEntry is not null;
         if (!url.IsAbsoluteUri || url.Scheme != Uri.UriSchemeHttps ||
             DllDetectionService.UpscalerKind(name) is not ("SR" or "FG" or "RR" or "XeSS" or "FSR"))
-            throw new ArgumentException("Ungültige DLL-Paketquelle.", nameof(url));
+            throw new ArgumentException(GetText("DllDownloadService.InvalidDLLPackageSource"), nameof(url));
 
         if (requireNvidia && (!DllCatalogService.IsArtifactUri(url) ||
             !DllCatalogService.IsMd5(archiveHash) || !DllCatalogService.IsMd5(dllHash)))
-            throw new ArgumentException("Ungültige Katalogdaten.");
+            throw new ArgumentException(GetText("DllDownloadService.InvalidCatalogData"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
         timeout.CancelAfter(TimeSpan.FromMinutes(5));
         token = timeout.Token;
@@ -69,28 +70,28 @@ public sealed class DllDownloadService(HttpClient client, string cacheDirectory)
             response.EnsureSuccessStatusCode();
             if (response.RequestMessage?.RequestUri is not { } finalUri || finalUri.Scheme != Uri.UriSchemeHttps ||
                 (requireNvidia && !DllCatalogService.IsArtifactUri(finalUri)))
-                throw new IOException("Die Paketquelle muss HTTPS verwenden.");
+                throw new IOException(GetText("DllDownloadService.ThePackageSourceMustUseHTTPS"));
             if (response.Content.Headers.ContentLength > MaxBytes)
-                throw new IOException("Das Archiv überschreitet das Größenlimit.");
+                throw new IOException(GetText("DllDownloadService.TheArchiveExceedsTheSizeLimit"));
             await using (var source = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false))
                 await WriteLimitedAsync(source, zipPath, token).ConfigureAwait(false);
 
             if (!StringComparer.OrdinalIgnoreCase.Equals(Digest(zipPath, requireNvidia, token), archiveHash))
-                throw new IOException("Prüfsumme des Archivs fehlgeschlagen.");
+                throw new IOException(GetText("DllDownloadService.ArchiveChecksumVerificationFailed"));
 
             using (var zip = ZipFile.OpenRead(zipPath))
             {
                 var matches = zip.Entries.Where(e =>
                     e.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
                 if (matches.Length != 1 || matches[0].Length > MaxBytes)
-                    throw new IOException("Die erwartete DLL fehlt, ist mehrdeutig oder überschreitet das Größenlimit.");
+                    throw new IOException(GetText("DllDownloadService.TheExpectedDLLIsMissingAmbiguousOr"));
                 await using var source = matches[0].Open();
                 await WriteLimitedAsync(source, dllPath, token).ConfigureAwait(false);
             }
 
             if (catalogEntry is not null) VerifyCatalogFile(dllPath, catalogEntry, token);
             else if (!Valid(dllPath, dllHash, null, token))
-                throw new IOException("DLL-Inhalt oder PE-Architektur stimmt nicht mit dem Paket überein.");
+                throw new IOException(GetText("DllDownloadService.TheDLLContentsOrPEArchitectureDo"));
             token.ThrowIfCancellationRequested();
             SafePaths.RejectLinks(target);
             File.Move(dllPath, target, overwrite: true);
@@ -106,7 +107,7 @@ public sealed class DllDownloadService(HttpClient client, string cacheDirectory)
 
     private static byte[] ParseHash(string digest)
     {
-        if (digest.Length != 64) throw new ArgumentException("Ein SHA-256-Wert muss 64 Hex-Zeichen enthalten.");
+        if (digest.Length != 64) throw new ArgumentException(GetText("DllDownloadService.ASHAValueMustContainHexadecimalCharacters"));
         return Convert.FromHexString(digest);
     }
 
@@ -137,7 +138,7 @@ public sealed class DllDownloadService(HttpClient client, string cacheDirectory)
         while ((count = await source.ReadAsync(buffer, token).ConfigureAwait(false)) != 0)
         {
             total += count;
-            if (total > MaxBytes) throw new IOException("Die Datei überschreitet das Größenlimit.");
+            if (total > MaxBytes) throw new IOException(GetText("DllDownloadService.TheFileExceedsTheSizeLimit"));
             await output.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
         }
         output.Flush(flushToDisk: true);

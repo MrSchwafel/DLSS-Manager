@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.IO;
 using System.Globalization;
 using System.Windows;
@@ -19,8 +20,8 @@ public partial class ModIniWindow : Window
         IReadOnlyDictionary<IniMod, string>? iniPaths = null)
     {
         InitializeComponent();
-        TargetText.Text = gameTitle ?? "Globale Standard-Vorlagen";
-        if (gameTitle is null) SaveButton.Content = "Globale Standards speichern";
+        TargetText.Text = gameTitle ?? GetText("Ini.GlobalDefaultTemplates");
+        if (gameTitle is null) SaveButton.Content = GetText("Ini.SaveGlobalDefaults");
         foreach (var mod in Enum.GetValues<IniMod>())
         {
             var pane = new IniTab(mod, originals[mod], global[mod], local[mod], gameTitle is not null, recommendedFrames, this,
@@ -29,7 +30,7 @@ public partial class ModIniWindow : Window
             tabs.Add(pane);
             Tabs.Items.Add(new TabItem
             {
-                Header = new TextBlock { Text = $"{(mod == IniMod.Sm86 ? "SM86 FrameGen" : "OptiScaler")} ({ModIniProfiles.FileName(mod)})" },
+                Header = new TextBlock { Text = $"{(mod == IniMod.Sm86 ? GetText("Ini.SM86FrameGeneration") : "OptiScaler")} ({ModIniProfiles.FileName(mod)})" },
                 Content = pane.View
             });
         }
@@ -55,7 +56,7 @@ public partial class ModIniWindow : Window
         try
         {
             SafePaths.RejectLinks(path);
-            if (!File.Exists(path)) throw new IOException($"Die Spiel-INI fehlt: {path}");
+            if (!File.Exists(path)) throw new IOException(GetText("Ini.TheGameINIFileIsMissing", path));
             var editor = new System.Diagnostics.ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "notepad.exe"));
             editor.ArgumentList.Add(path);
             using var process = System.Diagnostics.Process.Start(editor);
@@ -100,9 +101,9 @@ public partial class ModIniWindow : Window
         };
         private readonly ComboBox filter = new()
         {
-            ItemsSource = new[] { "Wichtigste Einstellungen", "Alle INI-Sektionen" },
+            ItemsSource = new[] { GetText("Ini.KeySettings"), GetText("Ini.AllINISections") },
             SelectedIndex = 0, Width = 215, Height = 34, Margin = new(8, 0, 0, 0),
-            ToolTip = "Angezeigte Einstellungen"
+            ToolTip = GetText("Ini.SettingsToDisplay")
         };
         private readonly TextBox expert = new() { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MinHeight = 85, MaxHeight = 180, Padding = new(6) };
@@ -142,16 +143,16 @@ public partial class ModIniWindow : Window
             filters.Children.Add(searchAndFilter);
             if (forGame && iniPath is not null)
             {
-                var open = CreateAction(window, "IniFileButton", "Spiel-INI öffnen", () => openIniFile(iniPath), "\uE7C3");
+                var open = CreateAction(window, "IniFileButton", GetText("Ini.OpenGameINIFile"), () => openIniFile(iniPath), "\uE7C3");
                 open.IsEnabled = File.Exists(iniPath);
                 open.ToolTip = iniPath + (open.IsEnabled
-                    ? "\nÖffnet die Datei in Notepad. Dauerhafte Änderungen bitte im Profil speichern."
-                    : "\nDie Spiel-INI ist noch nicht vorhanden.");
+                    ? GetText("Ini.OpensTheFileInNotepadSavePermanent")
+                    : GetText("Ini.TheGameINIFileDoesNotExist"));
                 ToolTipService.SetShowOnDisabled(open, true);
                 DockPanel.SetDock(open, Dock.Right);
                 filters.Children.Add(open);
             }
-            AutomationProperties.SetName(search, "Einstellung suchen");
+            AutomationProperties.SetName(search, GetText("Ini.SearchSettings"));
             var searchBox = new Grid();
             searchBox.Children.Add(search);
             var icon = ToolbarIcon("\uE721");
@@ -161,11 +162,11 @@ public partial class ModIniWindow : Window
             searchBox.Children.Add(icon);
             var placeholder = new TextBlock
             {
-                Text = "Einstellung suchen…", IsHitTestVisible = false, Foreground = icon.Foreground,
+                Text = GetText("Ini.SearchSettings2"), IsHitTestVisible = false, Foreground = icon.Foreground,
                 Margin = new(32, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center
             };
             searchBox.Children.Add(placeholder);
-            AutomationProperties.SetName(filter, "Angezeigte Einstellungen");
+            AutomationProperties.SetName(filter, GetText("Ini.SettingsToDisplay"));
             searchAndFilter.Children.Add(searchBox);
             searchAndFilter.Children.Add(filter);
             var actionRow = new Grid { Margin = new(0, 8, 0, 0) };
@@ -176,7 +177,7 @@ public partial class ModIniWindow : Window
             actionRow.Children.Add(actions);
             if (mod == IniMod.Sm86)
             {
-                AddAction("Empfehlung: Max. MFG (6X)", () =>
+                AddAction(GetText("Ini.RecommendationMaxMFGX"), () =>
                 {
                     ReplaceFields(new("FrameGeneration", "Engine", "DLSS"), new("DLSSG", "Optimized", "2"),
                         new("FrameGeneration", "MaxGeneratedFrames", "5"), new("DLSSG", "Preset", "A"));
@@ -184,24 +185,24 @@ public partial class ModIniWindow : Window
                 if (forGame && recommendedFrames is int frames)
                     AddAction($"DLSSdb ({frames + 1}X)", () =>
                         ReplaceFields(new IniSetting("FrameGeneration", "MaxGeneratedFrames", frames.ToString(CultureInfo.InvariantCulture))))
-                        .ToolTip = "Spielspezifische Frame-Generation-Empfehlung aus DLSSdb übernehmen";
+                        .ToolTip = GetText("Ini.UseTheGameSpecificFrameGenerationRecommendation");
             }
             if (forGame)
-                AddAction("Globale Standards übernehmen", () => Load(inherited, dirty: true));
-            AddAction("Auf Standard zurücksetzen", ResetToDefaults).ToolTip = mod == IniMod.Sm86
-                ? "SM86-Einstellungen auf Mod-Standard zurücksetzen"
-                : "OptiScaler-Einstellungen mit automatischem Standard auf auto zurücksetzen";
+                AddAction(GetText("Ini.InheritGlobalDefaults"), () => Load(inherited, dirty: true));
+            AddAction(GetText("Ini.ResetToDefaults"), ResetToDefaults).ToolTip = mod == IniMod.Sm86
+                ? GetText("Ini.ResetSM86SettingsToModDefaults")
+                : GetText("Ini.ResetOptiScalerSettingsWithAnAutomaticDefault");
             if (hasSavedGameProfile)
             {
-                deleteProfile = CreateAction(window, "IniDeleteButton", "Profil löschen",
+                deleteProfile = CreateAction(window, "IniDeleteButton", GetText("Ini.DeleteProfile"),
                     () => Load(IniProfile.Empty, dirty: true), "\uE74D");
-                deleteProfile.ToolTip = "Gespeichertes Spielprofil löschen und auf Global-Standard zurückfallen";
+                deleteProfile.ToolTip = GetText("Ini.DeleteTheSavedGameProfileAndUse");
                 Grid.SetColumn(deleteProfile, 1);
                 actionRow.Children.Add(deleteProfile);
             }
             var content = new StackPanel { Margin = new(0, 0, 14, 0) };
             content.Children.Add(sections);
-            var help = new TextBlock { Text = "Expertenwerte · Abschnitt|Schlüssel=Wert", Margin = new(0, 12, 0, 4) };
+            var help = new TextBlock { Text = GetText("Ini.AdvancedValuesSectionKeyValue"), Margin = new(0, 12, 0, 4) };
             content.Children.Add(help);
             AutomationProperties.SetLabeledBy(expert, help);
             content.Children.Add(expert);
@@ -298,9 +299,9 @@ public partial class ModIniWindow : Window
                     var own = profile.Values.LastOrDefault(v => v.Matches(key.Section, key.Key));
                     var fallback = inheritedValues.LastOrDefault(v => v.Matches(key.Section, key.Key))?.Value ?? key.Value;
                     var (editor, input) = CreateInput(field, own?.Value ?? fallback);
-                    var toggle = new CheckBox { Content = "Überschreiben", IsChecked = own is not null, Margin = new(8, 0, 0, 0),
+                    var toggle = new CheckBox { Content = GetText("Ini.Override"), IsChecked = own is not null, Margin = new(8, 0, 0, 0),
                         VerticalAlignment = VerticalAlignment.Center };
-                    AutomationProperties.SetName(toggle, $"{key.Section} {key.Key} überschreiben");
+                    AutomationProperties.SetName(toggle, GetText("Ini.Override2", key.Section, key.Key));
                     var label = new TextBlock { Text = key.Key, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
                     AutomationProperties.SetLabeledBy(input, label);
                     var row = new Grid { Margin = new(0, 0, 0, 4), ToolTip = Tooltip(field, fallback) };
@@ -340,7 +341,7 @@ public partial class ModIniWindow : Window
 
         private static TextBlock Tooltip(IniField field, string inherited) => new()
         {
-            Text = $"Mod-Standard: {field.Default.Value}\nGeerbt: {inherited}" +
+            Text = GetText("Ini.ModDefaultInherited", field.Default.Value, inherited) +
                 (field.Description.Length == 0 ? "" : "\n\n" + field.Description),
             MaxWidth = 530, TextWrapping = TextWrapping.Wrap
         };
@@ -369,7 +370,7 @@ public partial class ModIniWindow : Window
             void AddStep(string title, double amount)
             {
                 var button = new Button { Style = buttonStyle, Content = title, Padding = new(7, 0, 7, 0), MinHeight = 24, Margin = new(3, 0, 0, 0) };
-                AutomationProperties.SetName(button, amount < 0 ? "Wert verringern" : "Wert erhöhen");
+                AutomationProperties.SetName(button, amount < 0 ? GetText("Ini.DecreaseValue") : GetText("Ini.IncreaseValue"));
                 button.Click += (_, _) =>
                 {
                     if (!TryNumber(box.Text, out var current)) current = 0;
@@ -392,10 +393,10 @@ public partial class ModIniWindow : Window
                 draft.Values.Any(v => !schema.Any(f => v.Matches(f.Default.Section, f.Default.Key)));
             (ProfileKind, ProfileStatus) = (forGame, custom, inherited.HasOverrides) switch
             {
-                (true, true, _) => ("Game", "Eigenes Spielprofil aktiv"),
-                (_, true, _) or (_, _, true) => ("Global", "Globaler Standard aktiv"),
-                _ when Mod == IniMod.Sm86 && forGame && recommendedFrames is { } frames => ("Mod", $"DLSSdb-Empfehlung aktiv · {frames + 1}X"),
-                _ => ("Mod", "Mod-Standard")
+                (true, true, _) => ("Game", GetText("Ini.CustomGameProfileActive")),
+                (_, true, _) or (_, _, true) => ("Global", GetText("Ini.GlobalDefaultActive")),
+                _ when Mod == IniMod.Sm86 && forGame && recommendedFrames is { } frames => ("Mod", GetText("Ini.DLSSdbRecommendationActiveX", frames + 1)),
+                _ => ("Mod", GetText("Ini.ModDefault"))
             };
             if (deleteProfile is not null)
                 deleteProfile.Visibility = custom ? Visibility.Visible : Visibility.Collapsed;
@@ -464,7 +465,7 @@ public partial class ModIniWindow : Window
                 {
                     if (!TryNumber(value, out var numeric) || numeric < number.Min || numeric > number.Max ||
                         (number.Step == 1 && !field.Field.Default.Matches("Framerate", "FramerateLimit") && numeric != Math.Truncate(numeric)))
-                        throw new ArgumentException($"Ungültige Zahl für {field.Field.Default.Section}|{field.Field.Default.Key}.");
+                        throw new ArgumentException(GetText("Ini.InvalidNumberFor", field.Field.Default.Section, field.Field.Default.Key));
                     value = numeric.ToString(CultureInfo.InvariantCulture);
                 }
                 result.Add(field.Field.Default with { Value = value });

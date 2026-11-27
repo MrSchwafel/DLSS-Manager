@@ -2,18 +2,20 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using DLSSManager.Core;
 using Forms = System.Windows.Forms;
 
 namespace DLSSManager.App;
 
 internal sealed class TrayMenu : Forms.ContextMenuStrip
 {
-    private const string ScanLabel = "Spielebibliothek neu scannen";
+    private const string ScanKey = "Tray.RescanLibrary";
     private static readonly Color Ink = Color.FromArgb(0xF1, 0xF5, 0xF9);
     private static readonly Color Muted = Color.FromArgb(0x94, 0xA3, 0xB8);
     private readonly LibraryViewModel model;
     private readonly Font primaryFont;
     private readonly List<Image> icons = [];
+    private readonly Dictionary<Forms.ToolStripMenuItem, string> labels = [];
     private readonly Forms.ToolStripMenuItem scanItem;
     private readonly Forms.ToolStripMenuItem syncItem;
     private readonly Forms.ToolStripMenuItem updateItem;
@@ -27,21 +29,22 @@ internal sealed class TrayMenu : Forms.ContextMenuStrip
         ShowCheckMargin = false;
         primaryFont = new Font(Font, FontStyle.Bold);
 
-        AddItem("DLSS Manager öffnen", '\uE737', open).Font = primaryFont;
+        AddItem("Tray.OpenManager", '\uE737', open).Font = primaryFont;
         Items.Add(new Forms.ToolStripSeparator());
-        scanItem = AddItem(ScanLabel, '\uE721', scan);
-        syncItem = AddItem("DLL-Katalog & Datenbanken synchronisieren", '\uE895', sync);
-        updateItem = AddItem("Auf App-Updates prüfen", '\uE896', update);
+        scanItem = AddItem(ScanKey, '\uE721', scan);
+        syncItem = AddItem("Tray.SyncCatalog", '\uE895', sync);
+        updateItem = AddItem("Tray.CheckUpdates", '\uE896', update);
         Items.Add(new Forms.ToolStripSeparator());
-        folderItem = AddItem("Daten- & Backup-Ordner öffnen", '\uE8B7', openFolder);
-        AddItem("Einstellungen öffnen", '\uE713', openSettings);
+        folderItem = AddItem("Tray.OpenDataFolder", '\uE8B7', openFolder);
+        AddItem("Tray.OpenSettings", '\uE713', openSettings);
         Items.Add(new Forms.ToolStripSeparator());
-        var exitItem = AddItem("Beenden", '\uE711', exit);
+        var exitItem = AddItem("Tray.Exit", '\uE711', exit);
         Renderer = new DarkRenderer(exitItem);
         model.PropertyChanged += OnModelChanged;
+        LocalizationService.LanguageChanged += OnLanguageChanged;
     }
 
-    private Forms.ToolStripMenuItem AddItem(string label, char glyph, Action action)
+    private Forms.ToolStripMenuItem AddItem(string key, char glyph, Action action)
     {
         var icon = new Bitmap(32, 32);
         using var graphics = Graphics.FromImage(icon);
@@ -52,10 +55,11 @@ internal sealed class TrayMenu : Forms.ContextMenuStrip
         graphics.DrawString(glyph.ToString(), font, brush, new RectangleF(0, 0, icon.Width, icon.Height), format);
         icons.Add(icon);
 
-        var item = new Forms.ToolStripMenuItem(label.Replace("&", "&&"), icon, (_, _) => action())
+        var item = new Forms.ToolStripMenuItem(MenuText(key), icon, (_, _) => action())
         {
             Padding = new Forms.Padding(0, 7, 8, 7)
         };
+        labels.Add(item, key);
         Items.Add(item);
         return item;
     }
@@ -71,16 +75,28 @@ internal sealed class TrayMenu : Forms.ContextMenuStrip
         if (Visible && e.PropertyName == nameof(LibraryViewModel.IsBusy)) RefreshActions();
     }
 
+    private static string MenuText(string key) => LocalizationService.GetText(key).Replace("&", "&&");
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        foreach (var (item, key) in labels) item.Text = MenuText(key);
+        RefreshActions();
+    }
+
     private void RefreshActions()
     {
-        scanItem.Text = model.IsScanning ? "Scan läuft …" : ScanLabel;
+        scanItem.Text = MenuText(model.IsScanning ? "Tray.Scanning" : ScanKey);
         scanItem.Enabled = syncItem.Enabled = updateItem.Enabled = !model.IsBusy;
         folderItem.Enabled = model.OpenDataFolder.CanExecute(null);
     }
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) model.PropertyChanged -= OnModelChanged;
+        if (disposing)
+        {
+            model.PropertyChanged -= OnModelChanged;
+            LocalizationService.LanguageChanged -= OnLanguageChanged;
+        }
         base.Dispose(disposing);
         if (!disposing) return;
         primaryFont.Dispose();

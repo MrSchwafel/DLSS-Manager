@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -27,7 +28,7 @@ public static partial class ModIniService
             var bar = line.IndexOf('|');
             var equals = line.IndexOf('=', Math.Max(0, bar + 1));
             if (bar < 1 || equals <= bar + 1)
-                throw new ArgumentException($"Expertenzeile {lineNumber}. Erwartet wird Abschnitt|Schlüssel=Wert.");
+                throw new ArgumentException(GetText("Ini.AdvancedEntryExpectedSectionKeyValue", lineNumber));
             var setting = new IniSetting(line[..bar].Trim(), line[(bar + 1)..equals].Trim(), line[(equals + 1)..].Trim());
             Validate(setting);
             result.Add(setting);
@@ -42,7 +43,7 @@ public static partial class ModIniService
         const int maxBytes = 2 * 1024 * 1024;
         SafePaths.RejectLinks(path);
         using var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        if (stream.Length > maxBytes) throw new IOException("Die Mod-INI überschreitet das Größenlimit von 2 MiB.");
+        if (stream.Length > maxBytes) throw new IOException(GetText("Ini.TheModINIExceedsTheMiBSize"));
         var bytes = new byte[(int)stream.Length];
         stream.ReadExactly(bytes);
         return bytes;
@@ -52,7 +53,7 @@ public static partial class ModIniService
     {
         var original = ReadFile(path);
         if (Convert.ToHexString(SHA256.HashData(original)) != hash)
-            throw new IOException("Die Mod-INI aus dem Paket wurde verändert.");
+            throw new IOException(GetText("Ini.TheModINIInThePackageChanged"));
         return original;
     }
 
@@ -187,7 +188,7 @@ public static partial class ModIniService
         var root = SafePaths.Root(game.Root);
         var exe = SafePaths.Child(root, executable);
         if (!game.Executables.Any(p => Same(SafePaths.Child(root, p), exe)))
-            throw new IOException("Die Ziel-EXE gehört nicht zur bestätigten Installation.");
+            throw new IOException(GetText("Ini.TheTargetExecutableIsOutsideTheVerified"));
         return (root, SafePaths.Child(Path.GetDirectoryName(exe)!, fileName));
     }
 
@@ -234,6 +235,6 @@ public static partial class ModIniService
             setting.Section.Any(c => char.IsControl(c) || c is '[' or ']' or '|') ||
             setting.Key.Any(c => char.IsControl(c) || c is '=' or '[' or ']' or '|') ||
             setting.Key.TrimStart()[0] is ';' or '#' || setting.Value.Any(c => c is '\n' or '\r' or '\0'))
-            throw new ArgumentException("Ungültiger INI-Abschnitt, Schlüssel oder Wert.");
+            throw new ArgumentException(GetText("Ini.InvalidINISectionKeyOrValue"));
     }
 }

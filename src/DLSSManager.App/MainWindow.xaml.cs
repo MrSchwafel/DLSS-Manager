@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,7 +16,7 @@ public partial class MainWindow : Window
     private WindowsAutostart.State autostart = new(false, true);
     private bool shownInTray;
     private bool closed;
-    private bool waitingForDriverTooltipSave;
+    private bool waitingForSettingsSave;
 
     public MainWindow()
     {
@@ -30,9 +31,9 @@ public partial class MainWindow : Window
         tray.Text = "DLSS Manager";
         trayMenu = new TrayMenu(model,
             () => DispatchTrayAction(ShowFromTray),
-            () => DispatchTrayAction(() => RunTrayActionAsync(model.ScanLibraryAsync, "Spielebibliothek")),
-            () => DispatchTrayAction(() => RunTrayActionAsync(model.SyncCatalogAndDatabaseAsync, "Katalog und Datenbanken")),
-            () => DispatchTrayAction(() => RunTrayActionAsync(model.CheckStableReleaseAsync, "App-Updates")),
+            () => DispatchTrayAction(() => RunTrayActionAsync(model.ScanLibraryAsync, GetText("Library.Title"))),
+            () => DispatchTrayAction(() => RunTrayActionAsync(model.SyncCatalogAndDatabaseAsync, GetText("Workspace.CatalogAndDatabases"))),
+            () => DispatchTrayAction(() => RunTrayActionAsync(model.CheckStableReleaseAsync, GetText("Workspace.AppUpdates"))),
             () => DispatchTrayAction(() =>
             {
                 if (model.OpenDataFolder.CanExecute(null)) model.OpenDataFolder.Execute(null);
@@ -55,22 +56,22 @@ public partial class MainWindow : Window
             Hide();
             if (shownInTray) return;
             shownInTray = true;
-            tray.ShowBalloonTip(2500, "DLSS Manager", "Über das Taskleistensymbol kannst du das Fenster wieder öffnen.",
+            tray.ShowBalloonTip(2500, "DLSS Manager", GetText("Workspace.UseTheSystemTrayIconToReopen"),
                 Forms.ToolTipIcon.Info);
         };
         Closing += async (_, args) =>
         {
-            if (model.DriverTooltipStyleSave.IsCompleted)
+            if (model.DriverTooltipStyleSave.IsCompleted && model.LanguageSave.IsCompleted)
                 return;
 
             args.Cancel = true;
-            if (waitingForDriverTooltipSave)
+            if (waitingForSettingsSave)
                 return;
 
-            waitingForDriverTooltipSave = true;
-            while (!model.DriverTooltipStyleSave.IsCompleted)
-                await model.DriverTooltipStyleSave;
-            waitingForDriverTooltipSave = false;
+            waitingForSettingsSave = true;
+            while (!model.DriverTooltipStyleSave.IsCompleted || !model.LanguageSave.IsCompleted)
+                await Task.WhenAll(model.DriverTooltipStyleSave, model.LanguageSave);
+            waitingForSettingsSave = false;
             if (!closed)
                 Close();
         };
@@ -294,7 +295,7 @@ public partial class MainWindow : Window
         await action();
         if (closed) return;
         if (tray.Visible)
-            tray.ShowBalloonTip(3500, title, model.Status, Forms.ToolTipIcon.Info);
+            tray.ShowBalloonTip(3500, title, model.Status.Text, Forms.ToolTipIcon.Info);
         else
             model.ShowStatusToast();
     }
@@ -310,7 +311,7 @@ public partial class MainWindow : Window
     private void SelectLibraryFilter(object sender, RoutedEventArgs args)
     {
         if (sender is Button { Tag: string filter })
-            model.LibraryFilter = model.LibraryFilter == filter ? model.LibraryFilters[0] : filter;
+            model.LibraryFilter = model.LibraryFilter == filter ? model.LibraryFilterOptions[0].Code : filter;
     }
 
     private void OpenScanDetails(object sender, RoutedEventArgs args) => model.OpenScanDetails();

@@ -1,10 +1,15 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace DLSSManager.Core;
 
-public sealed record ScanRoot(string Title, string Path, string Launcher, string? Executable = null, string? KnownAntiCheat = null);
+public sealed record ScanRoot(string Title, string Path, string Launcher, string? Executable = null, string? KnownAntiCheat = null)
+{
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string LauncherLabelKey => LauncherLabels.LabelKey(Launcher);
+}
 public sealed record ScanOptions(IReadOnlyList<ScanRoot> Roots, IReadOnlyList<string> Exclusions,
     IReadOnlyList<string> BlockedExecutables);
 public sealed record ScanProgress(int RootsCompleted, int RootsTotal, int Directories, int Files, string Current);
@@ -12,12 +17,15 @@ public sealed record DllFinding(string Path, string Kind, bool ModComponent, lon
     DllMetadata? Metadata, bool HasOriginalBackup, long BackupSize = 0, DateTime? BackupDate = null)
 {
     public string? Version => DllVersionService.Parse(Metadata?.FileVersion)?.ToString() ?? Metadata?.FileVersion;
-    public string Status => Metadata switch
+    public string Status => GetText(StatusKey);
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string StatusKey => Metadata switch
     {
-        null => "Nicht lesbar",
-        { IsDll: false } => "Keine PE-DLL",
-        _ when Kind == "Proxy" => "Proxy-Kandidat",
-        _ when ModComponent => "Unlocker-Kandidat",
+        null => "Scan.Unreadable",
+        { IsDll: false } => "Scan.NotPeDll",
+        _ when Kind == "Proxy" => "Scan.ProxyCandidate",
+        _ when ModComponent => "Scan.UnlockerCandidate",
         _ => "PE-DLL"
     };
 }
@@ -56,7 +64,7 @@ public static partial class LauncherDiscovery
                         libraries.Add(value);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
-        { warning($"Steam-Bibliotheken: {e.Message}"); }
+        { warning(GetText("GameScanner.SteamLibraries", e.Message)); }
 
         foreach (var library in libraries)
         {
@@ -81,7 +89,7 @@ public static partial class LauncherDiscovery
                                 ? "VAC" : null);
                 }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
-                { warning($"Steam-Manifest: {e.Message}"); }
+                { warning(GetText("GameScanner.SteamManifest", e.Message)); }
                 if (result is not null) yield return result;
             }
         }
@@ -122,7 +130,7 @@ public static partial class LauncherDiscovery
                     result = new(Get("DisplayName") ?? Path.GetFileName(root), root, "Epic", Get("LaunchExecutable"));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException)
-            { warning($"Epic-Manifest: {e.Message}"); }
+            { warning(GetText("GameScanner.EpicManifest", e.Message)); }
             if (result is not null) yield return result;
         }
     }
@@ -133,7 +141,7 @@ public static partial class LauncherDiscovery
         {
             var dir = SafePaths.Root(root);
             if (relative is not null) dir = SafePaths.Child(dir, relative);
-            if (!Directory.Exists(dir)) { warning($"Launcher-Ordner fehlt: {dir}"); return []; }
+            if (!Directory.Exists(dir)) { warning(GetText("GameScanner.LauncherFolderMissing", dir)); return []; }
             return Directory.GetFiles(dir, pattern);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
@@ -172,7 +180,7 @@ public sealed class GameScanner(string cacheDirectory)
                     StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException or ArgumentException)
-        { warnings.Add($"Scan-Cache wird neu aufgebaut: {e.Message}"); }
+        { warnings.Add(GetText("GameScanner.RebuildingTheScanCache", e.Message)); }
         var cache = new Dictionary<string, CacheEntry>(StringComparer.OrdinalIgnoreCase);
         var blocked = options.BlockedExecutables.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var exclusions = options.Exclusions.Where(Path.IsPathFullyQualified).Select(Path.GetFullPath).ToArray();
@@ -185,7 +193,7 @@ public sealed class GameScanner(string cacheDirectory)
                 var root = SafePaths.Root(candidate.Path);
                 if (!seen.Add(root) || LauncherDiscovery.IsSteamRuntimeFolder(Path.GetFileName(root)) ||
                     exclusions.Any(path => SafePaths.Contains(path, root))) continue;
-                if (!Directory.Exists(root)) { warnings.Add($"Offline oder nicht zugänglich: {root}"); continue; }
+                if (!Directory.Exists(root)) { warnings.Add(GetText("GameScanner.OfflineOrInaccessible", root)); continue; }
                 var executable = new List<(string Path, long Size)>();
                 var dlls = new List<DllFinding>();
                 var antiCheat = new List<(string Folder, string Name)>();
@@ -311,7 +319,7 @@ public sealed class GameScanner(string cacheDirectory)
             cache.TryAdd(entry.Key, entry.Value);
         try { DurableFiles.Json(cachePath, cache, overwrite: true); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        { warnings.Add($"Scan-Cache konnte nicht gespeichert werden: {e.Message}"); }
+        { warnings.Add(GetText("GameScanner.CouldNotSaveTheScanCache", e.Message)); }
         process.Refresh();
         return new([.. games], new(watch.Elapsed.TotalMilliseconds, (process.TotalProcessorTime - cpu).TotalMilliseconds,
             GC.GetTotalMemory(false) - memory, process.WorkingSet64 - workingSet, process.HandleCount - handles,
@@ -340,7 +348,7 @@ public sealed class GameScanner(string cacheDirectory)
             {
                 token.ThrowIfCancellationRequested();
                 if (AntiCheatName(item.Name) is { } name && acknowledged?.Contains(name) != true)
-                    throw new IOException($"{name} erkannt. DLL-Updates und Mod-Installationen sind gesperrt.");
+                    throw new IOException(GetText("GameScanner.DetectedDLLUpdatesAndModInstallationsAre", name));
                 if (item is DirectoryInfo && !item.Attributes.HasFlag(FileAttributes.ReparsePoint))
                     folders.Push(item.FullName);
             }

@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -57,12 +58,12 @@ internal static class WindowsAutostart
             start.ArgumentList.Add(ConfigureSwitch);
             start.ArgumentList.Add(sid);
             start.ArgumentList.Add(state.Enabled ? (state.Minimized ? "tray" : "window") : "off");
-            using var helper = Process.Start(start) ?? throw new InvalidOperationException("UAC-Start fehlgeschlagen.");
+            using var helper = Process.Start(start) ?? throw new InvalidOperationException(GetText("WindowsAutostart.UACLaunchFailed"));
             await helper.WaitForExitAsync();
             if (helper.ExitCode == 2)
-                throw new InvalidOperationException("Der Autostart muss unter demselben Windows-Benutzerkonto eingerichtet werden.");
+                throw new InvalidOperationException(GetText("WindowsAutostart.StartupMustBeConfiguredUnderTheSame"));
             if (helper.ExitCode != 0)
-                throw new InvalidOperationException("Die Windows-Aufgabenplanung konnte den Autostart nicht speichern.");
+                throw new InvalidOperationException(GetText("WindowsAutostart.WindowsTaskSchedulerCouldNotSaveThe"));
         }
     }
 
@@ -83,7 +84,7 @@ internal static class WindowsAutostart
                 "tray" => new State(true, true),
                 "window" => new State(true, false),
                 "off" => new State(false, true),
-                _ => throw new InvalidOperationException("Ungültige Autostart-Einstellung.")
+                _ => throw new InvalidOperationException(GetText("WindowsAutostart.InvalidStartupSetting"))
             };
             Set(state, ExecutablePath(), args[^2], args[..^3].Contains("--portable", StringComparer.OrdinalIgnoreCase));
         }
@@ -108,7 +109,7 @@ internal static class WindowsAutostart
     {
         var path = Environment.ProcessPath;
         if (!string.Equals(Path.GetFileName(path), "DLSSManager.App.exe", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("Autostart erfordert die veröffentlichte EXE.");
+            throw new InvalidOperationException(GetText("WindowsAutostart.StartupRequiresThePublishedExecutable"));
         return path!;
     }
 
@@ -154,7 +155,7 @@ internal static class WindowsAutostart
     private static dynamic BuildTask(dynamic scheduler, string path, string sid, bool minimized, bool portable)
     {
         dynamic task = scheduler.NewTask(0);
-        task.RegistrationInfo.Description = "Startet DLSS Manager bei der Windows-Anmeldung.";
+        task.RegistrationInfo.Description = GetText("WindowsAutostart.StartsDLSSManagerAtWindowsSignIn");
         task.Principal.UserId = sid;
         task.Principal.LogonType = InteractiveToken;
         task.Principal.RunLevel = Highest;

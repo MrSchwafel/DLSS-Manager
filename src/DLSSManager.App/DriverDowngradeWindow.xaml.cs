@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -28,10 +29,10 @@ public partial class DriverDowngradeWindow : Window
         this.driverCacheFolder = driverCacheFolder;
 
         var typeLabel = targetDriver.IsHotfix ? "Hotfix" : "WHQL";
-        Title = $"Treiber-Downgrade auf NVIDIA v{targetDriver.Version}";
-        TitleHeading.Text = $"Treiber-Downgrade auf NVIDIA v{targetDriver.Version}";
-        VersionComparisonText.Text = $"Aktuell: v{currentVersion}  →  Ziel: v{targetDriver.Version} ({typeLabel})";
-        PrimaryDduButton.Content = dduPath is not null ? "DDU starten" : "DDU herunterladen (Wagnardsoft) ↗";
+        Title = GetText("Drivers.DowngradeNVIDIADriverToV", targetDriver.Version);
+        TitleHeading.Text = GetText("Drivers.DowngradeNVIDIADriverToV", targetDriver.Version);
+        VersionComparisonText.Text = GetText("Drivers.CurrentVTargetV", currentVersion, targetDriver.Version, typeLabel);
+        PrimaryDduButton.Content = dduPath is not null ? GetText("Drivers.RunDDU") : GetText("Drivers.DownloadDDUWagnardsoft");
 
         UpdateModeHint(this, new RoutedEventArgs());
     }
@@ -45,15 +46,15 @@ public partial class DriverDowngradeWindow : Window
         if (silentInstallEnabled)
         {
             SetupModeHint.Text = clean
-                ? "Stiller Express-Modus aktiv: Startet mit -s -clean -noreboot"
-                : "Stiller Express-Modus aktiv: Startet mit -s -noreboot";
+                ? GetText("Drivers.SilentExpressModeRunsWithSClean")
+                : GetText("Drivers.SilentExpressModeRunsWithSNoreboot");
             SetupModeHint.Foreground = new SolidColorBrush(Color.FromRgb(0x81, 0xC7, 0x84));
         }
         else
         {
             SetupModeHint.Text = clean
-                ? "Interaktives Setup aktiv: Bitte im NVIDIA-Installer unter „Benutzerdefiniert (Erweitert)“ den Haken bei „Neuinstallation vornehmen“ setzen."
-                : "Interaktives Setup aktiv: Öffnet den regulären NVIDIA-Installer.";
+                ? GetText("Drivers.InteractiveSetupInTheNVIDIAInstallerChoose")
+                : GetText("Drivers.InteractiveSetupOpensTheStandardNVIDIAInstaller");
             SetupModeHint.Foreground = new SolidColorBrush(
                 clean ? Color.FromRgb(0xFC, 0xD3, 0x4D) : Color.FromRgb(0x94, 0xA3, 0xB8));
         }
@@ -82,11 +83,11 @@ public partial class DriverDowngradeWindow : Window
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
         {
-            ShowActionError("DDU-Start wurde abgebrochen (Administratorrechte erforderlich).");
+            ShowActionError(GetText("Drivers.DDULaunchCancelledAdministratorPrivilegesRequired"));
         }
         catch (Exception ex) when (ex is Win32Exception or IOException or InvalidOperationException)
         {
-            ShowActionError($"Aktion konnte nicht ausgeführt werden: {ex.Message}");
+            ShowActionError(GetText("Drivers.ActionFailed", ex.Message));
         }
     }
 
@@ -103,7 +104,7 @@ public partial class DriverDowngradeWindow : Window
         }
         catch (Exception ex) when (ex is Win32Exception or IOException or UnauthorizedAccessException or InvalidOperationException)
         {
-            ShowActionError($"Download-Ordner konnte nicht geöffnet werden: {ex.Message}");
+            ShowActionError(GetText("Drivers.CouldNotOpenTheDownloadFolder", ex.Message));
         }
     }
 

@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -25,9 +26,9 @@ public static class SafePaths
             relative.Split('/', '\\').Any(p => p.Length == 0 || p is "." or ".." ||
                 p.EndsWith('.') || p.EndsWith(' ') || p.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
                 p.Contains(':') || IsDevice(p)))
-            throw new IOException($"Ungültiger relativer Pfad: {relative}");
+            throw new IOException(GetText("SafePaths.InvalidRelativePath", relative));
         var path = Path.GetFullPath(Path.Combine(root, relative));
-        if (!Contains(root, path)) throw new IOException("Pfad liegt außerhalb des Stammordners.");
+        if (!Contains(root, path)) throw new IOException(GetText("SafePaths.ThePathIsOutsideTheRootFolder"));
         RejectLinks(path);
         return path;
     }
@@ -51,7 +52,7 @@ public static class SafePaths
     {
         for (string? current = path; current is not null; current = Path.GetDirectoryName(current))
             if (Attributes(current) is { } flags && flags.HasFlag(FileAttributes.ReparsePoint))
-                throw new IOException($"Verknüpfung oder Reparse Point nicht erlaubt: {current}");
+                throw new IOException(GetText("SafePaths.LinksOrReparsePointsAreNotAllowed", current));
     }
 }
 

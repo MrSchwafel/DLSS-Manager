@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -9,6 +10,8 @@ public sealed record DllCatalogEntry(string Kind, string DllName, Version Versio
     string? Sha256 = null, string? LocalPath = null, DateTimeOffset? Published = null)
 {
     public string Display => $"{Version} · {Source}";
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string SourceLabelKey => Source == "Lokaler Import" ? "Catalog.LocalImport" : Source;
     public string Availability => LocalPath is not null || Sha256 is not null ? "Lokal" : "Online";
     public DateTimeOffset? CatalogDate => Published ?? Signed;
 }
@@ -51,9 +54,9 @@ public sealed class DllCatalogService(HttpClient client, string cacheDirectory)
                 return new(entries, null);
             response.EnsureSuccessStatusCode();
             if (response.RequestMessage?.RequestUri != Manifest)
-                throw new IOException("Unerwartete Weiterleitung beim DLL-Katalog.");
+                throw new IOException(GetText("DllCatalogService.UnexpectedRedirectWhileFetchingTheDLLCatalog"));
             if (response.Content.Headers.ContentLength > MaxManifestBytes)
-                throw new IOException("Der DLL-Katalog überschreitet das Größenlimit.");
+                throw new IOException(GetText("DllCatalogService.TheDLLCatalogExceedsTheSizeLimit"));
             await using var source = await response.Content.ReadAsStreamAsync(timeout.Token).ConfigureAwait(false);
             using var buffer = new MemoryStream();
             var block = new byte[32 * 1024];
@@ -61,7 +64,7 @@ public sealed class DllCatalogService(HttpClient client, string cacheDirectory)
             while ((count = await source.ReadAsync(block, timeout.Token).ConfigureAwait(false)) != 0)
             {
                 if (buffer.Length + count > MaxManifestBytes)
-                    throw new IOException("Der DLL-Katalog überschreitet das Größenlimit.");
+                    throw new IOException(GetText("DllCatalogService.TheDLLCatalogExceedsTheSizeLimit"));
                 buffer.Write(block, 0, count);
             }
             var manifest = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), 0, (int)buffer.Length);
@@ -75,16 +78,16 @@ public sealed class DllCatalogService(HttpClient client, string cacheDirectory)
         }
         catch (OperationCanceledException) when (!token.IsCancellationRequested && entries.Length > 0)
         {
-            return new(entries, "Zeitlimit erreicht. Gespeicherter DLL-Katalog wird angezeigt.");
+            return new(entries, GetText("DllCatalogService.TheRequestTimedOutShowingTheSaved"));
         }
         catch (Exception ex) when (entries.Length > 0 &&
             ex is HttpRequestException or IOException or JsonException or UnauthorizedAccessException)
         {
-            return new(entries, $"Gespeicherter DLL-Katalog wird angezeigt. {ex.Message}");
+            return new(entries, GetText("DllCatalogService.ShowingTheSavedDLLCatalog", ex.Message));
         }
         catch (OperationCanceledException ex) when (!token.IsCancellationRequested)
         {
-            throw new IOException("Zeitlimit beim Abruf des DLL-Katalogs erreicht.", ex);
+            throw new IOException(GetText("DllCatalogService.TimedOutWhileFetchingTheDLLCatalog"), ex);
         }
     }
 
@@ -93,9 +96,9 @@ public sealed class DllCatalogService(HttpClient client, string cacheDirectory)
         var file = SafePaths.Child(SafePaths.Root(cacheDirectory), "dlss-catalog-v1.json");
         if (SafePaths.Attributes(file) is null) return null;
         if (new FileInfo(file).Length > 2L * MaxManifestBytes)
-            throw new IOException("Der gespeicherte DLL-Katalog überschreitet das Größenlimit.");
+            throw new IOException(GetText("DllCatalogService.TheSavedDLLCatalogExceedsTheSize"));
         return JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(file))
-            ?? throw new IOException("Der gespeicherte DLL-Katalog ist leer.");
+            ?? throw new IOException(GetText("DllCatalogService.TheSavedDLLCatalogIsEmpty"));
     }
 
     public static DllCatalogEntry[] Parse(string manifest)
@@ -116,7 +119,7 @@ public sealed class DllCatalogService(HttpClient client, string cacheDirectory)
             if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty(category, out var array) ||
                 array.ValueKind != JsonValueKind.Array)
             {
-                if (required) throw new IOException($"DLL-Katalog enthält keine gültige Kategorie {category}.");
+                if (required) throw new IOException(GetText("DllCatalogService.TheDLLCatalogHasNoValidCategory", category));
                 return;
             }
 
@@ -138,7 +141,7 @@ public sealed class DllCatalogService(HttpClient client, string cacheDirectory)
                     Value(item, "md5_hash").ToUpperInvariant(), Value(item, "dll_source"), size, signed));
             }
             if (required && !entries.Any(e => e.Kind == kind))
-                throw new IOException($"DLL-Katalog enthält keine verwendbaren Einträge für {kind}.");
+                throw new IOException(GetText("DllCatalogService.TheDLLCatalogHasNoUsableEntries", kind));
         }
     }
 

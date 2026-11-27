@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Globalization;
 using System.Text;
 using DLSSManager.Core;
 
@@ -34,6 +35,41 @@ var tests = new (string Name, Action<Sandbox> Run)[]
         Check(settings is { AutoUpdateDlls: false, AutoUpdateUnlocker: false, AutoUpdateOptiScaler: false, AutoUpdateIntervalMinutes: 60 });
         library.SaveSettings(settings with { AutoUpdateDlls = true, AutoUpdateOptiScaler = true, AutoUpdateIntervalMinutes = 15 });
         Check(library.ReadSettings() is { AutoUpdateDlls: true, AutoUpdateUnlocker: false, AutoUpdateOptiScaler: true, AutoUpdateIntervalMinutes: 15 });
+    }),
+    ("App-Sprache folgt Windows, kann überschrieben werden und bleibt gespeichert", s =>
+    {
+        var library = new GameLibraryService(s.Storage);
+        Check(library.ReadSettings().PreferredLanguage is null);
+        foreach (var culture in new[] { "de-DE", "de-AT", "de-CH" })
+            Check(LocalizationService.ResolveLanguage(null, CultureInfo.GetCultureInfo(culture)) == "de");
+        foreach (var culture in new[] { "en-GB", "ja-JP", "fr-FR" })
+            Check(LocalizationService.ResolveLanguage("auto", CultureInfo.GetCultureInfo(culture)) == "en");
+        Check(LocalizationService.ResolveLanguage("en", CultureInfo.GetCultureInfo("de-DE")) == "en");
+        Check(LocalizationService.ResolveLanguage("de", CultureInfo.GetCultureInfo("en-US")) == "de");
+
+        var notifications = 0;
+        EventHandler onChange = (_, _) => notifications++;
+        LocalizationService.LanguageChanged += onChange;
+        try
+        {
+            LocalizationService.SetPreference("de");
+            Check(LocalizationService.GetText("Settings.Language") == "Sprache");
+            var count = notifications;
+            LocalizationService.SetPreference("en");
+            Check(notifications == count + 1 && LocalizationService.GetText("Settings.Language") == "Language");
+            Check(LocalizationService.GetText("No.Such.Key") == "No.Such.Key");
+            Check(LocalizationService.GetText("Common.AllCount", 3) == "All (3)");
+            foreach (var preference in new[] { "en", "de", "auto" })
+            {
+                library.SaveSettings(library.ReadSettings() with { PreferredLanguage = preference });
+                Check(new GameLibraryService(s.Storage).ReadSettings().PreferredLanguage == preference);
+            }
+        }
+        finally
+        {
+            LocalizationService.LanguageChanged -= onChange;
+            LocalizationService.SetPreference("auto");
+        }
     }),
     ("DLSSdb ordnet eindeutige Titel zu und leitet Frame-Empfehlungen ab", _ =>
     {

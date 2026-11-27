@@ -1,4 +1,7 @@
+using System.IO;
+using System.Text.Json;
 using System.Windows;
+using DLSSManager.Core;
 
 namespace DLSSManager.App;
 
@@ -21,6 +24,16 @@ public partial class App : Application
         {
             Shutdown(inTray || instance.ActivatePrimary() ? 0 : 1);
             return;
+        }
+
+        try
+        {
+            var settings = new GameLibraryService(DataFolders.Active).ReadSettings();
+            LocalizationService.SetPreference(settings.PreferredLanguage);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException or System.Security.SecurityException)
+        {
+            // The workspace loader reports settings errors after the window has opened.
         }
 
         var window = new MainWindow();

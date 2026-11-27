@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
@@ -623,7 +624,7 @@ public static partial class NvidiaDriverLookup
         for (var hop = 0; hop <= MaxRedirects; hop++)
         {
             if (current is not { Scheme: "https", IsDefaultPort: true, UserInfo.Length: 0 } || !isAllowedHost(current))
-                throw new IOException($"Unerlaubte NVIDIA-URL: {current}");
+                throw new IOException(GetText("Drivers.DisallowedNVIDIAURL", current));
 
             using var request = new HttpRequestMessage(HttpMethod.Get, current);
             request.Headers.TryAddWithoutValidation("User-Agent", BrowserUserAgent);
@@ -643,7 +644,7 @@ public static partial class NvidiaDriverLookup
             return response;
         }
 
-        throw new IOException("Zu viele Weiterleitungen bei der NVIDIA-Anfrage.");
+        throw new IOException(GetText("Drivers.TooManyRedirectsInTheNVIDIARequest"));
     }
 
     private static async Task<string> GetStringWithRedirectAsync(
@@ -994,16 +995,16 @@ public sealed partial class NvidiaDriverService(
     {
         SafePaths.RejectLinks(path);
         if (!File.Exists(path))
-            throw new IOException("Die heruntergeladene Treiber-Datei existiert nicht.");
+            throw new IOException(GetText("Drivers.TheDownloadedDriverFileDoesNotExist"));
 
         var length = new FileInfo(path).Length;
         if (length < minInstallerBytes)
-            throw new InvalidDataException("Die heruntergeladene Datei ist kleiner als 50 MB und kein gültiger NVIDIA-Treiber-Installer.");
+            throw new InvalidDataException(GetText("Drivers.TheDownloadedFileIsSmallerThanMB"));
 
         using var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         Span<byte> mz = stackalloc byte[2];
         if (stream.Read(mz) < 2 || mz[0] != (byte)'M' || mz[1] != (byte)'Z')
-            throw new InvalidDataException("Die heruntergeladene Datei besitzt keine gültige MZ-/PE-Signatur.");
+            throw new InvalidDataException(GetText("Drivers.TheDownloadedFileHasNoValidMZ"));
 
         stream.Position = 0;
         try
@@ -1012,11 +1013,11 @@ public sealed partial class NvidiaDriverService(
             if (pe.PEHeader is null ||
                 pe.CoffHeader.Characteristics.HasFlag(Characteristics.Dll) ||
                 pe.CoffHeader.Machine is not (Machine.Amd64 or Machine.I386))
-                throw new InvalidDataException("Die heruntergeladene Datei ist keine gültige Windows-Setup-EXE.");
+                throw new InvalidDataException(GetText("Drivers.TheDownloadedFileIsNotAValid"));
         }
         catch (BadImageFormatException)
         {
-            throw new InvalidDataException("Die heruntergeladene Datei besitzt keine gültige PE-/MZ-Signatur.");
+            throw new InvalidDataException(GetText("Drivers.TheDownloadedFileHasNoValidPE"));
         }
     }
 
@@ -1036,7 +1037,7 @@ public sealed partial class NvidiaDriverService(
         var resolved = await NvidiaDriverLookup.ResolveDirectInstallerUrlAsync(client, update, isNotebook, token)
             .ConfigureAwait(false);
         var downloadUrl = NvidiaDriverLookup.TryNormalizeInstallerUrl(resolved.DirectInstallerUrl)
-            ?? throw new InvalidOperationException("Direkter Download-Link konnte nicht aufgelöst werden.");
+            ?? throw new InvalidOperationException(GetText("Drivers.CouldNotResolveADirectDownloadLink"));
 
         var root = CacheDirectory;
         Directory.CreateDirectory(root);
@@ -1063,11 +1064,11 @@ public sealed partial class NvidiaDriverService(
             var mediaType = response.Content.Headers.ContentType?.MediaType;
             if (string.Equals(mediaType, "text/html", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(mediaType, "application/xhtml+xml", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException("Der Server hat eine HTML-Seite statt des Treiber-Installers geliefert.");
+                throw new InvalidDataException(GetText("Drivers.TheServerReturnedAnHTMLPageInstead"));
 
             var totalBytes = response.Content.Headers.ContentLength;
             if (totalBytes is < 0 or > MaxInstallerBytes || (totalBytes is not null && totalBytes < minInstallerBytes))
-                throw new InvalidDataException("Die Dateigröße des Treiber-Installers liegt außerhalb des gültigen Bereichs.");
+                throw new InvalidDataException(GetText("Drivers.TheDriverInstallerFileSizeIsOutside"));
 
             progress?.Report(new DriverDownloadProgress(0, totalBytes));
             await using (var source = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false))
@@ -1088,13 +1089,13 @@ public sealed partial class NvidiaDriverService(
                     }
                     catch (OperationCanceledException) when (!token.IsCancellationRequested)
                     {
-                        throw new IOException("Zeitüberschreitung beim Treiber-Download.");
+                        throw new IOException(GetText("Drivers.TheDriverDownloadTimedOut"));
                     }
                     if (count == 0) break;
 
                     received += count;
                     if (received > MaxInstallerBytes)
-                        throw new InvalidDataException("Der Treiber-Download überschreitet das Größenlimit.");
+                        throw new InvalidDataException(GetText("Drivers.TheDriverDownloadExceedsTheSizeLimit"));
 
                     await output.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
 
@@ -1107,7 +1108,7 @@ public sealed partial class NvidiaDriverService(
                 }
 
                 if (totalBytes is { } expected && received != expected)
-                    throw new IOException("Der Treiber-Download ist unvollständig.");
+                    throw new IOException(GetText("Drivers.TheDriverDownloadIsIncomplete"));
 
                 output.Flush(flushToDisk: true);
                 progress?.Report(new DriverDownloadProgress(received, totalBytes ?? received));

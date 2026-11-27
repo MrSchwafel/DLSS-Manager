@@ -37,15 +37,15 @@
                                    Visibility="{Binding HasReleaseDate, Converter={StaticResource ShowWhenTrue}}"/>
                         <Border Style="{StaticResource RollbackHotfixBadge}" Margin="7,0,0,0"
                                 Visibility="{Binding ShowHotfixBadge, Converter={StaticResource ShowWhenTrue}}">
-                            <TextBlock Text="Hotfix"/>
+                            <TextBlock Text="{local:Loc Drivers.Hotfix}"/>
                         </Border>
                         <Border Style="{StaticResource RollbackWhqlBadge}" Margin="7,0,0,0"
                                 Visibility="{Binding ShowWhqlBadge, Converter={StaticResource ShowWhenTrue}}">
-                            <TextBlock Text="WHQL"/>
+                            <TextBlock Text="{local:Loc Drivers.WHQL}"/>
                         </Border>
                         <Border Style="{StaticResource RollbackCachedBadge}" Margin="5,0,0,0"
                                 Visibility="{Binding IsCached, Converter={StaticResource ShowWhenTrue}}">
-                            <TextBlock Text="Im Cache"/>
+                            <TextBlock Text="{local:Loc Drivers.Cached}"/>
                         </Border>
                     </StackPanel>
                 </DataTemplate>
@@ -68,16 +68,16 @@
                             <DockPanel Margin="2,0,0,10">
                                 <Border DockPanel.Dock="Left" Width="58" Height="58" Margin="0,0,11,0" Background="#1C2029" BorderBrush="#76B900" BorderThickness="1" CornerRadius="10"><Image Source="{DynamicResource BrandImage}" Width="48" Height="48" RenderOptions.BitmapScalingMode="HighQuality"/></Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="DLSS Manager" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock Text="{local:Loc Workspace.DLSSManager}" FontSize="18" FontWeight="Bold"/>
                                     <Border Style="{StaticResource Pill}" HorizontalAlignment="Left" Margin="0,4,0,0">
                                         <TextBlock Text="{Binding AppVersion}" Style="{StaticResource Mono}"/>
                                     </Border>
                                 </StackPanel>
                             </DockPanel>
-                            <TextBlock Text="VERWALTUNG" Style="{StaticResource DetailLabel}" Margin="8,0,0,4"/>
+                            <TextBlock Text="{local:Loc Workspace.MANAGEMENT}" Style="{StaticResource DetailLabel}" Margin="8,0,0,4"/>
                             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
-                            <TextBlock Text="SCHNELLAKTIONEN" Style="{StaticResource DetailLabel}" Margin="8,10,0,4"/>
-                            <Button Content="↻  Schnell-Scan starten" Command="{Binding QuickScan}" Style="{StaticResource SidebarAction}"/>
+                            <TextBlock Text="{local:Loc Workspace.QUICKACTIONS}" Style="{StaticResource DetailLabel}" Margin="8,10,0,4"/>
+                            <Button Content="{local:Loc Workspace.StartQuickScan}" Command="{Binding QuickScan}" Style="{StaticResource SidebarAction}"/>
                             <DockPanel Margin="0,0,0,4">
                                 <Border DockPanel.Dock="Right" Style="{StaticResource Pill}" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding OverlayStatus}" FontSize="10">
@@ -89,46 +89,46 @@
                                         </Style></TextBlock.Style>
                                     </TextBlock>
                                 </Border>
-                                <CheckBox Content="NVIDIA DLSS-Indikator" Command="{Binding ToggleOverlay}"
+                                <CheckBox Content="{local:Loc Workspace.NVIDIADLSSIndicator}" Command="{Binding ToggleOverlay}"
                                           IsChecked="{Binding OverlayEnabled, Mode=OneWay}" VerticalAlignment="Center"/>
                             </DockPanel>
                             <Button Command="{Binding ClearShaderCache}" Style="{StaticResource SidebarAction}">
-                                <TextBlock Text="⌫  NVIDIA Shader-Cache leeren" FontSize="12" TextWrapping="Wrap"/>
+                                <TextBlock Text="{local:Loc Workspace.ClearNVIDIAShaderCache}" FontSize="12" TextWrapping="Wrap"/>
                             </Button>
-                            <Button Content="↗  Backup-Ordner öffnen" Command="{Binding OpenBackupFolder}" Style="{StaticResource SidebarAction}" Margin="0"/>
+                            <Button Content="{local:Loc Workspace.OpenBackupFolder}" Command="{Binding OpenBackupFolder}" Style="{StaticResource SidebarAction}" Margin="0"/>
                             <WrapPanel Margin="0,5,0,0">
                                 <WrapPanel.Style><Style TargetType="WrapPanel">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="DLL-Katalog">
+                                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="DllCatalog.DLLCatalog">
                                             <Setter Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style></WrapPanel.Style>
-                                <Button Content="Alle aktualisieren" Command="{Binding BatchUpdate}"/>
-                                <Button Content="+ Spiel" Command="{Binding AddGame}" Style="{StaticResource Secondary}" Margin="0,0,0,6"/>
+                                <Button Content="{local:Loc Updates.UpdateAll}" Command="{Binding BatchUpdate}"/>
+                                <Button Content="{local:Loc Workspace.Game}" Command="{Binding AddGame}" Style="{StaticResource Secondary}" Margin="0,0,0,6"/>
                             </WrapPanel>
                         </StackPanel>
                     </ScrollViewer>
                     <Border x:Name="SidebarSystemCard" Grid.Row="1" Style="{StaticResource DetailSurface}" Padding="10,8" Margin="0,12,0,0">
                         <StackPanel>
-                            <TextBlock Text="{Binding Gpu}" TextWrapping="Wrap" FontSize="12"/>
+                            <TextBlock Text="{Binding Gpu.Text}" TextWrapping="Wrap" FontSize="12"/>
                             <DockPanel Margin="0,6,0,0">
                                 <DockPanel.Style><Style TargetType="DockPanel"><Style.Triggers>
                                     <DataTrigger Binding="{Binding HasDriverUpdate}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
                                 </Style.Triggers></Style></DockPanel.Style>
-                                <Button DockPanel.Dock="Right" Content="↻" Command="{Binding RefreshSystem}" ToolTip="Treiber und App-Release prüfen" Padding="5,0" MinHeight="22" Margin="4,0,0,0"/>
+                                <Button DockPanel.Dock="Right" Content="↻" Command="{Binding RefreshSystem}" ToolTip="{local:Loc Workspace.CheckForDriverAndAppUpdates}" Padding="5,0" MinHeight="22" Margin="4,0,0,0"/>
                                 <Button Foreground="{Binding DriverColor}" Command="{Binding OpenDriverPage}" HorizontalContentAlignment="Left"
-                                        Margin="0" Padding="5,0" MinHeight="22" ToolTip="{Binding DriverStatus}">
-                                    <TextBlock Text="{Binding DriverStatus}" TextTrimming="CharacterEllipsis"/>
+                                        Margin="0" Padding="5,0" MinHeight="22" ToolTip="{Binding DriverStatus.Text}">
+                                    <TextBlock Text="{Binding DriverStatus.Text}" TextWrapping="Wrap"/>
                                 </Button>
                             </DockPanel>
                             <DockPanel x:Name="RollbackSplitBar" Margin="0,5,0,0"
                                       Visibility="{Binding ShowRollbackSplitBar, Converter={StaticResource ShowWhenTrue}}">
                                 <Button DockPanel.Dock="Right" Style="{StaticResource DriverRollbackSplitMenuButton}"
                                         Tag="{Binding ElementName=RollbackSplitBar}" ContextMenu="{StaticResource DriverRollbackMenu}"
-                                        Click="OpenRollbackMenu" ToolTip="Vorgänger-Treiber auswählen (Hotfix / WHQL)"
-                                        AutomationProperties.Name="Vorgänger-Treiber auswählen">
+                                        Click="OpenRollbackMenu" ToolTip="{local:Loc Workspace.SelectAPreviousDriverHotfixWHQL}"
+                                        AutomationProperties.Name="{local:Loc Workspace.SelectPreviousDriver}">
                                     <TextBlock Text="&#xE70D;" Style="{StaticResource InspectorGlyph}" FontSize="9.5"/>
                                 </Button>
                                 <Button Style="{StaticResource DriverRollbackSplitMainButton}" Tag="{Binding RollbackVisualKind}"
@@ -146,7 +146,7 @@
                                 <Button DockPanel.Dock="Right" Style="{StaticResource DriverRollbackIconButton}" Tag="{Binding RollbackVisualKind}"
                                         ContextMenu="{StaticResource DriverRollbackMenu}" Click="HandleRollbackIconClick"
                                         ToolTip="{Binding RollbackIconToolTip}"
-                                        AutomationProperties.Name="Zurück zur letzten verfügbaren Treiberversion (WHQL / Hotfix)"
+                                        AutomationProperties.Name="{local:Loc Workspace.RollBackToThePreviousAvailableDriver}"
                                         Visibility="{Binding ShowRollbackIconButton, Converter={StaticResource ShowWhenTrue}}">
                                     <TextBlock Text="{Binding RollbackButtonGlyph}" Style="{StaticResource InspectorGlyph}" FontSize="12"/>
                                 </Button>
@@ -154,7 +154,7 @@
                                         Command="{Binding OpenDriverReleasePage}" ToolTip="{Binding DriverReleasePageToolTip}"
                                         Visibility="{Binding ShowDriverReleaseButton, Converter={StaticResource ShowWhenTrue}}"/>
                                 <Button DockPanel.Dock="Right" Style="{StaticResource DriverSplitIconButton}"
-                                        Command="{Binding OpenDriverCacheFolder}" ToolTip="Treiber-Download-Ordner im Explorer öffnen"
+                                        Command="{Binding OpenDriverCacheFolder}" ToolTip="{local:Loc Workspace.OpenDriverDownloadFolderInExplorer}"
                                         Visibility="{Binding ShowDriverFolderButton, Converter={StaticResource ShowWhenTrue}}">
                                     <TextBlock Text="&#xE8B7;" Style="{StaticResource InspectorGlyph}"/>
                                 </Button>
@@ -163,10 +163,10 @@
                                     <Button.ContextMenu>
                                         <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
                                                      Background="{StaticResource Elevated}" Foreground="{StaticResource Ink}" BorderBrush="{StaticResource Outline}">
-                                            <MenuItem Header="Release-Notes im Browser öffnen" Command="{Binding OpenDriverReleasePage}"/>
-                                            <MenuItem Header="Interaktiv installieren" Command="{Binding InstallDriverInteractive}"
+                                            <MenuItem Header="{local:Loc Workspace.OpenReleaseNotesInBrowser}" Command="{Binding OpenDriverReleasePage}"/>
+                                            <MenuItem Header="{local:Loc Workspace.InstallInteractively}" Command="{Binding InstallDriverInteractive}"
                                                       Visibility="{Binding IsDriverDownloaded, Converter={StaticResource ShowWhenTrue}}"/>
-                                            <MenuItem Header="Download-Ordner öffnen" Command="{Binding OpenDriverCacheFolder}"/>
+                                            <MenuItem Header="{local:Loc Drivers.OpenDownloadFolder}" Command="{Binding OpenDriverCacheFolder}"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
                                     <DockPanel>
@@ -176,10 +176,10 @@
                                 </Button>
                             </DockPanel>
                             <DockPanel Margin="0,6,0,0">
-                                <Button DockPanel.Dock="Right" Content="↻" Command="{Binding RefreshSystem}" ToolTip="Treiber und App-Release prüfen"
+                                <Button DockPanel.Dock="Right" Content="↻" Command="{Binding RefreshSystem}" ToolTip="{local:Loc Workspace.CheckForDriverAndAppUpdates}"
                                         Padding="5,0" MinHeight="22" Margin="4,0,0,0"
                                         Visibility="{Binding HasDriverUpdate, Converter={StaticResource ShowWhenTrue}}"/>
-                                <Button Content="NVIDIA App öffnen" Command="{Binding OpenNvidia}" HorizontalAlignment="Left" Padding="5,0" MinHeight="22" Margin="0"/>
+                                <Button Content="{local:Loc Workspace.OpenNVIDIAApp}" Command="{Binding OpenNvidia}" HorizontalAlignment="Left" Padding="5,0" MinHeight="22" Margin="0"/>
                             </DockPanel>
                             <TextBlock Text="{Binding CatalogSummary}" Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/>
                             <TextBlock Text="{Binding DrsStatus}" Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,3,0,0"/>
@@ -187,18 +187,18 @@
                             <TextBlock Text="{Binding LibraryStorageSummary}" Foreground="{StaticResource Muted}" FontSize="11"
                                        TextWrapping="Wrap" Margin="0,3,0,0"/>
                             <StackPanel Margin="0,5,0,0" Visibility="{Binding IsBusy, Converter={StaticResource ShowWhenTrue}}">
-                                <TextBlock Text="{Binding Status}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}"
+                                <TextBlock Text="{Binding Status.Text}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status.Text}"
                                            AutomationProperties.LiveSetting="Polite" FontSize="11"/>
                                 <DockPanel Margin="0,5,0,0">
-                                    <Button DockPanel.Dock="Right" Content="Abbrechen" Command="{Binding Cancel}" Style="{StaticResource InspectorButton}"
+                                    <Button DockPanel.Dock="Right" Content="{local:Loc Common.Cancel}" Command="{Binding Cancel}" Style="{StaticResource InspectorButton}"
                                             Height="26" MinHeight="26" Margin="5,0,0,0"/>
                                     <ProgressBar Height="3" VerticalAlignment="Center" Maximum="100" Value="{Binding Percent, Mode=OneWay}"
                                                  IsIndeterminate="{Binding Indeterminate, Mode=OneWay}" Foreground="{StaticResource Accent}"/>
                                 </DockPanel>
                             </StackPanel>
-                            <TextBlock Text="{Binding AppUpdateLabel}" Foreground="{StaticResource Accent}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0">
+                            <TextBlock Text="{Binding AppUpdateLabel.Text}" Foreground="{StaticResource Accent}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0">
                                 <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers>
-                                    <DataTrigger Binding="{Binding AppUpdateLabel}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding AppUpdateLabel.Text}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
                                 </Style.Triggers></Style></TextBlock.Style>
                             </TextBlock>
                         </StackPanel>
@@ -208,22 +208,22 @@
             <DockPanel Grid.Column="1" Margin="14,12,14,10">
                 <Border DockPanel.Dock="Top" BorderBrush="{StaticResource Outline}" BorderThickness="0,0,0,1" Padding="0,0,0,10" Margin="0,0,0,14">
                     <Border.Style><Style TargetType="Border"><Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="DLL-Katalog">
+                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="DllCatalog.DLLCatalog">
                             <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="Spielebibliothek">
+                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="Library.Title">
                             <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="Wiederherstellung">
+                        <DataTrigger Binding="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="Recovery.Title">
                             <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
                     </Style.Triggers></Style></Border.Style>
                     <DockPanel>
                         <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
-                            <Button Content="Alle aktualisieren" Command="{Binding BatchUpdate}"/>
-                            <Button Content="+ Spiel" Style="{StaticResource Secondary}" Command="{Binding AddGame}" Margin="0,0,0,6"/>
+                            <Button Content="{local:Loc Updates.UpdateAll}" Command="{Binding BatchUpdate}"/>
+                            <Button Content="{local:Loc Workspace.Game}" Style="{StaticResource Secondary}" Command="{Binding AddGame}" Margin="0,0,0,6"/>
                         </WrapPanel>
-                        <TextBlock Text="{Binding SelectedItem.Tag, RelativeSource={RelativeSource TemplatedParent}}" Style="{StaticResource PageHeading}"
+                        <TextBlock Text="{local:Loc Path=SelectedItem.Tag, KeyFromPath=True, RelativeSource={RelativeSource TemplatedParent}}" Style="{StaticResource PageHeading}"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     </DockPanel>
                 </Border>
@@ -235,7 +235,7 @@
                     <Setter Property="Background" Value="#273920"/>
                     <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Toast}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                        <DataTrigger Binding="{Binding Toast.Text}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
                         <DataTrigger Binding="{Binding ToastKind}" Value="Active">
                             <Setter Property="Background" Value="#1D2B3A"/>
                             <Setter Property="BorderBrush" Value="#38BDF8"/>
@@ -248,20 +248,20 @@
                 </Style></Border.Style>
                 <DockPanel>
                     <Button DockPanel.Dock="Right" Content="×" Command="{Binding DismissToast}" Margin="10,0,0,0" Padding="7,2"
-                            MinHeight="25" AutomationProperties.Name="Hinweis schließen"/>
-                    <Button DockPanel.Dock="Right" Content="{Binding ToastActionLabel}" Command="{Binding InvokeToastAction}"
+                            MinHeight="25" AutomationProperties.Name="{local:Loc Workspace.DismissNotification}"/>
+                    <Button DockPanel.Dock="Right" Content="{Binding ToastActionLabel.Text}" Command="{Binding InvokeToastAction}"
                             Visibility="{Binding HasToastAction, Converter={StaticResource ShowWhenTrue}}"
                             Margin="10,0,0,0" Padding="8,2" MinHeight="25"/>
                     <ScrollViewer MaxHeight="48" VerticalAlignment="Center"
                                   HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                        <TextBlock Text="{Binding Toast}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                        <TextBlock Text="{Binding Toast.Text}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
         </Grid>
     </ControlTemplate>
 </TabControl.Template>
-            <TabItem Tag="Spielebibliothek"><TabItem.Header><DockPanel><Border DockPanel.Dock="Right" Style="{StaticResource Pill}"><TextBlock Text="{Binding LibraryBadge}" Style="{StaticResource Mono}"/></Border><TextBlock Style="{StaticResource Glyph}" Text="&#xE7FC;"/><TextBlock Text="Spielebibliothek" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
+            <TabItem Tag="Library.Title"><TabItem.Header><DockPanel><Border DockPanel.Dock="Right" Style="{StaticResource Pill}"><TextBlock Text="{Binding LibraryBadge}" Style="{StaticResource Mono}"/></Border><TextBlock Style="{StaticResource Glyph}" Text="&#xE7FC;"/><TextBlock Text="{local:Loc Library.Title}" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
                 <DockPanel Margin="8,0,0,0">
 
                     <Grid>
@@ -272,39 +272,41 @@
                         </Grid.ColumnDefinitions>
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                                <TextBlock Text="Spielebibliothek" FontSize="21" FontWeight="Bold" Margin="0,3,0,8"/>
+                                <TextBlock Text="{local:Loc Library.Title}" FontSize="21" FontWeight="Bold" Margin="0,3,0,8"/>
                                 <DockPanel>
-                                    <Button DockPanel.Dock="Right" Content="×" Command="{Binding ClearSearch}" Margin="5,0,0,0" AutomationProperties.Name="Suche leeren"/>
+                                    <Button DockPanel.Dock="Right" Content="×" Command="{Binding ClearSearch}" Margin="5,0,0,0" AutomationProperties.Name="{local:Loc Workspace.ClearSearch}"/>
                                     <Grid>
-                                        <TextBox AutomationProperties.Name="Spiel oder Pfad suchen" Text="{Binding LibraryQuery, UpdateSourceTrigger=PropertyChanged}"/>
-                                        <TextBlock Text="Spiel oder Pfad suchen..." Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="9,0" IsHitTestVisible="False">
+                                        <TextBox AutomationProperties.Name="{local:Loc Workspace.SearchByGameOrPath}" Text="{Binding LibraryQuery, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Text="{local:Loc Workspace.SearchByGameOrPath2}" Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="9,0" IsHitTestVisible="False">
                                             <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers><DataTrigger Binding="{Binding LibraryQuery}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
                                             </Style></TextBlock.Style>
                                         </TextBlock>
                                     </Grid>
                                 </DockPanel>
-                                <WrapPanel Margin="0,8,0,3" AutomationProperties.Name="Schnellfilter">
-                                    <Button Style="{StaticResource AllLibraryFilterChip}" Tag="Alle Spiele" Click="SelectLibraryFilter"
-                                            Content="Alle" ToolTip="{Binding FilterCounts.All, StringFormat='Alle ({0})'}"/>
-                                    <Button Style="{StaticResource DlssLibraryFilterChip}" Tag="Mit DLSS" Click="SelectLibraryFilter"
-                                            Content="Mit DLSS" ToolTip="{Binding FilterCounts.Dlss, StringFormat='Mit DLSS ({0})'}"/>
-                                    <Button Style="{StaticResource FrameGenLibraryFilterChip}" Tag="Mit FrameGen" Click="SelectLibraryFilter"
-                                            Content="Mit FrameGen" ToolTip="{Binding FilterCounts.FrameGen, StringFormat='Mit FrameGen ({0})'}"/>
-                                    <Button Style="{StaticResource BackupLibraryFilterChip}" Tag="DLL geändert" Click="SelectLibraryFilter"
-                                            Content="DLL geändert" ToolTip="{Binding FilterCounts.Backup, StringFormat='DLL geändert ({0})'}"/>
-                                    <Button Style="{StaticResource UnlockerLibraryFilterChip}" Tag="FG &amp; MFG Unlocker" Click="SelectLibraryFilter"
-                                            Content="FG &amp; MFG Unlocker" ToolTip="{Binding FilterCounts.Unlocker, StringFormat='FG &amp; MFG Unlocker ({0})'}"/>
+                                <WrapPanel Margin="0,8,0,3" AutomationProperties.Name="{local:Loc Workspace.QuickFilters}">
+                                    <Button Style="{StaticResource AllLibraryFilterChip}" Tag="All" Click="SelectLibraryFilter"
+                                            Content="{local:Loc Common.All}" ToolTip="{local:Loc Common.AllCount, Path=FilterCounts.All}"/>
+                                    <Button Style="{StaticResource DlssLibraryFilterChip}" Tag="WithDlss" Click="SelectLibraryFilter"
+                                            Content="{local:Loc Library.WithDlss}" ToolTip="{local:Loc Common.WithDLSS, Path=FilterCounts.Dlss}"/>
+                                    <Button Style="{StaticResource FrameGenLibraryFilterChip}" Tag="WithFrameGeneration" Click="SelectLibraryFilter"
+                                            Content="{local:Loc Library.WithFrameGeneration}" ToolTip="{local:Loc Common.WithFG, Path=FilterCounts.FrameGen}"/>
+                                    <Button Style="{StaticResource BackupLibraryFilterChip}" Tag="ChangedDll" Click="SelectLibraryFilter"
+                                            Content="{local:Loc Library.ChangedDll}" ToolTip="{local:Loc Common.DLLChanged, Path=FilterCounts.Backup}"/>
+                                    <Button Style="{StaticResource UnlockerLibraryFilterChip}" Tag="Unlocker" Click="SelectLibraryFilter"
+                                            Content="{local:Loc Mods.Unlocker}" ToolTip="{local:Loc Common.FGMFGUnlocker, Path=FilterCounts.Unlocker}"/>
                                     <Button Style="{StaticResource OptiScalerLibraryFilterChip}" Tag="OptiScaler" Click="SelectLibraryFilter"
-                                            Content="OptiScaler" ToolTip="{Binding FilterCounts.OptiScaler, StringFormat='OptiScaler ({0})'}"/>
+                                            Content="{local:Loc Mods.OptiScaler}" ToolTip="{local:Loc Common.OptiScaler, Path=FilterCounts.OptiScaler}"/>
                                 </WrapPanel>
-                                <ComboBox ItemsSource="{Binding LibraryFilters}" SelectedItem="{Binding LibraryFilter}" AutomationProperties.Name="Launcher oder Status filtern"/>
+                                <ComboBox ItemsSource="{Binding LibraryFilterOptions}" SelectedValue="{Binding LibraryFilter}"
+                                          SelectedValuePath="Code" ItemTemplate="{StaticResource LocalizedOptionLabel}"
+                                          AutomationProperties.Name="{local:Loc Workspace.FilterByLauncherOrStatus}"/>
                                 <TextBlock Text="{Binding LibraryCount}" Foreground="{StaticResource Muted}" Margin="0,7,0,0"/>
                             </StackPanel>
                             <StackPanel DockPanel.Dock="Top" Margin="8,12"
                                         Visibility="{Binding ShowEmptyLibraryFilter, Converter={StaticResource ShowWhenTrue}}">
-                                <TextBlock Text="Keine Spiele für diesen Filter gefunden" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
-                                <Button Content="Filter zurücksetzen" Command="{Binding ResetLibraryFilters}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                                <TextBlock Text="{local:Loc Workspace.NoGamesMatchThisFilter}" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
+                                <Button Content="{local:Loc Workspace.ResetFilters}" Command="{Binding ResetLibraryFilters}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
                             </StackPanel>
                             <ListView ItemsSource="{Binding Games}" SelectedItem="{Binding SelectedLibraryGame}"
                                       MouseDoubleClick="LaunchLibraryGame" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -312,13 +314,13 @@
                                       ItemContainerStyle="{StaticResource GameRow}" BorderThickness="0" Background="Transparent">
                         <ListView.ContextMenu>
                             <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                                <MenuItem Header="Spiel starten" Command="{Binding LaunchGame}"/>
-                                <MenuItem Header="Ordner öffnen" Command="{Binding OpenGameFolder}"/>
-                                <MenuItem Header="Spiel-Icon auswählen" Command="{Binding ChooseGameIcon}"/>
-                                <MenuItem Header="Automatisches Icon verwenden" Command="{Binding ResetGameIcon}"/>
-                                <MenuItem Header="Eintrag bearbeiten" Command="{Binding EditGame}"/>
-                                <MenuItem Header="Ignorieren / wieder zulassen" Command="{Binding ToggleIgnored}"/>
-                                <MenuItem Header="Eintrag entfernen" Command="{Binding RemoveGame}"/>
+                                <MenuItem Header="{local:Loc Workspace.LaunchGame}" Command="{Binding LaunchGame}"/>
+                                <MenuItem Header="{local:Loc Workspace.OpenFolder}" Command="{Binding OpenGameFolder}"/>
+                                <MenuItem Header="{local:Loc Workspace.ChooseGameIcon}" Command="{Binding ChooseGameIcon}"/>
+                                <MenuItem Header="{local:Loc Workspace.UseAutomaticIcon}" Command="{Binding ResetGameIcon}"/>
+                                <MenuItem Header="{local:Loc Workspace.EditEntry}" Command="{Binding EditGame}"/>
+                                <MenuItem Header="{local:Loc Workspace.ExcludeInclude}" Command="{Binding ToggleIgnored}"/>
+                                <MenuItem Header="{local:Loc Workspace.RemoveEntry}" Command="{Binding RemoveGame}"/>
                             </ContextMenu>
                         </ListView.ContextMenu>
                                 <ListView.ItemTemplate>
@@ -336,7 +338,7 @@
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <DockPanel>
                                                     <Border DockPanel.Dock="Right" Style="{StaticResource LauncherLibraryBadge}" Margin="4,0,0,0">
-                                                        <TextBlock Text="{Binding DisplayLauncher}" Style="{StaticResource LibraryBadgeText}"/>
+                                                        <TextBlock Text="{local:Loc Path=LauncherLabelKey, KeyFromPath=True}" Style="{StaticResource LibraryBadgeText}"/>
                                                     </Border>
                                                     <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
                                                 </DockPanel>
@@ -346,24 +348,24 @@
                                             <WrapPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,6,0,-5"
                                                        Visibility="{Binding HasLibraryBadges, Converter={StaticResource ShowWhenTrue}}">
                                                 <Border Style="{StaticResource DlssLibraryBadge}"
-                                                        Visibility="{Binding HasSr, Converter={StaticResource ShowWhenTrue}}" ToolTip="DLSS-Super-Resolution-DLL gefunden">
+                                                        Visibility="{Binding HasSr, Converter={StaticResource ShowWhenTrue}}" ToolTip="{local:Loc Workspace.DLSSSuperResolutionDLLDetected}">
                                                     <TextBlock Text="{Binding SrBadge}" Style="{StaticResource LibraryBadgeText}"/>
                                                 </Border>
                                                 <Border Style="{StaticResource FgLibraryBadge}"
-                                                        Visibility="{Binding HasFg, Converter={StaticResource ShowWhenTrue}}" ToolTip="Frame-Generation-DLL gefunden">
+                                                        Visibility="{Binding HasFg, Converter={StaticResource ShowWhenTrue}}" ToolTip="{local:Loc Workspace.FrameGenerationDLLDetected}">
                                                     <TextBlock Text="{Binding FgBadge}" Style="{StaticResource LibraryBadgeText}"/>
                                                 </Border>
                                                 <Border Style="{StaticResource BackupLibraryBadge}"
-                                                        Visibility="{Binding HasBackup, Converter={StaticResource ShowWhenTrue}}" ToolTip="Original-DLL wurde ersetzt (Backup vorhanden)">
-                                                    <TextBlock Text="DLL geändert" Style="{StaticResource LibraryBadgeText}"/>
+                                                        Visibility="{Binding HasBackup, Converter={StaticResource ShowWhenTrue}}" ToolTip="{local:Loc Workspace.OriginalDLLReplacedBackupAvailable}">
+                                                    <TextBlock Text="{local:Loc Library.ChangedDll}" Style="{StaticResource LibraryBadgeText}"/>
                                                 </Border>
                                                 <Border Style="{StaticResource UnlockerLibraryBadge}"
-                                                        Visibility="{Binding HasUnlocker, Converter={StaticResource ShowWhenTrue}}" ToolTip="FrameGen &amp; MFG Unlocker (SM86) installiert">
-                                                    <TextBlock Text="FG &amp; MFG Unlocker" Style="{StaticResource LibraryBadgeText}"/>
+                                                        Visibility="{Binding HasUnlocker, Converter={StaticResource ShowWhenTrue}}" ToolTip="{local:Loc Workspace.FGMFGUnlockerSM86Installed}">
+                                                    <TextBlock Text="{local:Loc Mods.Unlocker}" Style="{StaticResource LibraryBadgeText}"/>
                                                 </Border>
                                                 <Border Style="{StaticResource OptiScalerLibraryBadge}"
-                                                        Visibility="{Binding HasOptiScaler, Converter={StaticResource ShowWhenTrue}}" ToolTip="OptiScaler installiert">
-                                                    <TextBlock Text="OptiScaler" Style="{StaticResource LibraryBadgeText}"/>
+                                                        Visibility="{Binding HasOptiScaler, Converter={StaticResource ShowWhenTrue}}" ToolTip="{local:Loc Workspace.OptiScalerInstalled}">
+                                                    <TextBlock Text="{local:Loc Mods.OptiScaler}" Style="{StaticResource LibraryBadgeText}"/>
                                                 </Border>
                                             </WrapPanel>
                                         </Grid>
@@ -405,7 +407,7 @@
                                                     <RowDefinition Height="Auto"/>
                                                 </Grid.RowDefinitions>
                                                 <Grid>
-                                                    <TextBlock Text="Spiel auswählen" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center">
+                                                    <TextBlock Text="{local:Loc Library.SelectGame}" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -440,71 +442,71 @@
                                                             <TextBlock Text="{Binding SelectedLibraryGame.Title}" FontSize="19" FontWeight="Bold" Foreground="#F1F5F9"
                                                                        TextWrapping="Wrap"/>
                                                             <WrapPanel Margin="0,3,0,0">
-                                                                <Border Style="{StaticResource InspectorPill}" Margin="0,0,6,6"><TextBlock Text="{Binding SelectedLibraryGame.DisplayLauncher}" FontSize="11"/></Border>
+                                                                <Border Style="{StaticResource InspectorPill}" Margin="0,0,6,6"><TextBlock Text="{local:Loc Path=SelectedLibraryGame.LauncherLabelKey, KeyFromPath=True}" FontSize="11"/></Border>
                                                                 <Border>
                                                                     <Border.Style>
                                                                         <Style TargetType="Border" BasedOn="{StaticResource InspectorPill}">
                                                                                 <Setter Property="Margin" Value="0,0,6,6"/>
                                                                             <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding SelectedLibraryGame.State}" Value="Mod erkannt">
+                                                                                <DataTrigger Binding="{Binding SelectedLibraryGame.StateKey}" Value="Library.ModDetected">
                                                                                     <Setter Property="Background" Value="#294CAF50"/>
                                                                                     <Setter Property="TextElement.Foreground" Value="#81C784"/>
                                                                                 </DataTrigger>
                                                                             </Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>
-                                                                    <TextBlock Text="{Binding SelectedLibraryGame.State}" FontSize="11"/>
+                                                                    <TextBlock Text="{local:Loc Path=SelectedLibraryGame.StateKey, KeyFromPath=True}" FontSize="11"/>
                                                                 </Border>
                                                                 <Border Style="{StaticResource InspectorPill}" Margin="0,0,6,6" Background="#233754"
                                                                         Visibility="{Binding SelectedLibraryGame.UpdateAvailable, Converter={StaticResource ShowWhenTrue}, FallbackValue=Collapsed}">
-                                                                    <TextBlock Text="Update verfügbar" Foreground="#B5D3FF" FontSize="11"/>
+                                                                    <TextBlock Text="{local:Loc Library.UpdateAvailable}" Foreground="#B5D3FF" FontSize="11"/>
                                                                 </Border>
                                                             </WrapPanel>
                                                         </StackPanel>
                                                     </DockPanel>
                                                 </Grid>
                                                 <WrapPanel x:Name="InspectorGlobalActions" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,6,0,0">
-                                                    <Button Content="Alle aktualisieren" Style="{StaticResource InspectorAccentButton}" Command="{Binding BatchUpdate}" Margin="0,0,6,6"/>
-                                                    <Button Content="+ Spiel" Style="{StaticResource Secondary}" Command="{Binding AddGame}" MinHeight="30" Height="30" Padding="10,0" Margin="0,0,0,6"/>
+                                                    <Button Content="{local:Loc Updates.UpdateAll}" Style="{StaticResource InspectorAccentButton}" Command="{Binding BatchUpdate}" Margin="0,0,6,6"/>
+                                                    <Button Content="{local:Loc Workspace.Game}" Style="{StaticResource Secondary}" Command="{Binding AddGame}" MinHeight="30" Height="30" Padding="10,0" Margin="0,0,0,6"/>
                                                 </WrapPanel>
                                             </Grid>
                                             <WrapPanel Style="{StaticResource SelectedGameWrap}" Margin="0,8,0,-6">
                                                 <Button Style="{StaticResource InspectorButton}" Command="{Binding LaunchGame}" Margin="0,0,6,6"
-                                                        ToolTip="Spiel starten" AutomationProperties.Name="Spiel starten" Background="#4CAF50" BorderBrush="#4CAF50" Foreground="#102411" FontWeight="SemiBold">
+                                                        ToolTip="{local:Loc Workspace.LaunchGame}" AutomationProperties.Name="{local:Loc Workspace.LaunchGame}" Background="#4CAF50" BorderBrush="#4CAF50" Foreground="#102411" FontWeight="SemiBold">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xE768;" Style="{StaticResource InspectorGlyph}"/>
-                                                        <TextBlock Text="Spiel starten" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        <TextBlock Text="{local:Loc Workspace.LaunchGame}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                                     </StackPanel>
                                                 </Button>
                                                 <Button Style="{StaticResource InspectorAccentButton}" Command="{Binding ScanLibraryGame}" Margin="0,0,6,6"
-                                                        ToolTip="DLLs scannen" AutomationProperties.Name="DLLs scannen">
+                                                        ToolTip="{local:Loc Workspace.ScanDLLs}" AutomationProperties.Name="{local:Loc Workspace.ScanDLLs}">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xE721;" Style="{StaticResource InspectorGlyph}"/>
-                                                        <TextBlock Text="DLLs scannen" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        <TextBlock Text="{local:Loc Workspace.ScanDLLs}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                                     </StackPanel>
                                                 </Button>
                                                 <Button Style="{StaticResource InspectorButton}" Command="{Binding OpenGameFolder}" Margin="0,0,6,6"
-                                                        ToolTip="Ordner öffnen" AutomationProperties.Name="Ordner öffnen">
+                                                        ToolTip="{local:Loc Workspace.OpenFolder}" AutomationProperties.Name="{local:Loc Workspace.OpenFolder}">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xE838;" Style="{StaticResource InspectorGlyph}"/>
-                                                        <TextBlock Text="Ordner öffnen" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        <TextBlock Text="{local:Loc Workspace.OpenFolder}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                                     </StackPanel>
                                                 </Button>
                                                 <Button Style="{StaticResource InspectorButton}" Command="{Binding RestoreLibraryGame}" Margin="0,0,6,6"
-                                                        ToolTip="Wiederherstellen" AutomationProperties.Name="Wiederherstellen">
+                                                        ToolTip="{local:Loc Recovery.Restore}" AutomationProperties.Name="{local:Loc Recovery.Restore}">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xE7A7;" Style="{StaticResource InspectorGlyph}"/>
-                                                        <TextBlock Text="Wiederherstellen" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        <TextBlock Text="{local:Loc Recovery.Restore}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                                     </StackPanel>
                                                 </Button>
-                                                <Button Content="Mehr ▾" Margin="0,0,6,6" Style="{StaticResource InspectorButton}" Click="OpenInspectorMenu">
+                                                <Button Content="{local:Loc Workspace.More}" Margin="0,0,6,6" Style="{StaticResource InspectorButton}" Click="OpenInspectorMenu">
                                                     <Button.ContextMenu>
                                                         <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
                                                                      Background="{StaticResource Elevated}" Foreground="{StaticResource Ink}" BorderBrush="{StaticResource Outline}">
-                                                            <MenuItem Header="Bearbeiten" Command="{Binding EditGame}"/>
-                                                            <MenuItem Header="Icon ändern" Command="{Binding ChooseGameIcon}"/>
-                                                            <MenuItem Header="Profil kopieren" Command="{Binding CopyProfile}"/>
-                                                            <MenuItem Header="Vollständigen Scan öffnen" Click="OpenScanDetails" IsEnabled="{Binding HasInventory}"/>
+                                                            <MenuItem Header="{local:Loc Workspace.Edit}" Command="{Binding EditGame}"/>
+                                                            <MenuItem Header="{local:Loc Workspace.ChangeIcon}" Command="{Binding ChooseGameIcon}"/>
+                                                            <MenuItem Header="{local:Loc Workspace.CopyProfile}" Command="{Binding CopyProfile}"/>
+                                                            <MenuItem Header="{local:Loc Workspace.OpenFullScan}" Click="OpenScanDetails" IsEnabled="{Binding HasInventory}"/>
                                                         </ContextMenu>
                                                     </Button.ContextMenu>
                                                 </Button>
@@ -514,9 +516,9 @@
 
                                     <Border Style="{StaticResource EmptyLibrarySurface}" Grid.Row="1" Grid.ColumnSpan="3" Padding="12" Margin="0,0,0,14">
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="300">
-                                            <TextBlock Text="Füge ein Spiel hinzu oder starte den Launcher-Scan."
+                                            <TextBlock Text="{local:Loc Workspace.AddAGameOrScanYourLaunchers}"
                                                        Foreground="{StaticResource Muted}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,9,0,14"/>
-                                            <Button Content="Launcher scannen" Style="{StaticResource Secondary}" Command="{Binding ScanLaunchers}" HorizontalAlignment="Center"/>
+                                            <Button Content="{local:Loc Workspace.ScanLaunchers}" Style="{StaticResource Secondary}" Command="{Binding ScanLaunchers}" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
 
@@ -543,11 +545,11 @@
                                                 <StackPanel>
                                                     <DockPanel>
                                                         <TextBlock DockPanel.Dock="Left" Text="&#xE7FC;" Style="{StaticResource ModCardHeaderIcon}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="FrameGen &amp; MFG Unlocker" Style="{StaticResource ModCardTitle}" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{local:Loc Mods.Unlocker}" Style="{StaticResource ModCardTitle}" TextWrapping="Wrap"/>
                                                     </DockPanel>
                                                     <WrapPanel Margin="0,6,0,0">
-                                                        <Border Style="{StaticResource ModStatusPill}" Padding="7,2" Margin="0,0,6,6" ToolTip="SM86">
-                                                            <TextBlock Text="SM86"/>
+                                                        <Border Style="{StaticResource ModStatusPill}" Padding="7,2" Margin="0,0,6,6" ToolTip="{local:Loc Workspace.SM86}">
+                                                            <TextBlock Text="{local:Loc Workspace.SM86}"/>
                                                         </Border>
                                                         <Border ToolTip="{Binding UnlockerStatus}" Padding="7,2" Margin="0,0,6,6">
                                                             <Border.Style>
@@ -566,21 +568,21 @@
                                                     <WrapPanel Margin="0,2,0,0">
                                                         <ComboBox Style="{StaticResource ModProxyPicker}" Width="125" Height="30" Margin="0,0,6,6"
                                                                   ItemsSource="{Binding ModProxies}" SelectedItem="{Binding SelectedModProxy}"
-                                                                  AutomationProperties.Name="Unlocker-Proxy" IsEnabled="{Binding HasUnlockerProxies}"/>
+                                                                  AutomationProperties.Name="{local:Loc Workspace.UnlockerProxy}" IsEnabled="{Binding HasUnlockerProxies}"/>
                                                         <Button Content="{Binding UnlockerInstallLabel}" Style="{StaticResource ModPrimary}" MinWidth="112" Padding="10,0" Margin="0,0,6,6" Command="{Binding InstallUnlocker}"/>
-                                                        <Button Style="{StaticResource ModAction}" Padding="10,0" Margin="0,0,6,6" Command="{Binding EditUnlockerIni}" Content="INI- &amp; Mod-Einstellungen"/>
+                                                        <Button Style="{StaticResource ModAction}" Padding="10,0" Margin="0,0,6,6" Command="{Binding EditUnlockerIni}" Content="{local:Loc Workspace.INIModSettings}"/>
                                                         <Button Style="{StaticResource ModAction}" Padding="10,0" Margin="0,0,6,6" Command="{Binding ApplyUnlockerIni}"
-                                                                ToolTip="Gespeicherte INI-Werte jetzt anwenden / wiederherstellen" Content="INI-Werte anwenden"/>
-                                                        <Button Content="Entfernen" Style="{StaticResource ModRemove}" Padding="10,0" Margin="0,0,6,6" Command="{Binding RemoveUnlocker}"/>
+                                                                ToolTip="{local:Loc Workspace.ApplyOrRestoreSavedINIValuesNow}" Content="{local:Loc Workspace.ApplyINIValues}"/>
+                                                        <Button Content="{local:Loc Common.Remove}" Style="{StaticResource ModRemove}" Padding="10,0" Margin="0,0,6,6" Command="{Binding RemoveUnlocker}"/>
                                                     </WrapPanel>
-                                                    <Expander Header="Scan-Details" Foreground="{StaticResource Ink}">
+                                                    <Expander Header="{local:Loc Workspace.ScanDetails}" Foreground="{StaticResource Ink}">
                                                         <StackPanel Margin="0,6,0,0">
                                                             <TextBlock Text="{Binding UnlockerStatus}" TextWrapping="Wrap" Foreground="{StaticResource Muted}"/>
                                                             <TextBlock Text="{Binding UnlockerProfileStatus}" TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,3,0,0"/>
                                                             <WrapPanel Margin="0,6,0,-6">
-                                                                <Button Content="Vollständigen Scan öffnen" Style="{StaticResource InspectorButton}" Click="OpenScanDetails"
+                                                                <Button Content="{local:Loc Workspace.OpenFullScan}" Style="{StaticResource InspectorButton}" Click="OpenScanDetails"
                                                                         IsEnabled="{Binding HasInventory}" Margin="0,0,6,6"/>
-                                                                <Button Content="Update prüfen" Style="{StaticResource InspectorButton}" Command="{Binding UpdateLibraryUnlocker}"
+                                                                <Button Content="{local:Loc Workspace.CheckForUpdate}" Style="{StaticResource InspectorButton}" Command="{Binding UpdateLibraryUnlocker}"
                                                                         Visibility="{Binding UnlockerInstalled, Converter={StaticResource ShowWhenTrue}}" Margin="0,0,6,6"/>
                                                             </WrapPanel>
                                                         </StackPanel>
@@ -591,11 +593,11 @@
                                                 <StackPanel>
                                                     <DockPanel>
                                                         <TextBlock DockPanel.Dock="Left" Text="&#xE713;" Style="{StaticResource ModCardHeaderIcon}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="OptiScaler" Style="{StaticResource ModCardTitle}" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{local:Loc Mods.OptiScaler}" Style="{StaticResource ModCardTitle}" TextWrapping="Wrap"/>
                                                     </DockPanel>
                                                     <WrapPanel Margin="0,6,0,0">
-                                                        <Border Style="{StaticResource ModStatusPill}" Padding="7,2" Margin="0,0,6,6" ToolTip="DX11 · DX12 · Vulkan">
-                                                            <TextBlock Text="DX11 · DX12 · Vulkan"/>
+                                                        <Border Style="{StaticResource ModStatusPill}" Padding="7,2" Margin="0,0,6,6" ToolTip="{local:Loc Workspace.DX11DX12Vulkan}">
+                                                            <TextBlock Text="{local:Loc Workspace.DX11DX12Vulkan}"/>
                                                         </Border>
                                                         <Border ToolTip="{Binding OptiStatus}" Padding="7,2" Margin="0,0,6,6">
                                                             <Border.Style>
@@ -614,19 +616,19 @@
                                                     <WrapPanel Margin="0,2,0,0">
                                                         <ComboBox Style="{StaticResource ModProxyPicker}" Width="125" Height="30" Margin="0,0,6,6"
                                                                   ItemsSource="{Binding OptiProxies}" SelectedItem="{Binding OptiProxy}"
-                                                                  AutomationProperties.Name="Opti-Proxy"/>
+                                                                  AutomationProperties.Name="{local:Loc Workspace.OptiScalerProxy}"/>
                                                         <Button Content="{Binding OptiInstallLabel}" Style="{StaticResource ModPrimary}" MinWidth="112" Padding="10,0" Margin="0,0,6,6" Command="{Binding InstallOpti}"/>
-                                                        <Button Style="{StaticResource ModAction}" Padding="10,0" Margin="0,0,6,6" Command="{Binding EditOptiIni}" Content="INI- &amp; Mod-Einstellungen"/>
+                                                        <Button Style="{StaticResource ModAction}" Padding="10,0" Margin="0,0,6,6" Command="{Binding EditOptiIni}" Content="{local:Loc Workspace.INIModSettings}"/>
                                                         <Button Style="{StaticResource ModAction}" Padding="10,0" Margin="0,0,6,6" Command="{Binding ApplyOptiIni}"
-                                                                ToolTip="Gespeicherte INI-Werte jetzt anwenden / wiederherstellen" Content="INI-Werte anwenden"/>
-                                                        <Button Content="Entfernen" Style="{StaticResource ModRemove}" Padding="10,0" Margin="0,0,6,6" Command="{Binding RemoveOpti}"/>
+                                                                ToolTip="{local:Loc Workspace.ApplyOrRestoreSavedINIValuesNow}" Content="{local:Loc Workspace.ApplyINIValues}"/>
+                                                        <Button Content="{local:Loc Common.Remove}" Style="{StaticResource ModRemove}" Padding="10,0" Margin="0,0,6,6" Command="{Binding RemoveOpti}"/>
                                                     </WrapPanel>
-                                                    <Expander Header="Scan-Details" Foreground="{StaticResource Ink}">
+                                                    <Expander Header="{local:Loc Workspace.ScanDetails}" Foreground="{StaticResource Ink}">
                                                         <StackPanel Margin="0,6,0,0">
                                                             <TextBlock Text="{Binding OptiStatus}" TextWrapping="Wrap" Foreground="{StaticResource Muted}"/>
                                                             <TextBlock Text="{Binding OptiProfileStatus}" TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,3,0,0"/>
                                                             <WrapPanel Margin="0,6,0,-6">
-                                                                <Button Content="Vollständigen Scan öffnen" Style="{StaticResource InspectorButton}" Click="OpenScanDetails"
+                                                                <Button Content="{local:Loc Workspace.OpenFullScan}" Style="{StaticResource InspectorButton}" Click="OpenScanDetails"
                                                                         IsEnabled="{Binding HasInventory}" Margin="0,0,6,6"/>
                                                             </WrapPanel>
                                                         </StackPanel>
@@ -637,16 +639,16 @@
                                         <Border Style="{StaticResource DetailSurface}" Padding="12,10" Margin="0,14,0,0">
                                             <StackPanel>
                                                 <WrapPanel>
-                                                    <TextBlock Text="Aktive DLL-Verwaltung" FontSize="15" FontWeight="SemiBold"
+                                                    <TextBlock Text="{local:Loc Workspace.ActiveDLLManagement}" FontSize="15" FontWeight="SemiBold"
                                                                VerticalAlignment="Center" Margin="0,0,6,6"/>
                                                     <Border Style="{StaticResource InspectorPill}" Margin="0,0,6,6"
                                                             Visibility="{Binding HasInspectorDlls, Converter={StaticResource ShowWhenTrue}}">
                                                         <TextBlock Text="{Binding InventoryCount}" FontSize="11"/>
                                                     </Border>
-                                                    <Button Content="Batch-Ziel anwenden" Style="{StaticResource InspectorAccentButton}"
+                                                    <Button Content="{local:Loc Workspace.ApplyBatchTarget}" Style="{StaticResource InspectorAccentButton}"
                                                             Command="{Binding ApplyLibraryBatchTargets}" Margin="0,0,6,6"
                                                             Visibility="{Binding HasBatchTargets, Converter={StaticResource ShowWhenTrue}}"
-                                                            ToolTip="Wendet passende neuere, gespeicherte Batch-Ziele auf dieses Spiel an."/>
+                                                            ToolTip="{local:Loc Workspace.AppliesCompatibleNewerSavedBatchTargetsTo}"/>
                                                 </WrapPanel>
                                                 <TextBlock Text="{Binding InventoryStatus}" Foreground="{StaticResource Muted}" TextWrapping="Wrap">
                                                     <TextBlock.Style>
@@ -681,24 +683,24 @@
                                                                     <StackPanel Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="{Binding File.Path}">
                                                                         <TextBlock Text="{Binding Name}" Style="{StaticResource Mono}" FontSize="12" Foreground="#F1F5F9"
                                                                                    TextTrimming="CharacterEllipsis"/>
-                                                                        <TextBlock Text="{Binding FolderLabel}" Foreground="{StaticResource Muted}" FontSize="11"
+                                                                        <TextBlock Text="{local:Loc Path=FolderLabelKey, KeyFromPath=True}" Foreground="{StaticResource Muted}" FontSize="11"
                                                                                    TextTrimming="CharacterEllipsis" AutomationProperties.HelpText="{Binding File.Path}"/>
                                                                     </StackPanel>
                                                                     <DockPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,6,0">
                                                                         <TextBlock DockPanel.Dock="Left" Text="{Binding SecurityIcon}" Style="{StaticResource InspectorGlyph}" FontSize="10"
-                                                                                   Foreground="{Binding SecurityColor}" ToolTip="{Binding Security}" Margin="0,0,4,0"/>
+                                                                                   Foreground="{Binding SecurityColor}" ToolTip="{local:Loc Path=SecurityLabelKey, KeyFromPath=True}" Margin="0,0,4,0"/>
                                                                         <TextBlock Text="{Binding File.Version, TargetNullValue=—}" Style="{StaticResource Mono}" FontSize="12"
                                                                                    Foreground="#CBD5E1" TextTrimming="CharacterEllipsis" ToolTip="{Binding File.Version}"/>
                                                                     </DockPanel>
                                                                     <WrapPanel x:Name="DllActions" Grid.Column="3" VerticalAlignment="Center">
-                                                                        <ComboBox Width="155" MinHeight="26" Tag="Version wählen..." ItemsSource="{Binding Versions}"
+                                                                        <ComboBox Width="155" MinHeight="26" Tag="{local:Loc Workspace.SelectVersion}" ItemsSource="{Binding Versions}"
                                                                                   SelectedItem="{Binding Target}" DisplayMemberPath="Version" Margin="0,0,6,0"
-                                                                                  AutomationProperties.Name="Zielversion" IsEnabled="{Binding HasVersions}"
-                                                                                  ToolTip="{Binding SelectedItem.Version, RelativeSource={RelativeSource Self}, FallbackValue=Zielversion, TargetNullValue=Zielversion}"
+                                                                                  AutomationProperties.Name="{local:Loc Workspace.TargetVersion}" IsEnabled="{Binding HasVersions}"
+                                                                                  ToolTip="{local:Loc Workspace.TargetVersion, Path=SelectedItem.Version, Fallback=Workspace.TargetVersion, RelativeSource={RelativeSource Self}}"
                                                                                   ToolTipService.ShowOnDisabled="True"/>
-                                                                        <Button Content="Anwenden" Style="{StaticResource InspectorAccentButton}" Command="{Binding Apply}"
+                                                                        <Button Content="{local:Loc Workspace.Apply}" Style="{StaticResource InspectorAccentButton}" Command="{Binding Apply}"
                                                                                 Height="26" MinHeight="26" Padding="9,0"
-                                                                                ToolTip="Ausgewählte Zielversion auf diese DLL anwenden"/>
+                                                                                ToolTip="{local:Loc Workspace.ApplyTheSelectedTargetVersionToThis}"/>
                                                                     </WrapPanel>
                                                                 </Grid>
                                                             </Border>
@@ -721,27 +723,27 @@
                                         <StackPanel Style="{StaticResource SelectedGameStack}">
                                             <Border Style="{StaticResource DetailSurface}" Padding="12,10" Margin="0,0,0,14">
                                                 <StackPanel>
-                                                    <TextBlock Text="Pfade &amp; Integration" FontSize="15" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{local:Loc Workspace.PathsIntegration}" FontSize="15" FontWeight="SemiBold"/>
                                                     <DockPanel Margin="0,6,0,0">
-                                                        <TextBlock DockPanel.Dock="Left" Text="Installation" Style="{StaticResource DetailLabel}"
+                                                        <TextBlock DockPanel.Dock="Left" Text="{local:Loc Workspace.Installation}" Style="{StaticResource DetailLabel}"
                                                                    Width="76" Margin="0" VerticalAlignment="Center"/>
-                                                        <Button DockPanel.Dock="Right" Content="Ändern"
+                                                        <Button DockPanel.Dock="Right" Content="{local:Loc Workspace.Change}"
                                                                 Style="{StaticResource InspectorPathButton}" Command="{Binding EditGame}"
-                                                                ToolTip="Installation bearbeiten" Margin="5,0,0,0"/>
+                                                                ToolTip="{local:Loc Workspace.EditInstallation}" Margin="5,0,0,0"/>
                                                         <Button DockPanel.Dock="Right" Style="{StaticResource InspectorCopyButton}" Command="{Binding CopyPath}" Tag="{Binding IsPathCopied}"
-                                                                ToolTip="Installationspfad kopieren" AutomationProperties.Name="Installationspfad kopieren" Margin="6,0,0,0"/>
+                                                                ToolTip="{local:Loc Workspace.CopyInstallationPath}" AutomationProperties.Name="{local:Loc Workspace.CopyInstallationPath}" Margin="6,0,0,0"/>
                                                         <Border Style="{StaticResource InspectorPathBox}">
                                                             <TextBlock Text="{Binding SelectedLibraryGame.Path}" Style="{StaticResource Mono}" TextTrimming="CharacterEllipsis"
                                                                        ToolTip="{Binding SelectedLibraryGame.Path}" VerticalAlignment="Center"/>
                                                         </Border>
                                                     </DockPanel>
                                                     <DockPanel Margin="0,6,0,0">
-                                                        <TextBlock DockPanel.Dock="Left" Text="Spiel-EXE" Style="{StaticResource DetailLabel}"
+                                                        <TextBlock DockPanel.Dock="Left" Text="{local:Loc GameEntry.GameExecutable}" Style="{StaticResource DetailLabel}"
                                                                    Width="76" Margin="0" VerticalAlignment="Center"/>
-                                                        <Button DockPanel.Dock="Right" Content="Ändern" Style="{StaticResource InspectorPathButton}"
+                                                        <Button DockPanel.Dock="Right" Content="{local:Loc Workspace.Change}" Style="{StaticResource InspectorPathButton}"
                                                                 Click="ToggleInspectorExecutable" Margin="5,0,0,0"/>
                                                         <Button DockPanel.Dock="Right" Style="{StaticResource InspectorCopyButton}" Command="{Binding CopyExe}" Tag="{Binding IsExeCopied}"
-                                                                ToolTip="EXE-Pfad kopieren" AutomationProperties.Name="EXE-Pfad kopieren" Margin="6,0,0,0"/>
+                                                                ToolTip="{local:Loc Workspace.CopyExecutablePath}" AutomationProperties.Name="{local:Loc Workspace.CopyExecutablePath}" Margin="6,0,0,0"/>
                                                         <Border Style="{StaticResource InspectorPathBox}">
                                                             <TextBlock Text="{Binding CurrentExecutableName}" Style="{StaticResource Mono}" TextTrimming="CharacterEllipsis"
                                                                        ToolTip="{Binding SelectedLibraryGame.Executable}" VerticalAlignment="Center"/>
@@ -749,26 +751,26 @@
                                                     </DockPanel>
                                                     <StackPanel x:Name="InspectorExecutableChoices" Margin="0,6,0,0" Visibility="Collapsed">
                                                         <ComboBox ItemsSource="{Binding ExecutableChoices}" SelectedItem="{Binding SelectedExecutableChoice}"
-                                                                  MaxDropDownHeight="260" AutomationProperties.Name="Erkannte Spiel-EXE auswählen"
+                                                                  MaxDropDownHeight="260" AutomationProperties.Name="{local:Loc Workspace.SelectDetectedGameExecutable}"
                                                                   Visibility="{Binding HasExecutableChoices, Converter={StaticResource ShowWhenTrue}}">
                                                             <ComboBox.ItemTemplate>
                                                                 <DataTemplate>
                                                                     <StackPanel ToolTip="{Binding Label}">
                                                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                                                        <TextBlock Text="{Binding Folder, TargetNullValue=Spielordner}" Foreground="{StaticResource Muted}"
+                                                                        <TextBlock Text="{local:Loc Library.GameFolder, Path=Folder, Fallback=Library.GameFolder}" Foreground="{StaticResource Muted}"
                                                                                    FontSize="11" TextTrimming="CharacterEllipsis"/>
                                                                     </StackPanel>
                                                                 </DataTemplate>
                                                             </ComboBox.ItemTemplate>
                                                         </ComboBox>
                                                         <WrapPanel Margin="0,5,0,0">
-                                                            <Button Content="Übernehmen" Style="{StaticResource InspectorAccentButton}" Command="{Binding SaveExecutableChoice}"
+                                                            <Button Content="{local:Loc Workspace.Confirm}" Style="{StaticResource InspectorAccentButton}" Command="{Binding SaveExecutableChoice}"
                                                                     Margin="0,0,6,6" Visibility="{Binding HasExecutableChoices, Converter={StaticResource ShowWhenTrue}}"/>
-                                                            <Button Content="Datei auswählen…" Style="{StaticResource InspectorButton}" Command="{Binding BrowseExecutable}" Margin="0,0,6,6"/>
+                                                            <Button Content="{local:Loc Workspace.SelectFile}" Style="{StaticResource InspectorButton}" Command="{Binding BrowseExecutable}" Margin="0,0,6,6"/>
                                                         </WrapPanel>
                                                     </StackPanel>
                                                     <DockPanel Margin="0,8,0,0">
-                                                        <TextBlock DockPanel.Dock="Left" Text="RTX laut DLSSdb" Style="{StaticResource DetailLabel}"
+                                                        <TextBlock DockPanel.Dock="Left" Text="{local:Loc Workspace.RTXFeaturesFromDLSSdb}" Style="{StaticResource DetailLabel}"
                                                                    Width="105" Margin="0" VerticalAlignment="Top"/>
                                                         <ItemsControl ItemsSource="{Binding SelectedLibraryGame.RtxCapabilities}" VerticalAlignment="Center">
                                                             <ItemsControl.ItemsPanel>
@@ -784,7 +786,7 @@
                                                         </ItemsControl>
                                                     </DockPanel>
                                                     <CheckBox Margin="0,6,0,0" IsChecked="{Binding SelectedLibraryGame.Ignored, Mode=OneWay}" Command="{Binding ToggleIgnored}">
-                                                        <TextBlock Text="Vom automatischen Scan ausgeschlossen" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{local:Loc Workspace.ExcludedFromAutomaticScans}" TextWrapping="Wrap"/>
                                                     </CheckBox>
                                                 </StackPanel>
                                             </Border>
@@ -793,38 +795,38 @@
                                                     <DockPanel>
                                                         <Button DockPanel.Dock="Right" Style="{StaticResource InspectorButton}" Command="{Binding OpenNvidia}"
                                                                 BorderBrush="Transparent" Background="Transparent" Height="24" MinHeight="24" Padding="4,0"
-                                                                Margin="4,0,0,0" ToolTip="NVIDIA App öffnen" AutomationProperties.Name="NVIDIA App öffnen">
+                                                                Margin="4,0,0,0" ToolTip="{local:Loc Workspace.OpenNVIDIAApp}" AutomationProperties.Name="{local:Loc Workspace.OpenNVIDIAApp}">
                                                             <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="NVIDIA App" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                                <TextBlock Text="{local:Loc Workspace.NVIDIAApp}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                                 <TextBlock Text="&#xE8A7;" FontSize="10" Style="{StaticResource InspectorGlyph}"/>
                                                             </StackPanel>
                                                         </Button>
-                                                        <TextBlock Text="Profi-Tweaks &amp; Presets" FontSize="15" FontWeight="SemiBold"
+                                                        <TextBlock Text="{local:Loc Workspace.AdvancedTweaksPresets}" FontSize="15" FontWeight="SemiBold"
                                                                    VerticalAlignment="Center" TextWrapping="Wrap"/>
                                                     </DockPanel>
-                                                    <TextBlock Text="{Binding PresetStatus}" Foreground="{StaticResource Muted}" FontSize="11"
+                                                    <TextBlock Text="{Binding PresetStatus.Text}" Foreground="{StaticResource Muted}" FontSize="11"
                                                                TextWrapping="Wrap" Margin="0,4,0,0"/>
                                                     <CheckBox IsChecked="{Binding GameOverlay, Mode=OneWay}" Command="{Binding ToggleGameOverlay}" Margin="0,8,0,0">
-                                                        <TextBlock Text="DLSS-Indikator beim Direktstart" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{local:Loc Workspace.DLSSIndicatorForDirectLaunch}" TextWrapping="Wrap"/>
                                                     </CheckBox>
-                                                    <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding GamePreset}" DisplayMemberPath="Label"
-                                                              Tag="Preset wählen…" MinHeight="28" AutomationProperties.Name="DLSS SR Preset" Margin="0,8,0,0"/>
+                                                    <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding GamePreset}" ItemTemplate="{StaticResource LocalizedOptionLabel}"
+                                                              Tag="{local:Loc Workspace.SelectPreset}" MinHeight="28" AutomationProperties.Name="{local:Loc Workspace.DLSSSRPreset}" Margin="0,8,0,0"/>
                                                     <WrapPanel Margin="0,6,0,-6">
-                                                        <Button Content="Profil lesen" Height="28" MinHeight="28" Padding="10,0" Margin="0,0,6,6"
+                                                        <Button Content="{local:Loc Workspace.ReadProfile}" Height="28" MinHeight="28" Padding="10,0" Margin="0,0,6,6"
                                                                 Style="{StaticResource InspectorButton}" Command="{Binding ReadPreset}"/>
-                                                        <Button Content="Preset anwenden" Height="28" MinHeight="28" Padding="10,0" Margin="0,0,6,6"
+                                                        <Button Content="{local:Loc Workspace.ApplyPreset}" Height="28" MinHeight="28" Padding="10,0" Margin="0,0,6,6"
                                                                 Style="{StaticResource InspectorAccentButton}" Command="{Binding SavePreset}"/>
                                                     </WrapPanel>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
                                         <Border Style="{StaticResource DetailSurface}" Padding="12,10">
-                                            <Expander FontSize="13" Foreground="{StaticResource Ink}" AutomationProperties.Name="Hinweise und Messwerte">
+                                            <Expander FontSize="13" Foreground="{StaticResource Ink}" AutomationProperties.Name="{local:Loc Workspace.NotesAndDiagnostics}">
                                                 <Expander.Header>
-                                                    <TextBlock Text="{Binding Logs.Length, StringFormat='Hinweise &amp; Messwerte ({0})'}" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{StaticResource Ink}"/>
+                                                    <TextBlock Text="{local:Loc Common.NotesDiagnostics, Path=Logs.Length}" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{StaticResource Ink}"/>
                                                 </Expander.Header>
                                                 <StackPanel Margin="0,7,0,0">
-                                                    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,0,0,6"/>
+                                                    <TextBlock Text="{Binding Status.Text}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,0,0,6"/>
                                                     <ItemsControl ItemsSource="{Binding Logs}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,3"/></DataTemplate>
@@ -840,27 +842,27 @@
                     </Grid>
                 </DockPanel>
             </TabItem>
-            <TabItem Tag="DLL-Katalog"><TabItem.Header><DockPanel><Border DockPanel.Dock="Right" Style="{StaticResource Pill}"><TextBlock Text="{Binding CatalogBadge}" Style="{StaticResource Mono}"/></Border><TextBlock DockPanel.Dock="Right" Text="●" Foreground="{StaticResource Accent}" Visibility="{Binding ModUpdatesAvailable, Converter={StaticResource ShowWhenTrue}}" Margin="0,0,4,0"/><TextBlock Style="{StaticResource Glyph}" Text="&#xE8B7;"/><TextBlock Text="DLL-Katalog" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
+            <TabItem Tag="DllCatalog.DLLCatalog"><TabItem.Header><DockPanel><Border DockPanel.Dock="Right" Style="{StaticResource Pill}"><TextBlock Text="{Binding CatalogBadge}" Style="{StaticResource Mono}"/></Border><TextBlock DockPanel.Dock="Right" Text="●" Foreground="{StaticResource Accent}" Visibility="{Binding ModUpdatesAvailable, Converter={StaticResource ShowWhenTrue}}" Margin="0,0,4,0"/><TextBlock Style="{StaticResource Glyph}" Text="&#xE8B7;"/><TextBlock Text="{local:Loc DllCatalog.DLLCatalog}" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
                 <local:DllCatalogView/>
             </TabItem>
 
-            <TabItem Tag="Wiederherstellung"><TabItem.Header><DockPanel><Border DockPanel.Dock="Right" Style="{StaticResource Pill}"><TextBlock Text="{Binding BackupBadge}" Style="{StaticResource Mono}"/></Border><TextBlock Style="{StaticResource Glyph}" Text="&#xE777;"/><TextBlock Text="Wiederherstellung" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
+            <TabItem Tag="Recovery.Title"><TabItem.Header><DockPanel><Border DockPanel.Dock="Right" Style="{StaticResource Pill}"><TextBlock Text="{Binding BackupBadge}" Style="{StaticResource Mono}"/></Border><TextBlock Style="{StaticResource Glyph}" Text="&#xE777;"/><TextBlock Text="{local:Loc Recovery.Title}" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
                 <local:RecoveryView/>
             </TabItem>
-            <TabItem Tag="Scan"><TabItem.Header><StackPanel><TextBlock Text="WERKZEUGE" Style="{StaticResource DetailLabel}" Margin="0,8,0,5"/><DockPanel><TextBlock DockPanel.Dock="Right" Text="{Binding LastScanLabel}" Foreground="{StaticResource Muted}" FontSize="10" VerticalAlignment="Center"/><TextBlock Style="{StaticResource Glyph}" Text="&#xE721;"/><TextBlock Text="Scan" VerticalAlignment="Center"/></DockPanel></StackPanel></TabItem.Header>
+            <TabItem Tag="Workspace.Scan"><TabItem.Header><StackPanel><TextBlock Text="{local:Loc Workspace.TOOLS}" Style="{StaticResource DetailLabel}" Margin="0,8,0,5"/><DockPanel><TextBlock DockPanel.Dock="Right" Text="{Binding LastScanLabel}" Foreground="{StaticResource Muted}" FontSize="10" VerticalAlignment="Center"/><TextBlock Style="{StaticResource Glyph}" Text="&#xE721;"/><TextBlock Text="{local:Loc Workspace.Scan}" VerticalAlignment="Center"/></DockPanel></StackPanel></TabItem.Header>
                 <DockPanel Margin="8,0,0,0">
 
                     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,9">
-                        <Button Content="Launcher scannen" Style="{StaticResource Secondary}" Command="{Binding ScanLaunchers}"/>
-                        <Button Content="Alle Laufwerke" Command="{Binding ScanDrives}"/>
-                        <Button Content="Ordner scannen" Command="{Binding ScanFolder}"/>
-                        <Button Content="Auswahl hinzufügen" Style="{StaticResource Primary}" Command="{Binding AddDiscovery}"/>
+                        <Button Content="{local:Loc Workspace.ScanLaunchers}" Style="{StaticResource Secondary}" Command="{Binding ScanLaunchers}"/>
+                        <Button Content="{local:Loc Workspace.AllDrives}" Command="{Binding ScanDrives}"/>
+                        <Button Content="{local:Loc Workspace.ScanFolder}" Command="{Binding ScanFolder}"/>
+                        <Button Content="{local:Loc Workspace.AddSelection}" Style="{StaticResource Primary}" Command="{Binding AddDiscovery}"/>
                     </WrapPanel>
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="2*"/><RowDefinition Height="7"/><RowDefinition Height="3*"/></Grid.RowDefinitions>
                     <ListView ItemsSource="{Binding Findings}" SelectedItem="{Binding SelectedFinding}">
                         <ListView.View><GridView>
-                            <GridViewColumn Header="Spiel / Ordner" Width="240">
+                            <GridViewColumn Header="{local:Loc Workspace.GameFolder}" Width="240">
                                 <GridViewColumn.CellTemplate><DataTemplate>
                                     <DockPanel LastChildFill="True">
                                         <Grid DockPanel.Dock="Left" Width="24" Height="24" Margin="0,0,8,0">
@@ -874,63 +876,63 @@
                                     </Trigger></DataTemplate.Triggers>
                                 </DataTemplate></GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Quelle" Width="120" DisplayMemberBinding="{Binding Root.Launcher}"/>
-                            <GridViewColumn Header="Installationspfad" Width="440" DisplayMemberBinding="{Binding Root.Path}"/>
-                            <GridViewColumn Header="DLLs" Width="55" DisplayMemberBinding="{Binding Dlls.Length}"/>
-                            <GridViewColumn Header="EXE-Kandidaten" Width="110" DisplayMemberBinding="{Binding Alternatives.Length}"/>
+                            <GridViewColumn Header="{local:Loc Workspace.Source}" Width="120" DisplayMemberBinding="{local:Loc Path=Root.LauncherLabelKey, KeyFromPath=True}"/>
+                            <GridViewColumn Header="{local:Loc Workspace.InstallationPath}" Width="440" DisplayMemberBinding="{Binding Root.Path}"/>
+                            <GridViewColumn Header="{local:Loc Workspace.DLLs}" Width="55" DisplayMemberBinding="{Binding Dlls.Length}"/>
+                            <GridViewColumn Header="{local:Loc Workspace.ExecutableCandidates}" Width="150" DisplayMemberBinding="{Binding Alternatives.Length}"/>
                         </GridView></ListView.View>
                     </ListView>
                     <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{StaticResource Outline}"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="0,12,8,0">
-                        <TextBlock Text="{Binding SelectedFinding.Root.Title, TargetNullValue='Spiel auswählen', FallbackValue='Spiel auswählen'}"
+                        <TextBlock Text="{local:Loc Library.SelectGame, Path=SelectedFinding.Root.Title, Fallback=Library.SelectGame}"
                                    FontSize="21" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding EffectiveExecutable, TargetNullValue='Spiel-EXE auswählen'}"
+                        <TextBlock Text="{local:Loc Library.SelectExecutable, Path=EffectiveExecutable, Fallback=Library.SelectExecutable}"
                                    Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" ToolTip="{Binding EffectiveExecutable}"/>
-                        <Expander Header="Andere Spiel-EXE auswählen" IsExpanded="{Binding NeedsExecutable, Mode=OneWay}" Margin="0,6,0,0">
+                        <Expander Header="{local:Loc Workspace.SelectADifferentGameExecutable}" IsExpanded="{Binding NeedsExecutable, Mode=OneWay}" Margin="0,6,0,0">
                             <ListBox Style="{StaticResource ExecutablePicker}" MaxHeight="160"
-                                     AutomationProperties.Name="Spiel-EXE auswählen"
+                                     AutomationProperties.Name="{local:Loc Library.SelectExecutable}"
                                      ItemsSource="{Binding SelectedFinding.Alternatives}" SelectedItem="{Binding SelectedExecutable}"/>
                         </Expander>
-                        <TextBlock Text="DLL-Inventar" FontWeight="SemiBold" Margin="0,10,0,5"/>
+                        <TextBlock Text="{local:Loc Workspace.DLLInventory}" FontWeight="SemiBold" Margin="0,10,0,5"/>
                         <ListView MaxHeight="170" ItemsSource="{Binding SelectedFinding.Dlls}" SelectedItem="{Binding SelectedDll}">
                             <ListView.View><GridView>
-                                <GridViewColumn Header="Typ" Width="65" DisplayMemberBinding="{Binding Kind}"/>
-                                <GridViewColumn Header="Status" Width="125" DisplayMemberBinding="{Binding Status}"/>
-                                <GridViewColumn Header="Dateiversion" Width="120" DisplayMemberBinding="{Binding Version}"/>
-                                <GridViewColumn Header="Produktversion" Width="130" DisplayMemberBinding="{Binding Metadata.ProductVersion}"/>
-                                <GridViewColumn Header="Architektur" Width="95" DisplayMemberBinding="{Binding Metadata.Machine}"/>
-                                <GridViewColumn Header="Pfad" Width="380" DisplayMemberBinding="{Binding Path}"/>
-                                <GridViewColumn Header="SHA-256" Width="480" DisplayMemberBinding="{Binding Metadata.Sha256}"/>
+                                <GridViewColumn Header="{local:Loc DllCatalog.Type}" Width="65" DisplayMemberBinding="{Binding Kind}"/>
+                                <GridViewColumn Header="{local:Loc DllCatalog.Status}" Width="150" DisplayMemberBinding="{local:Loc Path=StatusKey, KeyFromPath=True}"/>
+                                <GridViewColumn Header="{local:Loc Workspace.FileVersion}" Width="120" DisplayMemberBinding="{Binding Version}"/>
+                                <GridViewColumn Header="{local:Loc Workspace.ProductVersion}" Width="130" DisplayMemberBinding="{Binding Metadata.ProductVersion}"/>
+                                <GridViewColumn Header="{local:Loc Workspace.Architecture}" Width="105" DisplayMemberBinding="{Binding Metadata.Machine}"/>
+                                <GridViewColumn Header="{local:Loc Workspace.Path}" Width="380" DisplayMemberBinding="{Binding Path}"/>
+                                <GridViewColumn Header="{local:Loc DllCatalog.SHA}" Width="480" DisplayMemberBinding="{Binding Metadata.Sha256}"/>
                             </GridView></ListView.View>
                         </ListView>
                         <WrapPanel Margin="0,8,0,0">
-                            <ComboBox AutomationProperties.Name="Ersatzversion" Width="150" Margin="0,0,8,0"
+                            <ComboBox AutomationProperties.Name="{local:Loc Workspace.ReplacementVersion}" Width="150" Margin="0,0,8,0"
                                       ItemsSource="{Binding ReplacementVersions}" SelectedItem="{Binding SelectedReplacement}" IsEnabled="{Binding HasReplacementVersions}"
                                       DisplayMemberPath="Version"/>
-                            <Button Content="DLL austauschen" Style="{StaticResource Primary}" Command="{Binding ReplaceDll}"/>
-                            <Button Content="Versionen laden" Command="{Binding RefreshCatalog}"/>
-                            <Button Content="Original wiederherstellen" Command="{Binding RestoreDll}"/>
+                            <Button Content="{local:Loc Workspace.ReplaceDLL}" Style="{StaticResource Primary}" Command="{Binding ReplaceDll}"/>
+                            <Button Content="{local:Loc Workspace.LoadVersions}" Command="{Binding RefreshCatalog}"/>
+                            <Button Content="{local:Loc Workspace.RestoreOriginal}" Command="{Binding RestoreDll}"/>
                         </WrapPanel>
                         <TextBlock Text="{Binding ReplacementHint}" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
-                        <Expander Header="FrameGen &amp; MFG Unlocker verwalten" Margin="0,12,0,0">
+                        <Expander Header="{local:Loc Workspace.ManageFGMFGUnlocker}" Margin="0,12,0,0">
                         <StackPanel>
                         <WrapPanel Margin="0,8,0,0">
-                            <Button Content="Unlocker herunterladen" Style="{StaticResource Primary}" Command="{Binding DownloadMod}"/>
-                            <ComboBox AutomationProperties.Name="Unlocker-Proxy" Width="130" Margin="0,0,8,0"
+                            <Button Content="{local:Loc Workspace.DownloadUnlocker}" Style="{StaticResource Primary}" Command="{Binding DownloadMod}"/>
+                            <ComboBox AutomationProperties.Name="{local:Loc Workspace.UnlockerProxy}" Width="130" Margin="0,0,8,0"
                                       ItemsSource="{Binding ModProxies}" SelectedItem="{Binding SelectedModProxy}"/>
-                            <Button Content="Unlocker installieren / reparieren" Command="{Binding InstallMod}"/>
-                            <Button Content="Unlocker entfernen" Command="{Binding RemoveMod}"/>
-                            <Button Content="Unlocker-Einstellungen" Command="{Binding EditModIni}"/>
+                            <Button Content="{local:Loc Workspace.InstallRepairUnlocker}" Command="{Binding InstallMod}"/>
+                            <Button Content="{local:Loc Workspace.RemoveUnlocker}" Command="{Binding RemoveMod}"/>
+                            <Button Content="{local:Loc Workspace.UnlockerSettings}" Command="{Binding EditModIni}"/>
                         </WrapPanel>
                         <WrapPanel Margin="0,8,0,0">
-                            <Button Content="Unlocker-Versionen anzeigen" Command="{Binding ReadModHistory}"/>
-                            <Button Content="Unlocker-Update anwenden" Command="{Binding UpdateMod}"/>
-                            <ComboBox Width="160" Margin="0,0,8,0" AutomationProperties.Name="Frühere Unlocker-Version"
+                            <Button Content="{local:Loc Workspace.ShowUnlockerVersions}" Command="{Binding ReadModHistory}"/>
+                            <Button Content="{local:Loc Workspace.ApplyUnlockerUpdate}" Command="{Binding UpdateMod}"/>
+                            <ComboBox Width="160" Margin="0,0,8,0" AutomationProperties.Name="{local:Loc Workspace.PreviousUnlockerVersion}"
                                       ItemsSource="{Binding ModHistory}" SelectedItem="{Binding SelectedModHistory}"
                                       DisplayMemberPath="Display"/>
-                            <Button Content="Fallback anwenden" Command="{Binding RestoreMod}"/>
-                            <Button Content="Updates freigeben" Command="{Binding ResumeModUpdates}"/>
+                            <Button Content="{local:Loc Workspace.ApplyFallback}" Command="{Binding RestoreMod}"/>
+                            <Button Content="{local:Loc Workspace.ResumeUpdates}" Command="{Binding ResumeModUpdates}"/>
                         </WrapPanel>
                         </StackPanel>
                         </Expander>
@@ -939,85 +941,107 @@
                 </Grid>
                 </DockPanel>
             </TabItem>
-            <TabItem x:Name="SettingsTab" Tag="Einstellungen"><TabItem.Header><DockPanel><TextBlock Style="{StaticResource Glyph}" Text="&#xE713;"/><TextBlock Text="Einstellungen" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
+            <TabItem x:Name="SettingsTab" Tag="Settings.Title"><TabItem.Header><DockPanel><TextBlock Style="{StaticResource Glyph}" Text="&#xE713;"/><TextBlock Text="{local:Loc Settings.Title}" VerticalAlignment="Center"/></DockPanel></TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="8,0,0,0" MaxWidth="900">
-                        <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10"><DockPanel><Border DockPanel.Dock="Left" Width="58" Height="58" Margin="0,0,11,0" Background="#1C2029" BorderBrush="#76B900" BorderThickness="1" CornerRadius="10"><Image Source="{DynamicResource BrandImage}" Width="48" Height="48" RenderOptions.BitmapScalingMode="HighQuality"/></Border><StackPanel><TextBlock Text="{Binding AppVersion, StringFormat='DLSS Manager {0}'}" FontSize="21" FontWeight="Bold"/><TextBlock Text="Open-Source-Werkzeug für Upscaler, Frame Generation und DLL-Sicherungen." TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,3,0,7"/><Button Content="MrSchwafel/DLSS-Manager ↗" Command="{Binding OpenProject}" HorizontalAlignment="Left"/></StackPanel></DockPanel></Border>
+                        <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10"><DockPanel><Border DockPanel.Dock="Left" Width="58" Height="58" Margin="0,0,11,0" Background="#1C2029" BorderBrush="#76B900" BorderThickness="1" CornerRadius="10"><Image Source="{DynamicResource BrandImage}" Width="48" Height="48" RenderOptions.BitmapScalingMode="HighQuality"/></Border><StackPanel><TextBlock Text="{Binding AppVersion, StringFormat='DLSS Manager {0}'}" FontSize="21" FontWeight="Bold"/><TextBlock Text="{local:Loc Workspace.OpenSourceToolForUpscalersFrameGeneration}" TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,3,0,7"/><Button Content="MrSchwafel/DLSS-Manager ↗" Command="{Binding OpenProject}" HorizontalAlignment="Left"/></StackPanel></DockPanel></Border>
                         <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Pfade und Backups" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
+                                <TextBlock Text="{local:Loc Settings.General}" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="{local:Loc Settings.Language}" Style="{StaticResource DetailLabel}"/>
+                                <ComboBox ItemsSource="{Binding LanguageChoices}" SelectedValuePath="Code"
+                                          SelectedValue="{Binding LanguagePreference, Mode=TwoWay}"
+                                          IsEnabled="{Binding CanChangeLanguage}" AutomationProperties.Name="{local:Loc Settings.Language}"
+                                          HorizontalAlignment="Left" MinWidth="225"
+                                          ItemTemplate="{StaticResource LocalizedOptionLabel}"/>
+                                <TextBlock Text="{Binding LanguageSaveError}" Foreground="#FFB3B5" TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite">
+                                    <TextBlock.Style><Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding LanguageSaveError}" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style></TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="{local:Loc Workspace.PathsAndBackups}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
                                 <TextBlock Text="{Binding DataPath}" Style="{StaticResource Mono}" TextWrapping="Wrap"/>
-                                <TextBlock Text="Originale werden vor dem Überschreiben gesichert und per SHA-256 geprüft."
+                                <TextBlock Text="{local:Loc Workspace.OriginalFilesAreBackedUpAndChecked}"
                                            Foreground="{StaticResource Muted}" Margin="0,7,0,8" TextWrapping="Wrap"/>
-                                <WrapPanel><Button Content="Datenordner öffnen" Command="{Binding OpenDataFolder}"/><Button Content="Datenordner anpassen" Command="{Binding ChooseDataFolder}"/></WrapPanel>
-                                <CheckBox Content="Launcher beim Start scannen" Command="{Binding ToggleStartupScan}" IsChecked="{Binding ScanLaunchersOnStartup, Mode=OneWay}" Margin="0,5,0,5"/>
-                                <CheckBox Content="Spiele mit Anti-Cheat von der Aufnahme ausschließen" Command="{Binding ToggleAntiCheatFilter}" IsChecked="{Binding ExcludeAntiCheatGames, Mode=OneWay}" Margin="0,0,0,5"/>
-                                <TextBlock Text="Benutzerdefinierte Scanordner" Style="{StaticResource DetailLabel}"/>
+                                <WrapPanel><Button Content="{local:Loc Workspace.OpenDataFolder}" Command="{Binding OpenDataFolder}"/><Button Content="{local:Loc Workspace.ChangeDataFolder}" Command="{Binding ChooseDataFolder}"/></WrapPanel>
+                                <CheckBox Content="{local:Loc Workspace.ScanLaunchersAtStartup}" Command="{Binding ToggleStartupScan}" IsChecked="{Binding ScanLaunchersOnStartup, Mode=OneWay}" Margin="0,5,0,5"/>
+                                <CheckBox Content="{local:Loc Workspace.ExcludeGamesWithAntiCheatWhenAdding}" Command="{Binding ToggleAntiCheatFilter}" IsChecked="{Binding ExcludeAntiCheatGames, Mode=OneWay}" Margin="0,0,0,5"/>
+                                <TextBlock Text="{local:Loc Workspace.CustomScanFolders}" Style="{StaticResource DetailLabel}"/>
                                 <TextBlock Text="{Binding ScanPaths}" Style="{StaticResource Mono}" TextWrapping="Wrap" Margin="0,0,0,7"/>
                                 <WrapPanel>
-                                    <Button Content="Ordnerliste ersetzen" Command="{Binding EditScanPaths}"/>
-                                    <Button Content="Ordnerliste leeren" Command="{Binding ClearScanPaths}"/>
+                                    <Button Content="{local:Loc Workspace.ReplaceFolderList}" Command="{Binding EditScanPaths}"/>
+                                    <Button Content="{local:Loc Workspace.ClearFolderList}" Command="{Binding ClearScanPaths}"/>
                                 </WrapPanel>
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Globale Mod-INI-Standards (SM86 &amp; OptiScaler)" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Text="Globale Werte gelten bei Installation und Wiederherstellung, sofern das Spielprofil den jeweiligen Schlüssel übernimmt."
+                                <TextBlock Text="{local:Loc Workspace.GlobalModINIDefaultsSM86OptiScaler}" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="{local:Loc Workspace.GlobalValuesApplyDuringInstallationAndRestore}"
                                            Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,5,0,8"/>
-                                <Button Content="Globale INI-Standards konfigurieren..." Command="{Binding EditGlobalIni}" HorizontalAlignment="Left"/>
+                                <Button Content="{local:Loc Workspace.ConfigureGlobalINIDefaults}" Command="{Binding EditGlobalIni}" HorizontalAlignment="Left"/>
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Automatische Updates" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Text="Prüft beim App-Start und danach im gewählten Intervall. Gilt für gescannte Spiele und verwaltete Mods mit bekannter Release-Version. Laufende Spiele werden beim nächsten Durchlauf erneut geprüft."
+                                <TextBlock Text="{local:Loc Workspace.AutomaticUpdates}" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="{local:Loc Workspace.ChecksAtStartupAndAtTheSelected}"
                                            Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,5,0,8"/>
-                                <CheckBox Content="DLSS-, XeSS- und FSR-DLLs" IsChecked="{Binding AutoUpdateDlls, Mode=OneWay}"
+                                <CheckBox Content="{local:Loc Workspace.DLSSXeSSAndFSRDLLs}" IsChecked="{Binding AutoUpdateDlls, Mode=OneWay}"
                                           Command="{Binding ToggleAutoUpdateDlls}" Margin="0,0,0,6"/>
-                                <CheckBox Content="FrameGen &amp; MFG Unlocker (SM86)" IsChecked="{Binding AutoUpdateUnlocker, Mode=OneWay}"
+                                <CheckBox Content="{local:Loc Workspace.FGMFGUnlockerSM86}" IsChecked="{Binding AutoUpdateUnlocker, Mode=OneWay}"
                                           Command="{Binding ToggleAutoUpdateUnlocker}" Margin="0,0,0,6"/>
-                                <CheckBox Content="OptiScaler" IsChecked="{Binding AutoUpdateOptiScaler, Mode=OneWay}"
+                                <CheckBox Content="{local:Loc Mods.OptiScaler}" IsChecked="{Binding AutoUpdateOptiScaler, Mode=OneWay}"
                                           Command="{Binding ToggleAutoUpdateOptiScaler}" Margin="0,0,0,6"/>
                                 <WrapPanel Margin="0,5,0,0">
-                                    <TextBlock Text="Prüfintervall in Minuten" VerticalAlignment="Center" Margin="0,0,8,6"/>
+                                    <TextBlock Text="{local:Loc Workspace.CheckIntervalInMinutes}" VerticalAlignment="Center" Margin="0,0,8,6"/>
                                     <TextBox Text="{Binding AutoUpdateIntervalText, UpdateSourceTrigger=PropertyChanged}" Width="72"
-                                             AutomationProperties.Name="Prüfintervall in Minuten" Margin="0,0,8,6"/>
-                                    <Button Content="Intervall speichern" Command="{Binding SaveAutoUpdateInterval}"/>
-                                    <Button Content="Jetzt aktivierte Updates prüfen und anwenden" Command="{Binding RunAutoUpdates}"/>
+                                             AutomationProperties.Name="{local:Loc Workspace.CheckIntervalInMinutes}" Margin="0,0,8,6"/>
+                                    <Button Content="{local:Loc Workspace.SaveInterval}" Command="{Binding SaveAutoUpdateInterval}"/>
+                                    <Button Content="{local:Loc Workspace.CheckAndApplyEnabledUpdatesNow}" Command="{Binding RunAutoUpdates}"/>
                                 </WrapPanel>
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Proxy und NVIDIA" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Text="Standard-Proxy für neue Spiele" Style="{StaticResource DetailLabel}"/>
+                                <TextBlock Text="{local:Loc Workspace.ProxyAndNVIDIA}" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="{local:Loc Workspace.DefaultProxyForNewGames}" Style="{StaticResource DetailLabel}"/>
                                 <WrapPanel>
-                                    <ComboBox ItemsSource="{Binding ProxyChoices}" SelectedItem="{Binding DefaultProxy}" MinWidth="125"
-                                              AutomationProperties.Name="Standard-Proxy" Margin="0,0,6,5"/>
-                                    <Button Content="Speichern" Command="{Binding SaveDefaults}"/>
+                                    <ComboBox ItemsSource="{Binding ProxyOptions}" SelectedValue="{Binding DefaultProxy}"
+                                              SelectedValuePath="Code" ItemTemplate="{StaticResource LocalizedOptionLabel}" MinWidth="125"
+                                              AutomationProperties.Name="{local:Loc Workspace.DefaultProxy}" Margin="0,0,6,5"/>
+                                    <Button Content="{local:Loc Common.Save}" Command="{Binding SaveDefaults}"/>
                                 </WrapPanel>
-                                <CheckBox Content="Globaler DLSS-Indikator (Registry, Administratorrechte)" Margin="0,8"
+                                <CheckBox Content="{local:Loc Workspace.GlobalDLSSIndicatorRegistryAdministratorPrivileges}" Margin="0,8"
                                           IsChecked="{Binding OverlayEnabled, Mode=OneWay}" Command="{Binding ToggleOverlay}"/>
-                                <Button Content="NVIDIA App öffnen" Command="{Binding OpenNvidia}" HorizontalAlignment="Left"/>
-                                <TextBlock Text="Batch-Zielversionen" Style="{StaticResource DetailLabel}"/>
+                                <Button Content="{local:Loc Workspace.OpenNVIDIAApp}" Command="{Binding OpenNvidia}" HorizontalAlignment="Left"/>
+                                <TextBlock Text="{local:Loc Workspace.BatchTargetVersions}" Style="{StaticResource DetailLabel}"/>
                                 <TextBlock Text="{Binding BatchTargets}" Style="{StaticResource Mono}" TextWrapping="Wrap" Margin="0,0,0,7"/>
-                                <Button Content="Batch-Ziele zurücksetzen" Command="{Binding ResetBatchTargets}" HorizontalAlignment="Left"/>
+                                <Button Content="{local:Loc Workspace.ResetBatchTargets}" Command="{Binding ResetBatchTargets}" HorizontalAlignment="Left"/>
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Treiber &amp; Cache" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
-                                <TextBlock Text="Treiber-Vorschau (Hover-Card)" Style="{StaticResource DetailLabel}" Margin="0,0,0,4"/>
-                                <ComboBox x:Name="DriverTooltipPicker" ItemsSource="{Binding DriverTooltipChoices}" DisplayMemberPath="Value"
-                                          SelectedValuePath="Key" SelectedValue="{Binding DriverPreviewStyle, Mode=TwoWay}"
-                                          IsEnabled="{Binding CanChooseDriverTooltipStyle}" AutomationProperties.Name="Treiber-Vorschau (Hover-Card)"
+                                <TextBlock Text="{local:Loc Workspace.DriversCache}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
+                                <TextBlock Text="{local:Loc Workspace.DriverPreviewHoverCard}" Style="{StaticResource DetailLabel}" Margin="0,0,0,4"/>
+                                <ComboBox x:Name="DriverTooltipPicker" ItemsSource="{Binding DriverTooltipChoices}" ItemTemplate="{StaticResource LocalizedOptionLabel}"
+                                          SelectedValuePath="Code" SelectedValue="{Binding DriverPreviewStyle, Mode=TwoWay}"
+                                          IsEnabled="{Binding CanChooseDriverTooltipStyle}" AutomationProperties.Name="{local:Loc Workspace.DriverPreviewHoverCard}"
                                           HorizontalAlignment="Left" MinWidth="275" Margin="0,0,0,10"/>
-                                <CheckBox Content="Stille Express-Installation für heruntergeladene Treiber (-s -noreboot)"
+                                <CheckBox Content="{local:Loc Workspace.SilentExpressInstallationForDownloadedDriversS}"
                                           IsChecked="{Binding SilentDriverInstall, Mode=OneWay}" Command="{Binding ToggleSilentDriverInstall}"/>
-                                <TextBlock Text="Installiert Treiber-Updates automatisch ohne Setup-Fenster und ohne erzwungenen Neustart. Hinweis: Reguläre Updates behalten bestehende Einstellungen bei; bei Treiber-Downgrades wird optional eine saubere Neuinstallation (-clean) angeboten."
+                                <TextBlock Text="{local:Loc Workspace.InstallsDriverUpdatesWithoutOpeningSetupOr}"
                                            Foreground="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="24,3,0,8"/>
-                                <CheckBox Content="Treiber-Installer nach Installation automatisch löschen"
+                                <CheckBox Content="{local:Loc Workspace.DeleteDriverInstallersAfterInstallation}"
                                           IsChecked="{Binding DeleteDriverInstallerAfterInstall, Mode=OneWay}" Command="{Binding ToggleDeleteDriverInstallerAfterInstall}"
                                           Margin="0,0,0,8"/>
                                 <CheckBox Content="{Binding TranslateDriverSummariesLabel}"
@@ -1025,25 +1049,25 @@
                                           Visibility="{Binding CanTranslateDriverSummaries, Converter={StaticResource ShowWhenTrue}}"
                                           Margin="0,0,0,6"/>
                                 <StackPanel Visibility="{Binding CanTranslateDriverSummaries, Converter={StaticResource ShowWhenTrue}}" Margin="24,0,0,10">
-                                    <TextBlock Text="Google Cloud Translation API-Key (optional)" Style="{StaticResource DetailLabel}" Margin="0,2,0,4"/>
+                                    <TextBlock Text="{local:Loc Workspace.GoogleCloudTranslationAPIKeyOptional}" Style="{StaticResource DetailLabel}" Margin="0,2,0,4"/>
                                     <WrapPanel>
                                         <TextBox Text="{Binding GoogleTranslateApiKeyText, UpdateSourceTrigger=PropertyChanged}" Width="240"
-                                                 AutomationProperties.Name="Google Cloud Translation API-Key" Margin="0,0,6,4"/>
-                                        <Button Content="API-Key speichern" Command="{Binding SaveGoogleTranslateApiKey}" Margin="0,0,0,4"/>
+                                                 AutomationProperties.Name="{local:Loc Workspace.GoogleCloudTranslationAPIKey}" Margin="0,0,6,4"/>
+                                        <Button Content="{local:Loc Workspace.SaveAPIKey}" Command="{Binding SaveGoogleTranslateApiKey}" Margin="0,0,0,4"/>
                                     </WrapPanel>
-                                    <TextBlock Text="Leer lassen für kostenlose Google-Übersetzung. Bei Netzwerk- oder Limitfehlern wird automatisch der bereinigte englische Originaltext angezeigt."
+                                    <TextBlock Text="{local:Loc Workspace.LeaveBlankToUseFreeGoogleTranslate}"
                                                Foreground="{StaticResource Muted}" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                 </StackPanel>
-                                <TextBlock Text="Eigene Hotfix-Feed-URL (JSON/RSS, optional)" Style="{StaticResource DetailLabel}" Margin="0,4,0,4"/>
+                                <TextBlock Text="{local:Loc Workspace.CustomHotfixFeedURLJSONRSSOptional}" Style="{StaticResource DetailLabel}" Margin="0,4,0,4"/>
                                 <TextBox Text="{Binding CustomHotfixFeedUrlText, UpdateSourceTrigger=PropertyChanged}"
-                                         AutomationProperties.Name="Eigene Hotfix-Feed-URL" Margin="0,0,0,6"/>
-                                <TextBlock Text="Google Custom Search API (optional für custhelp.com-Suche)" Style="{StaticResource DetailLabel}" Margin="0,2,0,4"/>
+                                         AutomationProperties.Name="{local:Loc Workspace.CustomHotfixFeedURL}" Margin="0,0,0,6"/>
+                                <TextBlock Text="{local:Loc Workspace.GoogleCustomSearchAPIOptionalForCusthelp}" Style="{StaticResource DetailLabel}" Margin="0,2,0,4"/>
                                 <WrapPanel Margin="0,0,0,8">
                                     <TextBox Text="{Binding GoogleSearchApiKeyText, UpdateSourceTrigger=PropertyChanged}" Width="210"
-                                             Tag="API-Key" AutomationProperties.Name="Google Custom Search API-Key" Margin="0,0,6,4"/>
+                                             Tag="{local:Loc Workspace.APIKey}" AutomationProperties.Name="{local:Loc Workspace.GoogleCustomSearchAPIKey}" Margin="0,0,6,4"/>
                                     <TextBox Text="{Binding GoogleSearchCxText, UpdateSourceTrigger=PropertyChanged}" Width="160"
-                                             Tag="Search Engine ID (CX)" AutomationProperties.Name="Google Custom Search Engine ID" Margin="0,0,6,4"/>
-                                    <Button Content="Hotfix-Quellen speichern" Command="{Binding SaveHotfixSourceSettings}" Margin="0,0,0,4"/>
+                                             Tag="{local:Loc Workspace.SearchEngineIDCX}" AutomationProperties.Name="{local:Loc Workspace.GoogleCustomSearchEngineID}" Margin="0,0,6,4"/>
+                                    <Button Content="{local:Loc Workspace.SaveHotfixSources}" Command="{Binding SaveHotfixSourceSettings}" Margin="0,0,0,4"/>
                                 </WrapPanel>
                                 <WrapPanel>
                                     <Button Content="{Binding ClearDriverCacheLabel}" Command="{Binding ClearDriverCache}" HorizontalAlignment="Left"/>
@@ -1052,12 +1076,12 @@
                         </Border>
                         <Border Style="{StaticResource DetailSurface}" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="System &amp; Autostart" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
+                                <TextBlock Text="{local:Loc Workspace.SystemStartup}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
                                 <StackPanel x:Name="AutostartOptions" Loaded="ReadAutostart">
-                                    <CheckBox x:Name="AutostartItem" Content="Mit Windows starten" Click="ChangeAutostart"/>
-                                    <CheckBox x:Name="AutostartMinimizedItem" Content="Minimiert im System-Tray starten"
+                                    <CheckBox x:Name="AutostartItem" Content="{local:Loc Workspace.StartWithWindows}" Click="ChangeAutostart"/>
+                                    <CheckBox x:Name="AutostartMinimizedItem" Content="{local:Loc Workspace.StartMinimizedInTheSystemTray}"
                                               IsChecked="True" IsEnabled="False" Click="ChangeAutostart" Margin="18,6,0,0"/>
-                                    <Button x:Name="MigrateAutostartItem" Content="Autostart in Aufgabenplanung übernehmen"
+                                    <Button x:Name="MigrateAutostartItem" Content="{local:Loc Workspace.ApplyStartupSettingsInTaskScheduler}"
                                             Style="{StaticResource InspectorButton}" HorizontalAlignment="Left"
                                             Visibility="Collapsed" Click="ChangeAutostart" Margin="18,8,0,0"/>
                                 </StackPanel>
@@ -1075,19 +1099,19 @@
                         </Border>
                         <Border Style="{StaticResource DetailSurface}">
                             <StackPanel>
-                                <TextBlock Text="Bibliothek" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
+                                <TextBlock Text="{local:Loc Workspace.Library}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
                                 <WrapPanel>
-                                    <Button Content="Bibliothek neu laden" Command="{Binding ReloadGames}"/>
-                                    <Button Content="Bibliothek leeren" Command="{Binding ClearGames}"/>
-                                    <Button Content="DLSSdb aktualisieren" Command="{Binding RefreshRtx}"/>
+                                    <Button Content="{local:Loc Workspace.ReloadLibrary}" Command="{Binding ReloadGames}"/>
+                                    <Button Content="{local:Loc Workspace.ClearLibrary}" Command="{Binding ClearGames}"/>
+                                    <Button Content="{local:Loc Workspace.RefreshDLSSdb}" Command="{Binding RefreshRtx}"/>
                                 </WrapPanel>
-                                <TextBlock Text="Fenster" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,7"/>
-                                <CheckBox Content="Immer im Vordergrund" IsChecked="{Binding Topmost, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
-                                <TextBlock Text="Werkzeuge" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,7"/>
+                                <TextBlock Text="{local:Loc Workspace.Window}" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,7"/>
+                                <CheckBox Content="{local:Loc Workspace.AlwaysOnTop}" IsChecked="{Binding Topmost, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
+                                <TextBlock Text="{local:Loc Workspace.Tools}" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,7"/>
                                 <WrapPanel>
-                                    <Button Content="Stable-Releases prüfen" Command="{Binding CheckStableRelease}"/>
-                                    <Button Content="Beta- und RC-Releases prüfen" Command="{Binding CheckBetaRelease}"/>
-                                    <Button Content="Diagnose exportieren" Command="{Binding ExportDiagnosis}"/>
+                                    <Button Content="{local:Loc Workspace.CheckStableReleases}" Command="{Binding CheckStableRelease}"/>
+                                    <Button Content="{local:Loc Workspace.CheckBetaAndRCReleases}" Command="{Binding CheckBetaRelease}"/>
+                                    <Button Content="{local:Loc Workspace.ExportDiagnostics}" Command="{Binding ExportDiagnosis}"/>
                                 </WrapPanel>
                             </StackPanel>
                         </Border>

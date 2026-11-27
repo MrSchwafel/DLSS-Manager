@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -44,9 +45,9 @@ public sealed record RollbackMenuEntry(
 public sealed partial class LibraryViewModel
 {
     private (string Name, Version Version)? detectedGeForce;
-    private string driverStatus = "Treiberprüfung …";
+    private LocalizedText driverStatus = Message("Drivers.Checking");
     private string driverColor = "#AEB8C9";
-    private string appUpdateLabel = "";
+    private LocalizedText appUpdateLabel = "";
     private bool refreshingSystem;
     private bool driverCurrent;
     private DriverUpdateInfo? availableDriver;
@@ -83,9 +84,9 @@ public sealed partial class LibraryViewModel
         DataFolders.DriverTranslationCachePath,
         () => settings.GoogleTranslateApiKey);
 
-    public string DriverStatus { get => driverStatus; private set => Set(ref driverStatus, value); }
+    public LocalizedText DriverStatus { get => driverStatus; private set => Set(ref driverStatus, value); }
     public string DriverColor { get => driverColor; private set => Set(ref driverColor, value); }
-    public string AppUpdateLabel { get => appUpdateLabel; private set => Set(ref appUpdateLabel, value); }
+    public LocalizedText AppUpdateLabel { get => appUpdateLabel; private set => Set(ref appUpdateLabel, value); }
 
     public DriverUiState DriverState
     {
@@ -150,45 +151,45 @@ public sealed partial class LibraryViewModel
     public string RollbackButtonLabel => DowngradeState switch
     {
         DriverDowngradeUiState.Downloading when activeDowngradeDriver is { } dl => downgradeDownloadPercent is { } p
-            ? $"Lädt v{dl.Version}... {p}%"
-            : $"Lädt v{dl.Version}... {downgradeDownloadMb:0} MB",
+            ? GetText("Drivers.DownloadingV", dl.Version, p)
+            : GetText("Drivers.DownloadingVMB", dl.Version, downgradeDownloadMb),
         DriverDowngradeUiState.Installing when activeDowngradeDriver is { } inst =>
-            $"Downgrade... (v{inst.Version})",
-        _ when PreferredPreviousDriver is { } prev => $"Zurück zu v{prev.Version}",
+            GetText("Drivers.DowngradingV", inst.Version),
+        _ when PreferredPreviousDriver is { } prev => GetText("Drivers.RollBackToV", prev.Version),
         _ => ""
     };
 
     public string RollbackButtonToolTip => DowngradeState switch
     {
-        DriverDowngradeUiState.Downloading => "Download läuft – Klicken zum Abbrechen",
-        DriverDowngradeUiState.Installing => $"Treiber-Downgrade auf v{activeDowngradeDriver?.Version} wird durchgeführt …",
+        DriverDowngradeUiState.Downloading => GetText("Drivers.DownloadInProgressClickToCancel"),
+        DriverDowngradeUiState.Installing => GetText("Drivers.DowngradingDriverToV", activeDowngradeDriver?.Version),
         _ when PreferredPreviousDriver is { } prev => BuildDriverToolTip(
-            $"Direktes Rollback auf den jüngsten Vorgänger: NVIDIA {(prev.IsHotfix ? "Hotfix" : "WHQL")} v{prev.Version}{(prev.IsCached ? " (im Cache)" : "")}",
+            GetText("Drivers.RollBackDirectlyToTheLatestPrevious", (prev.IsHotfix ? "Hotfix" : "WHQL"), prev.Version, (prev.IsCached ? GetText("Drivers.Cached3") : "")),
             prev.ReleaseSummary),
         _ => ""
     };
 
     public string RollbackIconToolTip => IsDowngradeDownloading
-        ? "Vorgänger-Download läuft – Klicken zum Abbrechen"
-        : "Zurück zur letzten verfügbaren Treiberversion (WHQL / Hotfix)";
+        ? GetText("Drivers.DownloadingPreviousDriverClickToCancel")
+        : GetText("Workspace.RollBackToThePreviousAvailableDriver");
 
     public string PreviousHotfixMenuLabel => PreviousHotfixDriver is { } hf
-        ? $"Letzter Hotfix: v{hf.Version}"
+        ? GetText("Drivers.PreviousHotfixV", hf.Version)
         : "";
 
     public string PreviousWhqlMenuLabel => PreviousWhqlDriver is { } whql
-        ? $"Letzter WHQL-Treiber: v{whql.Version}"
+        ? GetText("Drivers.PreviousWHQLDriverV", whql.Version)
         : "";
 
     public string PreviousHotfixToolTip => PreviousHotfixDriver is { } hf
         ? BuildDriverToolTip(
-            $"NVIDIA Hotfix v{hf.Version}{(hf.IsCached ? " · Bereits im lokalen Cache" : "")}",
+            $"NVIDIA Hotfix v{hf.Version}{(hf.IsCached ? GetText("Drivers.AlreadyCached") : "")}",
             hf.ReleaseSummary)
         : "";
 
     public string PreviousWhqlToolTip => PreviousWhqlDriver is { } whql
         ? BuildDriverToolTip(
-            $"NVIDIA WHQL-Treiber v{whql.Version}{(whql.IsCached ? " · Bereits im lokalen Cache" : "")}",
+            GetText("Drivers.NVIDIAWHQLDriverV", whql.Version, (whql.IsCached ? GetText("Drivers.AlreadyCached") : "")),
             whql.ReleaseSummary)
         : "";
 
@@ -211,38 +212,38 @@ public sealed partial class LibraryViewModel
     public string DriverButtonLabel => availableDriver is not { } update ? "" : DriverState switch
     {
         DriverUiState.Downloading => driverDownloadPercent is { } p
-            ? $"Lädt... {p}%"
-            : $"Lädt... {driverDownloadMb:0} MB",
-        DriverUiState.Installing => $"Installiert... (v{update.Version})",
+            ? GetText("Drivers.Downloading", p)
+            : GetText("Drivers.DownloadingMB", driverDownloadMb),
+        DriverUiState.Installing => GetText("Drivers.InstallingV", update.Version),
         DriverUiState.Downloaded => SilentDriverInstall
-            ? $"{(update.IsHotfix ? "Hotfix" : "WHQL")} Express-Setup (v{update.Version})"
-            : $"{(update.IsHotfix ? "Hotfix" : "WHQL")} installieren (v{update.Version})",
-        DriverUiState.Available => $"{(update.IsHotfix ? "Hotfix" : "WHQL")} laden (v{update.Version})",
+            ? GetText("Drivers.ExpressSetupV", (update.IsHotfix ? "Hotfix" : "WHQL"), update.Version)
+            : GetText("Drivers.InstallV", (update.IsHotfix ? "Hotfix" : "WHQL"), update.Version),
+        DriverUiState.Available => GetText("Drivers.DownloadV", (update.IsHotfix ? "Hotfix" : "WHQL"), update.Version),
         _ => ""
     };
 
-    public string DriverButtonToolTip => availableDriver is not { } update ? DriverStatus : DriverState switch
+    public string DriverButtonToolTip => availableDriver is not { } update ? DriverStatus.Text : DriverState switch
     {
-        DriverUiState.Downloading => "Download läuft – Klicken zum Abbrechen",
-        DriverUiState.Installing => $"NVIDIA Treiber v{update.Version} wird im Hintergrund installiert …",
+        DriverUiState.Downloading => GetText("Drivers.DownloadInProgressClickToCancel"),
+        DriverUiState.Installing => GetText("Drivers.InstallingNVIDIADriverVInTheBackground", update.Version),
         DriverUiState.Downloaded when SilentDriverInstall =>
-            "Startet die stille NVIDIA Express-Installation im Hintergrund (-s -noreboot)",
+            GetText("Drivers.StartSilentNVIDIAExpressInstallationInThe"),
         DriverUiState.Downloaded =>
-            BuildDriverToolTip($"Heruntergeladenen NVIDIA {(update.IsHotfix ? "Hotfix" : "WHQL")}-Treiber (v{update.Version}) interaktiv installieren", update.ReleaseSummary),
+            BuildDriverToolTip(GetText("Drivers.InstallTheDownloadedNVIDIADriverVInteractively", (update.IsHotfix ? "Hotfix" : "WHQL"), update.Version), update.ReleaseSummary),
         DriverUiState.Available =>
             BuildDriverToolTip(
-                $"NVIDIA {(update.IsHotfix ? "Hotfix" : "WHQL")}-Treiber v{update.Version} direkt in der App herunterladen",
+                GetText("Drivers.DownloadNVIDIADriverVDirectlyInThe", (update.IsHotfix ? "Hotfix" : "WHQL"), update.Version),
                 update.ReleaseSummary),
-        _ => DriverStatus
+        _ => DriverStatus.Text
     };
 
     public string DriverReleasePageToolTip => IsDriverHotfix
-        ? "Hotfix-Release-Notes & Downloadseite im Browser öffnen"
-        : "WHQL-Treiberdetails & Downloadseite im Browser öffnen";
+        ? GetText("Drivers.OpenHotfixReleaseNotesAndDownloadsIn")
+        : GetText("Drivers.OpenWHQLDriverDetailsAndDownloadsIn");
 
     public bool SilentDriverInstall => settings.SilentDriverInstall;
     public bool DeleteDriverInstallerAfterInstall => settings.DeleteDriverInstallerAfterInstall;
-    public bool TranslateDriverSummaries => settings.TranslateDriverSummaries;
+    public bool TranslateDriverSummaries => CanTranslateDriverSummaries && settings.TranslateDriverSummaries;
     private readonly SemaphoreSlim settingsWriteGate = new(1, 1);
     private DriverTooltipStyle? pendingDriverTooltipStyle;
     private int driverTooltipStyleChange;
@@ -250,10 +251,12 @@ public sealed partial class LibraryViewModel
 
     internal Task DriverTooltipStyleSave { get; private set; } = Task.CompletedTask;
     public bool CanChooseDriverTooltipStyle => driverTooltipSettingsReady;
-    public KeyValuePair<DriverTooltipStyle, string>[] DriverTooltipChoices { get; } =
+    public sealed record DriverTooltipOption(DriverTooltipStyle Code, string LabelKey);
+
+    public DriverTooltipOption[] DriverTooltipChoices { get; } =
     [
-        new(DriverTooltipStyle.Compact, "Kompakt (Summary)"),
-        new(DriverTooltipStyle.Detailed, "Detailliert (Release-Notes mit Badges)")
+        new(DriverTooltipStyle.Compact, "Drivers.CompactSummary"),
+        new(DriverTooltipStyle.Detailed, "Drivers.DetailedReleaseNotesWithBadges")
     ];
 
     public DriverTooltipStyle DriverPreviewStyle
@@ -272,10 +275,10 @@ public sealed partial class LibraryViewModel
         }
     }
 
-    public string ClientLanguageCode => ClientLanguageProvider.GetLanguageCode(settings.PreferredLanguage);
-    public bool CanTranslateDriverSummaries => ClientLanguageProvider.CanTranslateFromEnglish(ClientLanguageCode);
+    public string ClientLanguageCode => Language;
+    public bool CanTranslateDriverSummaries => ClientLanguageCode == German;
     public string TranslateDriverSummariesLabel =>
-        $"Treiber-Zusammenfassungen auf {ClientLanguageProvider.GetDisplayName(ClientLanguageCode)} übersetzen";
+        GetText("Settings.TranslateDriverNotes");
     public string GoogleTranslateApiKeyText
     {
         get => googleTranslateApiKeyText;
@@ -296,7 +299,7 @@ public sealed partial class LibraryViewModel
         get => googleSearchCxText;
         set => Set(ref googleSearchCxText, value);
     }
-    public string ClearDriverCacheLabel => $"Treiber-Cache leeren ({driverCacheBytes / 1048576d:0.#} MB)";
+    public string ClearDriverCacheLabel => GetText("Drivers.ClearDriverCacheMB", driverCacheBytes / 1048576d);
 
     public ICommand RefreshSystem { get; private set; } = null!;
     public ICommand OpenDriverPage { get; private set; } = null!;
@@ -350,15 +353,15 @@ public sealed partial class LibraryViewModel
                 items.Add(new RollbackMenuEntry("", IsSeparator: true));
 
             items.Add(new RollbackMenuEntry(
-                Label: "Treiber-Übersicht",
+                Label: GetText("Drivers.DriverOverview"),
                 Command: OpenDriverHistoryOverview,
                 Glyph: "\uE8FD"));
             items.Add(new RollbackMenuEntry(
-                Label: "Hotfix-Seite im Browser ↗",
+                Label: GetText("Drivers.OpenHotfixPage2"),
                 Command: OpenHotfixPortal,
                 Glyph: "\uE8A7"));
             items.Add(new RollbackMenuEntry(
-                Label: "Treiber-Archiv im Browser ↗",
+                Label: GetText("Drivers.OpenDriverArchive"),
                 Command: OpenPreviousDriverArchive,
                 Glyph: "\uE8A7"));
             return [.. items];
@@ -496,7 +499,7 @@ public sealed partial class LibraryViewModel
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Notes = [.. Notes, $"Treiber-Vorschau konnte nicht gespeichert werden: {e.Message}"];
+            Notes = [.. Notes, Message("Drivers.CouldNotSaveDriverPreviewSettings", e.Message)];
         }
         finally
         {
@@ -509,12 +512,16 @@ public sealed partial class LibraryViewModel
     }
 
     private async Task WriteSettingsAsync(
-        Func<ManagerSettings, ManagerSettings> update, CancellationToken token = default)
+        Func<ManagerSettings, ManagerSettings> update, CancellationToken token = default, string? preferredLanguage = null)
     {
         await settingsWriteGate.WaitAsync(token);
         try
         {
-            var updated = update(settings) with { DriverTooltipStyle = DriverPreviewStyle.ToString() };
+            var updated = update(settings) with
+            {
+                DriverTooltipStyle = DriverPreviewStyle.ToString(),
+                PreferredLanguage = preferredLanguage ?? settings.PreferredLanguage
+            };
             await Task.Run(() => library.SaveSettings(updated), token);
             settings = updated;
         }
@@ -596,12 +603,12 @@ public sealed partial class LibraryViewModel
         DriverState = DriverUiState.NoUpdate;
         driverCurrent = false;
         DriverColor = "#AEB8C9";
-        DriverStatus = "Treiberprüfung …";
+        DriverStatus = Message("Drivers.Checking");
         NotifyDriverUi();
 
         if (detectedGeForce is not { } gpu)
         {
-            DriverStatus = "GeForce-Treiberstatus unbekannt";
+            DriverStatus = Message("Drivers.GeForceDriverStatusUnknown");
             return;
         }
 
@@ -639,7 +646,7 @@ public sealed partial class LibraryViewModel
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Notes = [.. Notes, $"Treiber-Cache-Bereinigung: {e.Message}"];
+            Notes = [.. Notes, Message("Drivers.DriverCacheCleanup", e.Message)];
         }
 
         previousDrivers = await Task.Run(() => DriverService.EnrichPreviousDrivers(history.PreviousDrivers, gpu.Version));
@@ -653,7 +660,7 @@ public sealed partial class LibraryViewModel
         {
             availableDriver = selected;
             var cached = await Task.Run(() => DriverService.GetCachedInstaller(selected));
-            DriverStatus = $"{(selected.IsHotfix ? "Hotfix" : "WHQL")} verfügbar (v{selected.Version})";
+            DriverStatus = Message("Drivers.AvailableV", (selected.IsHotfix ? "Hotfix" : "WHQL"), selected.Version);
             DriverColor = "#F7C56C";
             DriverState = cached is not null ? DriverUiState.Downloaded : DriverUiState.Available;
             NotifyDriverUi();
@@ -663,12 +670,12 @@ public sealed partial class LibraryViewModel
         if (whql is not null)
         {
             driverCurrent = true;
-            DriverStatus = history.HotfixChecked ? "Treiber aktuell" : "WHQL aktuell · Hotfix offen";
+            DriverStatus = history.HotfixChecked ? Message("Drivers.DriverUpToDate") : Message("Drivers.WHQLUpToDateHotfixUnchecked");
             DriverColor = "#A6D962";
         }
         else
         {
-            DriverStatus = "WHQL-Status unbekannt";
+            DriverStatus = Message("Drivers.WHQLStatusUnknown");
         }
         NotifyDriverUi();
     }
@@ -700,7 +707,7 @@ public sealed partial class LibraryViewModel
         {
             DriverState = DriverUiState.Downloaded;
             await RefreshDriverCacheSizeAsync();
-            SetTimedToast($"✓ NVIDIA {(update.IsHotfix ? "Hotfix" : "WHQL")} v{update.Version} bereits im Cache – bereit zur Installation", "Success", 5);
+            SetTimedToast(Message("Drivers.NVIDIAVAlreadyCachedReadyToInstall", (update.IsHotfix ? "Hotfix" : "WHQL"), update.Version), "Success", 5);
             return;
         }
 
@@ -716,19 +723,19 @@ public sealed partial class LibraryViewModel
             }
             catch (Exception e) when (e is HttpRequestException or OperationCanceledException or IOException)
             {
-                Notes = [.. Notes, $"Treiber-Linkauflösung: {e.Message}"];
+                Notes = [.. Notes, Message("Drivers.DriverLinkLookup", e.Message)];
             }
 
             if (string.IsNullOrWhiteSpace(update.DirectInstallerUrl))
             {
                 if (!string.IsNullOrWhiteSpace(update.ReleasePageUrl))
                 {
-                    SetTimedToast($"Direktlink nicht verfügbar – öffne {(update.IsHotfix ? "Hotfix" : "WHQL")}-Downloadseite im Browser …", "Warning", 6);
+                    SetTimedToast(Message("Drivers.DirectLinkUnavailableOpeningTheDownloadPage", (update.IsHotfix ? "Hotfix" : "WHQL")), "Warning", 6);
                     await OpenShell(update.ReleasePageUrl);
                 }
                 else
                 {
-                    SetTimedToast("Für dieses Treiber-Update liegt keine Download-URL vor.", "Warning", 6);
+                    SetTimedToast(Message("Drivers.NoDownloadURLIsAvailableForThis"), "Warning", 6);
                 }
                 return;
             }
@@ -742,7 +749,7 @@ public sealed partial class LibraryViewModel
         driverDownloadPercent = 0;
         driverDownloadMb = 0;
         DriverState = DriverUiState.Downloading;
-        SetPinnedToast($"Lade NVIDIA {kindLabel} v{update.Version} herunter... 0%", "Active");
+        SetPinnedToast(Message("Drivers.DownloadingNVIDIAV", kindLabel, update.Version), "Active");
 
         var progress = new Progress<DriverDownloadProgress>(p =>
         {
@@ -758,7 +765,7 @@ public sealed partial class LibraryViewModel
             var detail = p.TotalBytes is { } total
                 ? $"{p.Percent}% ({p.BytesReceived / 1048576d:0} / {total / 1048576d:0} MB)"
                 : $"{p.BytesReceived / 1048576d:0} MB";
-            SetPinnedToast($"Lade NVIDIA {kindLabel} v{update.Version} herunter... {detail}", "Active");
+            SetPinnedToast(Message("Drivers.DownloadingNVIDIAV2", kindLabel, update.Version, detail), "Active");
         });
 
         try
@@ -766,28 +773,28 @@ public sealed partial class LibraryViewModel
             await DriverService.DownloadAsync(update, isNotebook, progress, cts.Token);
             DriverState = DriverUiState.Downloaded;
             await RefreshDriverCacheSizeAsync();
-            Status = $"NVIDIA {kindLabel} v{update.Version} heruntergeladen und verifiziert.";
-            SetTimedToast($"✓ NVIDIA {kindLabel} v{update.Version} bereit zur Installation", "Success", 6);
+            Status = Message("Drivers.NVIDIAVDownloadedAndVerified", kindLabel, update.Version);
+            SetTimedToast(Message("Drivers.NVIDIAVReadyToInstall", kindLabel, update.Version), "Success", 6);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
             DriverState = DriverUiState.Available;
             await RefreshDriverCacheSizeAsync();
-            SetTimedToast("Treiber-Download abgebrochen.", "Warning", 4);
+            SetTimedToast(Message("Drivers.DriverDownloadCancelled"), "Warning", 4);
         }
         catch (Exception e) when (e is HttpRequestException or IOException or InvalidDataException or InvalidOperationException or OperationCanceledException)
         {
             DriverState = DriverUiState.Available;
             await RefreshDriverCacheSizeAsync();
-            Notes = [.. Notes, $"Treiber-Download fehlgeschlagen: {e.Message}"];
+            Notes = [.. Notes, Message("Drivers.DriverDownloadFailed", e.Message)];
             if (!string.IsNullOrWhiteSpace(update.ReleasePageUrl))
             {
-                SetTimedToast($"Direkt-Download fehlgeschlagen ({e.Message}) – öffne Downloadseite im Browser …", "Warning", 8);
+                SetTimedToast(Message("Drivers.DirectDownloadFailedOpeningTheDownloadPage", e.Message), "Warning", 8);
                 await OpenShell(update.ReleasePageUrl);
             }
             else
             {
-                SetTimedToast($"Treiber-Download fehlgeschlagen: {e.Message}", "Warning", 8);
+                SetTimedToast(Message("Drivers.DriverDownloadFailed", e.Message), "Warning", 8);
             }
         }
         finally
@@ -813,7 +820,7 @@ public sealed partial class LibraryViewModel
         {
             DriverState = DriverUiState.Available;
             await RefreshDriverCacheSizeAsync();
-            SetTimedToast("Zwischengespeicherter Treiber-Installer fehlt oder ist ungültig. Bitte erneut laden.", "Warning", 6);
+            SetTimedToast(Message("Drivers.TheCachedDriverInstallerIsMissingOr"), "Warning", 6);
             return;
         }
 
@@ -828,23 +835,23 @@ public sealed partial class LibraryViewModel
                     WorkingDirectory = Path.GetDirectoryName(installerPath)!
                 };
                 var process = Process.Start(startInfo);
-                SetTimedToast("✓ NVIDIA Treiber-Installer gestartet", "Success", 5);
+                SetTimedToast(Message("Drivers.NVIDIADriverInstallerStarted"), "Success", 5);
                 if (process is not null)
                     _ = ObserveInteractiveInstallAsync(process, update);
             }
             catch (Win32Exception e) when (e.NativeErrorCode == 1223)
             {
-                SetTimedToast("Treiber-Installation abgebrochen (Administratorrechte erforderlich).", "Warning", 6);
+                SetTimedToast(Message("Drivers.DriverInstallationCancelledAdministratorPrivilegesRequi"), "Warning", 6);
             }
             catch (Exception e) when (e is Win32Exception or IOException or InvalidOperationException)
             {
-                SetTimedToast($"Installer konnte nicht gestartet werden: {e.Message}", "Warning", 8);
+                SetTimedToast(Message("Drivers.CouldNotStartInstaller", e.Message), "Warning", 8);
             }
             return;
         }
 
         DriverState = DriverUiState.Installing;
-        SetPinnedToast($"◌ Installiere NVIDIA Treiber v{update.Version} im Hintergrund...", "Active");
+        SetPinnedToast(Message("Drivers.InstallingNVIDIADriverVInTheBackground2", update.Version), "Active");
 
         Process? silentProcess = null;
         try
@@ -855,19 +862,19 @@ public sealed partial class LibraryViewModel
                 UseShellExecute = true,
                 WorkingDirectory = Path.GetDirectoryName(installerPath)!
             };
-            silentProcess = Process.Start(startInfo) ?? throw new IOException("Der Installer-Prozess konnte nicht gestartet werden.");
+            silentProcess = Process.Start(startInfo) ?? throw new IOException(GetText("Drivers.CouldNotStartTheInstallerProcess"));
         }
         catch (Win32Exception e) when (e.NativeErrorCode == 1223)
         {
             DriverState = DriverUiState.Downloaded;
-            SetTimedToast("Express-Setup abgebrochen (Administratorrechte erforderlich).", "Warning", 6);
+            SetTimedToast(Message("Drivers.ExpressSetupCancelledAdministratorPrivilegesRequired"), "Warning", 6);
             return;
         }
         catch (Exception e) when (e is Win32Exception or IOException or InvalidOperationException)
         {
             DriverState = DriverUiState.Downloaded;
-            SetTimedToast($"Express-Setup konnte nicht gestartet werden: {e.Message}", "Warning", 8,
-                "Interaktiv starten", () => InstallDriverAsync(forceInteractive: true));
+            SetTimedToast(Message("Drivers.CouldNotStartExpressSetup", e.Message), "Warning", 8,
+                GetText("Drivers.StartInteractively"), () => InstallDriverAsync(forceInteractive: true));
             return;
         }
 
@@ -887,9 +894,9 @@ public sealed partial class LibraryViewModel
             await RefreshDriverCacheSizeAsync();
             DriverState = DriverUiState.NoUpdate;
             await RefreshDriverAsync();
-            Status = $"NVIDIA Treiber v{update.Version} installiert.";
+            Status = Message("Drivers.NVIDIADriverVInstalled", update.Version);
             SetTimedToast(
-                cleaned ? "✓ Treiber installiert · Cache bereinigt" : $"✓ NVIDIA Treiber v{update.Version} installiert",
+                cleaned ? Message("Drivers.DriverInstalledCacheCleaned") : Message("Drivers.NVIDIADriverVInstalled2", update.Version),
                 "Success",
                 6);
         }
@@ -902,13 +909,13 @@ public sealed partial class LibraryViewModel
             DriverState = DriverUiState.NoUpdate;
             driverCurrent = true;
             DriverColor = "#A6D962";
-            DriverStatus = $"v{update.Version} installiert · Neustart empfohlen";
+            DriverStatus = Message("Drivers.VInstalledRestartRecommended", update.Version);
             NotifyDriverUi();
-            Status = "Treiber installiert · Windows-Neustart empfohlen.";
+            Status = Message("Drivers.DriverInstalledWindowsRestartRecommended");
             SetTimedToast(
                 cleaned
-                    ? "✓ Treiber installiert · Windows-Neustart empfohlen · Cache bereinigt"
-                    : "✓ Treiber installiert · Windows-Neustart empfohlen",
+                    ? Message("Drivers.DriverInstalledWindowsRestartRecommendedCacheCleaned")
+                    : Message("Drivers.DriverInstalledWindowsRestartRecommended2"),
                 "Success",
                 8);
         }
@@ -916,12 +923,12 @@ public sealed partial class LibraryViewModel
         {
             DriverState = DriverUiState.Downloaded;
             var codeText = exitCode < 0 ? $"{exitCode} (0x{unchecked((uint)exitCode):X8})" : exitCode.ToString();
-            Notes = [.. Notes, $"NVIDIA Express-Setup (-s -noreboot) beendet mit Exit-Code {codeText}."];
+            Notes = [.. Notes, Message("Drivers.NVIDIAExpressSetupSNorebootExitedWith", codeText)];
             SetTimedToast(
-                $"✕ Express-Setup fehlgeschlagen (Exit-Code {codeText}).",
+                Message("Drivers.ExpressSetupFailedExitCode", codeText),
                 "Warning",
                 20,
-                "Interaktiv starten",
+                GetText("Drivers.StartInteractively"),
                 () => InstallDriverAsync(forceInteractive: true));
         }
     }
@@ -943,14 +950,14 @@ public sealed partial class LibraryViewModel
                 await RefreshDriverCacheSizeAsync();
                 await RefreshDriverAsync();
                 SetTimedToast(
-                    cleaned ? "✓ Treiber installiert · Cache bereinigt" : $"✓ NVIDIA Treiber v{update.Version} installiert",
+                    cleaned ? Message("Drivers.DriverInstalledCacheCleaned") : Message("Drivers.NVIDIADriverVInstalled2", update.Version),
                     "Success",
                     6);
             }
         }
         catch (Exception e) when (e is InvalidOperationException or Win32Exception or IOException or UnauthorizedAccessException)
         {
-            Notes = [.. Notes, $"Treiber-Statusprüfung nach Setup: {e.Message}"];
+            Notes = [.. Notes, Message("Drivers.DriverStatusCheckAfterSetup", e.Message)];
         }
     }
 
@@ -975,7 +982,7 @@ public sealed partial class LibraryViewModel
         var gpuName = detectedGeForce?.Name ?? "NVIDIA GeForce";
         var installedVersion = detectedGeForce is { } gpu
             ? NvidiaDriverLookup.Display(gpu.Version)
-            : "Unbekannt";
+            : GetText("Drivers.Unknown");
         var dialogDrivers = allHistoryDrivers.Length > 0
             ? allHistoryDrivers
             : previousDrivers.Drivers;
@@ -988,7 +995,7 @@ public sealed partial class LibraryViewModel
             DataFolders.DriverDownloads,
             TranslateDriverSummaries,
             ClientLanguageCode,
-            DriverTranslator,
+            CanTranslateDriverSummaries ? DriverTranslator : null,
             async enabled =>
             {
                 await PersistSettingsSilentlyAsync(settings with { TranslateDriverSummaries = enabled });
@@ -1013,7 +1020,7 @@ public sealed partial class LibraryViewModel
             {
                 availableDriver = chosen;
                 var cached = await Task.Run(() => DriverService.GetCachedInstaller(chosen));
-                DriverStatus = $"{(chosen.IsHotfix ? "Hotfix" : "WHQL")} verfügbar (v{chosen.Version})";
+                DriverStatus = Message("Drivers.AvailableV", (chosen.IsHotfix ? "Hotfix" : "WHQL"), chosen.Version);
                 DriverColor = "#F7C56C";
                 DriverState = cached is not null ? DriverUiState.Downloaded : DriverUiState.Available;
                 NotifyDriverUi();
@@ -1034,7 +1041,7 @@ public sealed partial class LibraryViewModel
             }
             catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException)
             {
-                SetTimedToast($"Ungültiger Treiber-Installer: {e.Message}", "Warning", 7);
+                SetTimedToast(Message("Drivers.InvalidDriverInstaller", e.Message), "Warning", 7);
                 return;
             }
 
@@ -1093,7 +1100,7 @@ public sealed partial class LibraryViewModel
             {
                 availableDriver = selected;
                 var cached = await Task.Run(() => DriverService.GetCachedInstaller(selected));
-                DriverStatus = $"{(selected.IsHotfix ? "Hotfix" : "WHQL")} verfügbar (v{selected.Version})";
+                DriverStatus = Message("Drivers.AvailableV", (selected.IsHotfix ? "Hotfix" : "WHQL"), selected.Version);
                 DriverColor = "#F7C56C";
                 DriverState = cached is not null ? DriverUiState.Downloaded : DriverUiState.Available;
                 driverCurrent = false;
@@ -1102,7 +1109,7 @@ public sealed partial class LibraryViewModel
             {
                 availableDriver = null;
                 driverCurrent = true;
-                DriverStatus = history.HotfixChecked ? "Treiber aktuell" : "WHQL aktuell · Hotfix offen";
+                DriverStatus = history.HotfixChecked ? Message("Drivers.DriverUpToDate") : Message("Drivers.WHQLUpToDateHotfixUnchecked");
                 DriverColor = "#A6D962";
                 DriverState = DriverUiState.NoUpdate;
             }
@@ -1140,19 +1147,19 @@ public sealed partial class LibraryViewModel
                 }
                 catch (Exception e) when (e is HttpRequestException or OperationCanceledException or IOException)
                 {
-                    Notes = [.. Notes, $"Vorgänger-Treiber-Linkauflösung: {e.Message}"];
+                    Notes = [.. Notes, Message("Drivers.PreviousDriverLinkLookup", e.Message)];
                 }
 
                 if (string.IsNullOrWhiteSpace(target.DirectInstallerUrl))
                 {
                     if (!string.IsNullOrWhiteSpace(target.ReleasePageUrl))
                     {
-                        SetTimedToast($"Direktlink nicht verfügbar – öffne Treiber-Archiv im Browser …", "Warning", 6);
+                        SetTimedToast(Message("Drivers.DirectLinkUnavailableOpeningTheDriverArchive"), "Warning", 6);
                         await OpenShell(target.ReleasePageUrl);
                     }
                     else
                     {
-                        SetTimedToast("Für diese Treiberversion liegt keine Download-URL vor.", "Warning", 6);
+                        SetTimedToast(Message("Drivers.NoDownloadURLIsAvailableForThis2"), "Warning", 6);
                     }
                     return;
                 }
@@ -1166,7 +1173,7 @@ public sealed partial class LibraryViewModel
             downgradeDownloadMb = 0;
             activeDowngradeDriver = target;
             DowngradeState = DriverDowngradeUiState.Downloading;
-            SetPinnedToast($"Lade Vorgänger-Treiber v{target.Version} herunter... 0%", "Active");
+            SetPinnedToast(Message("Drivers.DownloadingPreviousDriverV", target.Version), "Active");
 
             var progress = new Progress<DriverDownloadProgress>(p =>
             {
@@ -1182,7 +1189,7 @@ public sealed partial class LibraryViewModel
                 var progressText = p.Percent is { } pct
                     ? $"{pct}%"
                     : $"{p.BytesReceived / 1048576d:0} MB";
-                SetPinnedToast($"Lade Vorgänger-Treiber v{target.Version} herunter... {progressText}", "Active");
+                SetPinnedToast(Message("Drivers.DownloadingPreviousDriverV2", target.Version, progressText), "Active");
             });
 
             var downloadedOk = false;
@@ -1193,26 +1200,26 @@ public sealed partial class LibraryViewModel
                 if (detectedGeForce is { } gpu)
                     previousDrivers = await Task.Run(() => DriverService.EnrichPreviousDrivers(previousDrivers, gpu.Version));
                 await RefreshDriverCacheSizeAsync();
-                Status = $"Vorgänger-Treiber v{target.Version} heruntergeladen und verifiziert.";
+                Status = Message("Drivers.PreviousDriverVDownloadedAndVerified", target.Version);
                 ClearToast();
             }
             catch (OperationCanceledException) when (cts.IsCancellationRequested)
             {
                 await RefreshDriverCacheSizeAsync();
-                SetTimedToast("Download des Vorgänger-Treibers abgebrochen.", "Warning", 4);
+                SetTimedToast(Message("Drivers.PreviousDriverDownloadCancelled"), "Warning", 4);
             }
             catch (Exception e) when (e is HttpRequestException or IOException or InvalidDataException or InvalidOperationException or OperationCanceledException)
             {
                 await RefreshDriverCacheSizeAsync();
-                Notes = [.. Notes, $"Vorgänger-Treiber-Download fehlgeschlagen: {e.Message}"];
+                Notes = [.. Notes, Message("Drivers.PreviousDriverDownloadFailed", e.Message)];
                 if (!string.IsNullOrWhiteSpace(target.ReleasePageUrl))
                 {
-                    SetTimedToast($"Direkt-Download fehlgeschlagen ({e.Message}) – öffne Downloadseite im Browser …", "Warning", 8);
+                    SetTimedToast(Message("Drivers.DirectDownloadFailedOpeningTheDownloadPage", e.Message), "Warning", 8);
                     await OpenShell(target.ReleasePageUrl);
                 }
                 else
                 {
-                    SetTimedToast($"Download fehlgeschlagen: {e.Message}", "Warning", 8);
+                    SetTimedToast(Message("Drivers.DownloadFailed", e.Message), "Warning", 8);
                 }
             }
             finally
@@ -1234,7 +1241,7 @@ public sealed partial class LibraryViewModel
         if (installerPath is null)
         {
             await RefreshDriverCacheSizeAsync();
-            SetTimedToast("Zwischengespeicherter Vorgänger-Installer fehlt oder ist ungültig.", "Warning", 6);
+            SetTimedToast(Message("Drivers.TheCachedInstallerForThePreviousDriver"), "Warning", 6);
             return;
         }
 
@@ -1246,7 +1253,7 @@ public sealed partial class LibraryViewModel
         var dduPath = await Task.Run(() => NvidiaDriverService.FindDduExecutable(settings.DduExecutablePath, storage));
         var currentVersionDisplay = detectedGeForce is { } detected
             ? NvidiaDriverLookup.Display(detected.Version)
-            : "Unbekannt";
+            : GetText("Drivers.Unknown");
 
         var dialog = new DriverDowngradeWindow(
             currentVersionDisplay,
@@ -1277,7 +1284,7 @@ public sealed partial class LibraryViewModel
         if (installerPath is null || !File.Exists(installerPath))
         {
             await RefreshDriverCacheSizeAsync();
-            SetTimedToast("Vorgänger-Treiber-Installer fehlt im Cache. Bitte erneut starten.", "Warning", 6);
+            SetTimedToast(Message("Drivers.ThePreviousDriverInstallerIsMissingFrom"), "Warning", 6);
             return;
         }
 
@@ -1294,8 +1301,8 @@ public sealed partial class LibraryViewModel
                 var process = Process.Start(startInfo);
                 SetTimedToast(
                     cleanInstall
-                        ? "✓ NVIDIA-Installer gestartet · Bitte unter „Benutzerdefiniert (Erweitert)“ den Haken bei „Neuinstallation vornehmen“ setzen"
-                        : $"✓ NVIDIA-Installer für Downgrade auf v{target.Version} gestartet",
+                        ? Message("Drivers.NVIDIAInstallerStartedChooseCustomAdvancedAnd")
+                        : Message("Drivers.NVIDIAInstallerStartedForDowngradeToV", target.Version),
                     "Success",
                     cleanInstall ? 9 : 6);
                 if (process is not null)
@@ -1303,11 +1310,11 @@ public sealed partial class LibraryViewModel
             }
             catch (Win32Exception e) when (e.NativeErrorCode == 1223)
             {
-                SetTimedToast("Treiber-Downgrade abgebrochen (Administratorrechte erforderlich).", "Warning", 6);
+                SetTimedToast(Message("Drivers.DriverDowngradeCancelledAdministratorPrivilegesRequired"), "Warning", 6);
             }
             catch (Exception e) when (e is Win32Exception or IOException or InvalidOperationException)
             {
-                SetTimedToast($"Installer konnte nicht gestartet werden: {e.Message}", "Warning", 8);
+                SetTimedToast(Message("Drivers.CouldNotStartInstaller", e.Message), "Warning", 8);
             }
             return;
         }
@@ -1316,8 +1323,8 @@ public sealed partial class LibraryViewModel
         DowngradeState = DriverDowngradeUiState.Installing;
         SetPinnedToast(
             cleanInstall
-                ? $"◌ Führe sauberes Treiber-Downgrade auf v{target.Version} durch..."
-                : $"◌ Führe Treiber-Downgrade auf v{target.Version} durch...",
+                ? Message("Drivers.RunningACleanInstallToDowngradeTo", target.Version)
+                : Message("Drivers.DowngradingDriverToV2", target.Version),
             "Active");
 
         Process? silentProcess = null;
@@ -1329,21 +1336,21 @@ public sealed partial class LibraryViewModel
                 UseShellExecute = true,
                 WorkingDirectory = Path.GetDirectoryName(installerPath)!
             };
-            silentProcess = Process.Start(startInfo) ?? throw new IOException("Der Installer-Prozess konnte nicht gestartet werden.");
+            silentProcess = Process.Start(startInfo) ?? throw new IOException(GetText("Drivers.CouldNotStartTheInstallerProcess"));
         }
         catch (Win32Exception e) when (e.NativeErrorCode == 1223)
         {
             activeDowngradeDriver = null;
             DowngradeState = DriverDowngradeUiState.Idle;
-            SetTimedToast("Treiber-Downgrade abgebrochen (Administratorrechte erforderlich).", "Warning", 6);
+            SetTimedToast(Message("Drivers.DriverDowngradeCancelledAdministratorPrivilegesRequired"), "Warning", 6);
             return;
         }
         catch (Exception e) when (e is Win32Exception or IOException or InvalidOperationException)
         {
             activeDowngradeDriver = null;
             DowngradeState = DriverDowngradeUiState.Idle;
-            SetTimedToast($"Downgrade konnte nicht gestartet werden: {e.Message}", "Warning", 8,
-                "Interaktiv starten", () => ExecuteDowngradeInstallAsync(target, cleanInstall, forceInteractive: true, explicitInstallerPath));
+            SetTimedToast(Message("Drivers.CouldNotStartDowngrade", e.Message), "Warning", 8,
+                GetText("Drivers.StartInteractively"), () => ExecuteDowngradeInstallAsync(target, cleanInstall, forceInteractive: true, explicitInstallerPath));
             return;
         }
 
@@ -1363,29 +1370,29 @@ public sealed partial class LibraryViewModel
             if (!isExternalLocalFile)
                 await FinalizeCompletedDowngradeAsync(target);
             await RefreshDriverAsync();
-            Status = $"Downgrade auf NVIDIA v{target.Version} abgeschlossen.";
-            SetTimedToast($"✓ Downgrade auf v{target.Version} abgeschlossen", "Success", 7);
+            Status = Message("Drivers.DowngradeToNVIDIAVComplete", target.Version);
+            SetTimedToast(Message("Drivers.DowngradeToVComplete", target.Version), "Success", 7);
         }
         else if (exitCode == 1)
         {
             if (!isExternalLocalFile)
                 await FinalizeCompletedDowngradeAsync(target);
             DriverColor = "#F7C56C";
-            DriverStatus = $"v{target.Version} installiert · Neustart erforderlich";
+            DriverStatus = Message("Drivers.VInstalledRestartRequired", target.Version);
             NotifyDriverUi();
-            Status = $"Downgrade auf v{target.Version} abgeschlossen · Windows-Neustart erforderlich.";
-            SetTimedToast("✓ Downgrade abgeschlossen · Windows-Neustart erforderlich", "Success", 9);
+            Status = Message("Drivers.DowngradeToVCompleteWindowsRestartRequired", target.Version);
+            SetTimedToast(Message("Drivers.DowngradeCompleteWindowsRestartRequired"), "Success", 9);
         }
         else
         {
             var codeText = exitCode < 0 ? $"{exitCode} (0x{unchecked((uint)exitCode):X8})" : exitCode.ToString();
             var args = NvidiaDriverService.BuildInstallerArguments(silentInstall: true, cleanInstall);
-            Notes = [.. Notes, $"NVIDIA Downgrade ({args}) beendet mit Exit-Code {codeText}."];
+            Notes = [.. Notes, Message("Drivers.NVIDIADowngradeExitedWithCode", args, codeText)];
             SetTimedToast(
-                $"✕ Downgrade fehlgeschlagen (Exit-Code {codeText}).",
+                Message("Drivers.DowngradeFailedExitCode", codeText),
                 "Warning",
                 20,
-                "Interaktiv starten",
+                GetText("Drivers.StartInteractively"),
                 () => ExecuteDowngradeInstallAsync(target, cleanInstall, forceInteractive: true, explicitInstallerPath));
         }
     }
@@ -1423,12 +1430,12 @@ public sealed partial class LibraryViewModel
                 if (!isExternalLocalFile)
                     await FinalizeCompletedDowngradeAsync(target);
                 await RefreshDriverAsync();
-                SetTimedToast($"✓ Downgrade auf v{target.Version} abgeschlossen", "Success", 7);
+                SetTimedToast(Message("Drivers.DowngradeToVComplete", target.Version), "Success", 7);
             }
         }
         catch (Exception e) when (e is InvalidOperationException or Win32Exception or IOException or UnauthorizedAccessException)
         {
-            Notes = [.. Notes, $"Treiber-Statusprüfung nach Downgrade: {e.Message}"];
+            Notes = [.. Notes, Message("Drivers.DriverStatusCheckAfterDowngrade", e.Message)];
         }
     }
 
@@ -1445,10 +1452,10 @@ public sealed partial class LibraryViewModel
         await RefreshDriverCacheSizeAsync();
         NotifyDriverUi();
         Status = deleted == 0
-            ? "Treiber-Cache ist bereits leer."
-            : $"Treiber-Cache geleert: {freed / 1048576d:0.#} MB freigegeben.";
+            ? Message("Drivers.TheDriverCacheIsAlreadyEmpty")
+            : Message("Drivers.DriverCacheClearedFreedMB", freed / 1048576d);
         SetTimedToast(
-            deleted == 0 ? "Treiber-Cache ist bereits leer." : $"✓ Treiber-Cache geleert ({freed / 1048576d:0.#} MB freigegeben)",
+            deleted == 0 ? Message("Drivers.TheDriverCacheIsAlreadyEmpty") : Message("Drivers.DriverCacheClearedMBFreed", freed / 1048576d),
             "Success",
             5);
     }
@@ -1461,9 +1468,9 @@ public sealed partial class LibraryViewModel
         try
         {
             var release = await UpdateService.CheckManagerAsync(Http, AppVersion, ReleaseChannel.Stable);
-            AppUpdateLabel = release is null ? "" : $"App-Update {release.Tag} verfügbar";
+            AppUpdateLabel = release is null ? "" : Message("Drivers.AppUpdateAvailable", release.Tag);
         }
         catch (Exception e) when (e is HttpRequestException or OperationCanceledException or IOException or JsonException)
-        { AppUpdateLabel = "App-Updateprüfung fehlgeschlagen"; }
+        { AppUpdateLabel = Message("Drivers.AppUpdateCheckFailed"); }
     }
 }

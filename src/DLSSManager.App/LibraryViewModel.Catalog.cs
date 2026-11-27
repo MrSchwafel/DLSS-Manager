@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using DLSSManager.Core;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -6,7 +7,7 @@ namespace DLSSManager.App;
 
 public sealed partial class LibraryViewModel
 {
-    private string catalogFilter = "Alle";
+    private string catalogFilter = "All";
     private string catalogSearch = "";
 
     public string CatalogFilter
@@ -38,7 +39,8 @@ public sealed partial class LibraryViewModel
             return CatalogEntries.Where(entry => CatalogFilter switch
                 {
                     "SR" or "FG" => entry.Kind == CatalogFilter,
-                    "Lokal" or "Online" => entry.Availability == CatalogFilter,
+                    "Local" => entry.Availability == "Lokal",
+                    "Online" => entry.Availability == "Online",
                     _ => true
                 })
                 .Where(entry => search.Length == 0 || entry.Version.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
@@ -56,11 +58,11 @@ public sealed partial class LibraryViewModel
         try
         {
             Clipboard.SetText(hash);
-            Toast = Status = "SHA-256 kopiert.";
+            Toast = Status = Message("Catalog.SHACopied");
         }
         catch (ExternalException)
         {
-            Toast = Status = "SHA-256 konnte nicht kopiert werden. Die Zwischenablage ist belegt.";
+            Toast = Status = Message("Catalog.CouldNotCopySHATheClipboardIs");
         }
     }
 
@@ -69,11 +71,11 @@ public sealed partial class LibraryViewModel
         get
         {
             var local = CatalogEntries.Count(entry => entry.Availability == "Lokal");
-            return $"{local} lokal · {CatalogEntries.Length - local} online";
+            return GetText("Catalog.LocalOnline", local, CatalogEntries.Length - local);
         }
     }
 
-    public string UnlockerCacheLabel => $"FG & MFG Unlocker: {modReleaseTag ?? "kein Paket"}";
+    public string UnlockerCacheLabel => $"FG & MFG Unlocker: {modReleaseTag ?? GetText("Catalog.NoPackage")}";
     internal Task OpenUnlockerReleasesAsync() =>
         RunAsync(_ => OpenShell("https://github.com/sdli1995/dlssg_for_sm86/releases"));
 
@@ -92,7 +94,7 @@ public sealed partial class LibraryViewModel
         {
             BatchTargets = [.. targets, new(entry.Kind, entry.Version, CatalogIdentity(entry)!)]
         }, token);
-        Toast = Status = $"{entry.Kind} {entry.Version} als Batch-Ziel gespeichert.";
+        Toast = Status = Message("Catalog.SavedAsABatchTarget", entry.Kind, entry.Version);
     });
 
     internal Task DownloadCatalogEntriesAsync(IReadOnlyList<DllCatalogEntry> entries) => RunAsync(async token =>
@@ -108,7 +110,7 @@ public sealed partial class LibraryViewModel
             {
                 token.ThrowIfCancellationRequested();
                 var entry = pending[i];
-                Status = $"{i + 1}/{pending.Length} · {entry.Kind} {entry.Version} wird geladen und geprüft …";
+                Status = Message("Catalog.DownloadingAndVerifying", i + 1, pending.Length, entry.Kind, entry.Version);
                 try
                 {
                     var result = await Task.Run(async () =>
@@ -126,14 +128,14 @@ public sealed partial class LibraryViewModel
                 }
                 Percent = (i + 1) * 100d / pending.Length;
             }
-            Status = $"{cached.Count}/{pending.Length} DLLs geprüft und lokal verfügbar." +
-                (cached.Count < pending.Length ? " Details unter Hinweise und Messwerte." : "");
+            Status = Message("Catalog.DLLsVerifiedAndAvailableLocally", cached.Count, pending.Length) +
+                (cached.Count < pending.Length ? Message("Catalog.SeeNotesAndDiagnosticsForDetails") : "");
         }
         finally
         {
             if (cached.Count > 0)
                 CatalogEntries = CatalogEntries.Select(entry => cached.GetValueOrDefault(entry, entry)).ToArray();
-            Notes = [.. notes];
+            Notes = [.. notes.Select(message => (LocalizedText)message)];
         }
     });
 }

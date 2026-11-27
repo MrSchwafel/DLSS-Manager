@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Runtime.Versioning;
@@ -22,19 +23,19 @@ public sealed class OptiScalerDownload(HttpClient client, string cache, LocalDll
         request.Headers.UserAgent.ParseAdd("DLSSManager-CSharp");
         using var manifest = await client.SendAsync(request, token).ConfigureAwait(false);
         manifest.EnsureSuccessStatusCode();
-        if (manifest.RequestMessage?.RequestUri != api) throw new IOException("Unerwartetes OptiScaler-Releaseziel.");
+        if (manifest.RequestMessage?.RequestUri != api) throw new IOException(GetText("OptiScalerDownload.UnexpectedOptiScalerReleaseDestination"));
         var release = await manifest.Content.ReadFromJsonAsync<Release>(cancellationToken: token).ConfigureAwait(false)
-            ?? throw new IOException("OptiScaler-Release fehlt.");
+            ?? throw new IOException(GetText("OptiScalerDownload.TheOptiScalerReleaseIsMissing"));
         if (release.draft || release.prerelease || DllVersionService.Parse(release.tag_name.TrimStart('v', 'V')) is null)
-            throw new IOException("OptiScaler-Releaseversion konnte nicht gelesen werden.");
+            throw new IOException(GetText("OptiScalerDownload.CouldNotReadTheOptiScalerReleaseVersion"));
         var archives = release.assets.Where(a => a.name.EndsWith(".7z", StringComparison.OrdinalIgnoreCase) &&
             a.name.StartsWith("OptiScaler_", StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
         if (archives.Length != 1 || archives[0] is not { size: > 0 and <= Limit, digest: { Length: 71 } hash } asset ||
             !hash.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) || !hash[7..].All(Uri.IsHexDigit) ||
             asset.name != Path.GetFileName(asset.name))
-            throw new IOException("Kein eindeutiges OptiScaler-Archiv mit SHA-256-Hash gefunden.");
+            throw new IOException(GetText("OptiScalerDownload.NoUniqueOptiScalerArchiveWithASHA"));
         var url = new Uri($"https://github.com/{Repository}/releases/download/{release.tag_name}/{Uri.EscapeDataString(asset.name)}");
-        if (asset.browser_download_url != url.AbsoluteUri) throw new IOException("Unerwartete OptiScaler-Quelle.");
+        if (asset.browser_download_url != url.AbsoluteUri) throw new IOException(GetText("OptiScalerDownload.UnexpectedOptiScalerSource"));
 
         var root = SafePaths.Root(cache);
         Directory.CreateDirectory(root);
@@ -52,12 +53,12 @@ public sealed class OptiScalerDownload(HttpClient client, string cache, LocalDll
                 redirect.IdnHost == "release-assets.githubusercontent.com")
             {
                 using var response = await client.GetAsync(redirect, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
-                if (response.RequestMessage?.RequestUri != redirect) throw new IOException("Unerwartetes OptiScaler-Downloadziel.");
+                if (response.RequestMessage?.RequestUri != redirect) throw new IOException(GetText("OptiScalerDownload.UnexpectedOptiScalerDownloadDestination"));
                 await WriteArchiveAsync(response, archive, asset.size, token).ConfigureAwait(false);
             }
             else await WriteArchiveAsync(first, archive, asset.size, token).ConfigureAwait(false);
             if (!hash[7..].Equals(DurableFiles.Hash(archive, token), StringComparison.OrdinalIgnoreCase))
-                throw new IOException("SHA-256-Prüfung des OptiScaler-Archivs fehlgeschlagen.");
+                throw new IOException(GetText("OptiScalerDownload.OptiScalerArchiveSHAVerificationFailed"));
             await ExtractMemberAsync(archive, "OptiScaler.dll", dll, Limit, token).ConfigureAwait(false);
             foreach (var member in OptiScalerService.SupportFiles)
             {
@@ -87,23 +88,23 @@ public sealed class OptiScalerDownload(HttpClient client, string cache, LocalDll
     {
         response.EnsureSuccessStatusCode();
         if (response.Content.Headers.ContentLength is { } length && length != size)
-            throw new IOException("OptiScaler-Archivgröße stimmt nicht mit dem Release überein.");
+            throw new IOException(GetText("OptiScalerDownload.TheOptiScalerArchiveSizeDoesNotMatch"));
         await using var source = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
         if (await CopyAsync(source, archive, size, token).ConfigureAwait(false) != size)
-            throw new IOException("OptiScaler-Download ist unvollständig.");
+            throw new IOException(GetText("OptiScalerDownload.TheOptiScalerDownloadIsIncomplete"));
     }
 
     private static async Task ExtractMemberAsync(string archive, string member, string destination, long limit, CancellationToken token, bool optional = false)
     {
         var tar = Path.Combine(Environment.SystemDirectory, "tar.exe");
-        if (!File.Exists(tar)) throw new IOException("Windows tar.exe wird für das 7-Zip-Archiv benötigt.");
+        if (!File.Exists(tar)) throw new IOException(GetText("OptiScalerDownload.WindowsTarExeIsRequiredToExtract"));
         var start = new ProcessStartInfo(tar)
         {
             UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true
         };
         // Write the single known member to stdout. No archive entry controls a destination path.
         foreach (var argument in new[] { "-xOf", archive, "--", member }) start.ArgumentList.Add(argument);
-        using var process = Process.Start(start) ?? throw new IOException("Windows tar.exe konnte nicht gestartet werden.");
+        using var process = Process.Start(start) ?? throw new IOException(GetText("OptiScalerDownload.CouldNotStartWindowsTarExe"));
         try
         {
             var error = process.StandardError.ReadToEndAsync(token);
@@ -115,7 +116,7 @@ public sealed class OptiScalerDownload(HttpClient client, string cache, LocalDll
                 return;
             }
             if (process.ExitCode != 0 || copied == 0)
-                throw new IOException($"{member} konnte nicht gelesen werden. {await error.ConfigureAwait(false)}");
+                throw new IOException(GetText("OptiScalerDownload.CouldNotRead", member, await error.ConfigureAwait(false)));
         }
         finally
         {
@@ -136,7 +137,7 @@ public sealed class OptiScalerDownload(HttpClient client, string cache, LocalDll
         while ((count = await input.ReadAsync(buffer, token).ConfigureAwait(false)) != 0)
         {
             total += count;
-            if (total > limit) throw new IOException("OptiScaler-Datei überschreitet das Größenlimit.");
+            if (total > limit) throw new IOException(GetText("OptiScalerDownload.TheOptiScalerFileExceedsTheSizeLimit"));
             await target.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
         }
         return total;

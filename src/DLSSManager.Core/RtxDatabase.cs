@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -51,7 +52,7 @@ public sealed partial class RtxDatabase
         using var doc = JsonDocument.Parse(json);
         if (doc.RootElement.ValueKind != JsonValueKind.Object ||
             !doc.RootElement.TryGetProperty("data", out var rows) || rows.ValueKind != JsonValueKind.Array)
-            throw new IOException("DLSSdb enthält keine gültige Spieleliste.");
+            throw new IOException(GetText("RtxDatabase.DLSSdbContainsNoValidGameList"));
         var games = new List<RtxGame>();
         foreach (var row in rows.EnumerateArray())
         {
@@ -88,7 +89,7 @@ public sealed class RtxDatabaseService(HttpClient client, string storage)
     {
         var path = CachePath;
         if (SafePaths.Attributes(path) is null) return null;
-        if (new FileInfo(path).Length > 6L * Limit) throw new IOException("DLSSdb-Cache ist zu groß.");
+        if (new FileInfo(path).Length > 6L * Limit) throw new IOException(GetText("RtxDatabase.TheDLSSdbCacheIsTooLarge"));
         return JsonSerializer.Deserialize<Cache>(File.ReadAllText(path));
     }
 
@@ -112,17 +113,17 @@ public sealed class RtxDatabaseService(HttpClient client, string storage)
         {
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
                 .ConfigureAwait(false);
-            if (response.RequestMessage?.RequestUri != Source) throw new IOException("Unerwartete DLSSdb-Quelle.");
+            if (response.RequestMessage?.RequestUri != Source) throw new IOException(GetText("RtxDatabase.UnexpectedDLSSdbSource"));
             if (response.StatusCode == HttpStatusCode.NotModified && fallback is not null) return (fallback, false);
             response.EnsureSuccessStatusCode();
-            if (response.Content.Headers.ContentLength > Limit) throw new IOException("DLSSdb-Datei ist zu groß.");
+            if (response.Content.Headers.ContentLength > Limit) throw new IOException(GetText("RtxDatabase.TheDLSSdbFileIsTooLarge"));
             await using var input = await response.Content.ReadAsStreamAsync(timeout.Token).ConfigureAwait(false);
             using var buffer = new MemoryStream();
             var block = new byte[32768];
             int count;
             while ((count = await input.ReadAsync(block, timeout.Token).ConfigureAwait(false)) > 0)
             {
-                if (buffer.Length + count > Limit) throw new IOException("DLSSdb-Datei ist zu groß.");
+                if (buffer.Length + count > Limit) throw new IOException(GetText("RtxDatabase.TheDLSSdbFileIsTooLarge"));
                 buffer.Write(block, 0, count);
             }
             var json = Encoding.UTF8.GetString(buffer.GetBuffer(), 0, (int)buffer.Length);
@@ -141,7 +142,7 @@ public sealed class RtxDatabaseService(HttpClient client, string storage)
     private static RtxDatabase ParseComplete(string json)
     {
         var database = RtxDatabase.Parse(json);
-        if (database.Count < 100) throw new IOException("DLSSdb enthält zu wenige Spiele für einen vollständigen Katalog.");
+        if (database.Count < 100) throw new IOException(GetText("RtxDatabase.DLSSdbContainsTooFewGamesForA"));
         return database;
     }
 }

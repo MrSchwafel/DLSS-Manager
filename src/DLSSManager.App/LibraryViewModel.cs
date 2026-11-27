@@ -1,3 +1,4 @@
+using static DLSSManager.Core.LocalizationService;
 using System.Windows;
 using System.Net.Http;
 using System.ComponentModel;
@@ -19,12 +20,13 @@ public sealed record LibraryRow(string Title, string Path, string Proxy, string 
     ScanGame? Inventory = null, bool UpdateAvailable = false, bool Overlay = false,
     bool ManagedOpti = false)
 {
-    public const string IconFilter = "Spiel-Icons|*.ico;*.png;*.jpg;*.jpeg;*.exe;*.dll";
+    public static string IconFilter => GetText("Library.GameIconsIcoPngJpgJpegExe");
 
     public System.Windows.Media.ImageSource? IconImage => GameIcons.Resolve(Icon, Executable, Inventory);
 
     public string DisplayLauncher => LauncherLabels.FromPath(Path) is var label && label != "Lokal" ? label :
         Launcher switch { "Ubisoft Connect" => "Ubisoft", "Xbox / Game Pass" => "Xbox", "Steam" or "Epic" or "Ubisoft" or "GOG" or "Xbox" => Launcher, _ => "Lokal" };
+    public string LauncherLabelKey => LauncherLabels.LabelKey(DisplayLauncher);
     public string SrBadge => VersionBadge("DLSS", "SR");
     public string FgBadge => VersionBadge("FG", "FG");
     public bool HasSr => NativeDll("SR") is not null;
@@ -36,8 +38,8 @@ public sealed record LibraryRow(string Title, string Path, string Proxy, string 
     public bool Modified => HasOptiScaler || HasUnlocker || HasBackup;
     public bool HasLibraryBadges => HasDlss || Modified;
     public bool HasBackup => Inventory?.Dlls.Any(d => d.HasOriginalBackup) == true;
-    public string State => Ignored ? "Ausgeschlossen" : Modified ? "Mod erkannt" :
-        HasBackup ? "Backup vorhanden" : Inventory is null ? "Scan ausstehend" : "Inventar geprüft";
+    public string StateKey => Ignored ? "Library.Excluded" : Modified ? "Library.ModDetected" :
+        HasBackup ? "Library.BackupAvailable" : Inventory is null ? "Library.ScanPending" : "Library.InventoryChecked";
     private bool Has(string kind) => Inventory?.Dlls.Any(d => d.Kind == kind && d.Metadata?.IsDll == true) == true;
     private DllFinding? NativeDll(string kind) =>
         Inventory?.Dlls.FirstOrDefault(d => !d.ModComponent && d.Kind == kind && d.Metadata?.IsDll == true);
@@ -76,7 +78,10 @@ public sealed record LibraryRow(string Title, string Path, string Proxy, string 
     public string[] RtxCapabilities => (Rtx?.Display ?? "—")
         .Split([",", "·"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 }
-public sealed record FeatureFilter(string Label, RtxFeature Feature);
+public sealed record FeatureFilter(string LabelKey, RtxFeature Feature)
+{
+    public string Label => GetText(LabelKey);
+}
 public sealed record LibraryFilterCounts(int All, int Dlss, int FrameGen, int Backup, int Unlocker, int OptiScaler);
 
 public sealed partial class LibraryViewModel : INotifyPropertyChanged
@@ -92,11 +97,11 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
     private FeatureFilter? selectedFeature;
     private DllCatalogEntry[] catalogEntries = [];
     private CancellationTokenSource? active;
-    private string status = "Bereit.";
+    private LocalizedText status = Message("Library.Ready");
     private LibraryRow[] games = [];
     private LibraryRow? selectedLibraryGame;
     private ScanGame[] findings = [];
-    private string[] notes = [];
+    private LocalizedText[] notes = [];
     private ScanGame? selectedFinding;
     private DllFinding? selectedDll;
     private string? selectedExecutable;
@@ -162,7 +167,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         ScanLaunchers = new Command(() => ScanAsync(null), () => active is null);
         ScanFolder = new Command(async () =>
         {
-            var dialog = new OpenFolderDialog { Title = "Zu prüfenden Spieleordner wählen" };
+            var dialog = new OpenFolderDialog { Title = GetText("Library.ChooseAGameFolderToScan") };
             if (dialog.ShowDialog() == true) await ScanAsync(dialog.FolderName);
         }, () => active is null);
         ScanLibraryGame = new Command(() => SelectedLibraryGame is { } game
@@ -193,7 +198,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         allGames = entries.Select(g => new LibraryRow(g.Title, g.Path, g.Proxy, g.Executable,
             Id: g.Id, Icon: g.Icon, Ignored: g.Ignored, Launcher: g.Launcher, Arguments: g.Arguments, Overlay: g.Overlay)).ToArray();
         MatchLibraryFeatures();
-        Status = $"{allGames.Length} Spiele geladen.";
+        Status = Message("Library.LoadedGames", allGames.Length);
     }
 
     private async Task SaveGamesAsync(LibraryRow[] rows, CancellationToken token)
@@ -203,7 +208,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         await Task.Run(() => library.Save(entries), token);
         allGames = rows;
         MatchLibraryFeatures();
-        Status = $"{rows.Length} Spiele gespeichert.";
+        Status = Message("Library.SavedGames", rows.Length);
     }
 
     private async Task EditGameAsync(LibraryRow? game, CancellationToken token)
@@ -213,7 +218,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         var updated = dialog.Entry!;
         if (allGames.Any(g => g.Id != updated.Id && SamePath(g.Path, updated.Path) &&
             (g.Executable.Length == 0 && updated.Executable.Length == 0 || SamePath(g.Executable, updated.Executable))))
-            throw new IOException("Diese Installation ist bereits in der Bibliothek.");
+            throw new IOException(GetText("Library.ThisInstallationIsAlreadyInTheLibrary"));
         if (game is null && ExcludeAntiCheatGames)
             await Task.Run(() => GameScanner.RequireModifiable(updated.Path, token), token);
         await SaveGamesAsync(game is null ? [.. allGames, updated] :
@@ -224,8 +229,8 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
     private async Task RemoveGamesAsync(bool all, CancellationToken token)
     {
         var selected = SelectedLibraryGame;
-        if (MessageBox.Show(Application.Current.MainWindow, all ? "Alle Bibliothekseinträge entfernen?" :
-                $"Bibliothekseintrag für {selected?.Title} entfernen?", "Spielebibliothek",
+        if (ConfirmationDialog.Show(Application.Current.MainWindow, all ? GetText("Library.RemoveAllLibraryEntries") :
+                GetText("Library.RemoveTheLibraryEntryFor", selected?.Title), GetText("Library.Title"),
                 MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
         await SaveGamesAsync(all ? [] : allGames.Where(g => g.Id != selected?.Id).ToArray(), token);
     }
@@ -236,13 +241,13 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         string? icon = null;
         if (!reset)
         {
-            var picker = new OpenFileDialog { Title = "Spiel-Icon auswählen", InitialDirectory = game.Path, Filter = LibraryRow.IconFilter };
+            var picker = new OpenFileDialog { Title = GetText("Workspace.ChooseGameIcon"), InitialDirectory = game.Path, Filter = LibraryRow.IconFilter };
             if (picker.ShowDialog(Application.Current.MainWindow) != true) return;
             icon = picker.FileName;
-            if (LibraryRow.ReadIcon(icon) is null) throw new IOException("Aus der Datei konnte kein Icon gelesen werden.");
+            if (LibraryRow.ReadIcon(icon) is null) throw new IOException(GetText("Library.CouldNotReadAnIconFromThe"));
         }
         await SaveGamesAsync(allGames.Select(row => row.Id == game.Id ? row with { Icon = icon } : row).ToArray(), token);
-        Status = reset ? "Automatisches Spiel-Icon wiederhergestellt." : "Spiel-Icon gespeichert.";
+        Status = reset ? Message("Library.RestoredTheAutomaticGameIcon") : Message("Library.GameIconSaved");
     }
 
     private async Task LaunchGameAsync(CancellationToken token)
@@ -253,12 +258,12 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         var select = !File.Exists(executable);
         if (select)
         {
-            var pick = new OpenFileDialog { Title = "Spiel-EXE auswählen", InitialDirectory = root, Filter = "Programme|*.exe" };
+            var pick = new OpenFileDialog { Title = GetText("Library.SelectExecutable"), InitialDirectory = root, Filter = GetText("GameEntry.ProgramsExe") };
             if (pick.ShowDialog() != true) return;
             executable = pick.FileName;
         }
         var path = SafePaths.Child(root, Path.GetRelativePath(root, executable));
-        if (!path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) throw new IOException("Spiel-EXE erforderlich.");
+        if (!path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) throw new IOException(GetText("Library.AGameExecutableIsRequired"));
         if (select) await SaveGamesAsync(allGames.Select(g => g.Id == game.Id ? g with { Executable = path } : g).ToArray(), token);
         var start = new System.Diagnostics.ProcessStartInfo(path)
         {
@@ -272,17 +277,17 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
 
     private async Task CheckReleaseAsync(ReleaseChannel channel, CancellationToken token)
     {
-        Status = "GitHub-Releases werden geprüft …";
+        Status = Message("Cockpit.CheckingGitHubReleases");
         Indeterminate = true;
         var release = await UpdateService.CheckManagerAsync(Http, AppVersion, channel, token);
-        Status = release is null ? $"Keine neuere GitHub-Version im Kanal {channel} gefunden." :
-            $"GitHub-Release {release.Tag} verfügbar. Paketkompatibilität separat prüfen.";
+        Status = release is null ? Message("Library.NoNewerGitHubVersionWasFoundIn", channel) :
+            Message("Library.GitHubReleaseIsAvailableCheckPackageCompatibility", release.Tag);
         Percent = 100;
     }
 
     private async Task ExportDiagnosisAsync(CancellationToken token)
     {
-        var dialog = new SaveFileDialog { Title = "Diagnose exportieren", FileName = "DLSSManager-Diagnose.json", Filter = "JSON|*.json" };
+        var dialog = new SaveFileDialog { Title = GetText("Workspace.ExportDiagnostics"), FileName = "DLSSManager-Diagnose.json", Filter = "JSON|*.json" };
         if (dialog.ShowDialog() != true) return;
         var pending = await Task.Run(() => CreateTransactions().Pending(), token);
         var report = new { CreatedUtc = DateTimeOffset.UtcNow, Version = typeof(LibraryViewModel).Assembly.GetName().Version?.ToString(),
@@ -290,7 +295,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
             Games = allGames.Length, ScanResults = Findings.Length, PendingTransactions = pending.Length };
         await File.WriteAllTextAsync(dialog.FileName, System.Text.Json.JsonSerializer.Serialize(report,
             new System.Text.Json.JsonSerializerOptions { WriteIndented = true }), token);
-        Status = "Diagnose exportiert.";
+        Status = Message("Library.DiagnosticsExported");
     }
 
     private static Task OpenShell(string target, string? workingDirectory = null)
@@ -303,7 +308,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
     public ICommand RefreshRtx { get; }
     public FeatureFilter[] FeatureFilters { get; } =
     [
-        new("Alle Spiele", RtxFeature.None), new("Super Resolution", RtxFeature.SR), new("Frame Generation", RtxFeature.FG),
+        new("Library.AllGames", RtxFeature.None), new("Super Resolution", RtxFeature.SR), new("Frame Generation", RtxFeature.FG),
         new("Multi Frame Generation", RtxFeature.MFG), new("Ray Reconstruction", RtxFeature.RR),
         new("DLAA", RtxFeature.DLAA), new("Ray Tracing", RtxFeature.RT), new("Path Tracing", RtxFeature.PathTracing)
     ];
@@ -317,7 +322,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         get => selectedFeature;
         set { Set(ref selectedFeature, value); FilterLibrary(); }
     }
-    public string LibraryCount => $"{Games.Length} / {allGames.Length} Spiele";
+    public string LibraryCount => GetText("Library.Games", Games.Length, allGames.Length);
 
     public ICommand RefreshCatalog { get; }
     public DllCatalogEntry[] CatalogEntries
@@ -350,7 +355,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
             Notify(nameof(HasPendingJournals));
         }
     }
-    public string PendingJournalHeading => $"Ausstehende Transaktionen ({PendingJournals.Length})";
+    public string PendingJournalHeading => GetText("Library.PendingTransactions", PendingJournals.Length);
     public bool HasPendingJournals => PendingJournals.Length != 0;
     public TransactionJournal? SelectedJournal
     {
@@ -429,7 +434,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
 
     public bool HasReplacementVersions => ReplacementVersions.Length > 0;
     public string? ReplacementHint => SelectedFinding is null ? null : SelectedDll is null ?
-        "Wähle zuerst eine DLL im Inventar aus." : !HasReplacementVersions ? "Für diese DLL sind keine Katalogversionen geladen." : null;
+        GetText("Library.SelectADLLInTheInventoryFirst") : !HasReplacementVersions ? GetText("Library.NoCatalogVersionsAreLoadedForThis") : null;
     public DllCatalogEntry[] ReplacementVersions => SelectedDll is { } dll && CanReplace(dll)
         ? CatalogEntries.Where(e => e.Kind == dll.Kind).ToArray() : [];
 
@@ -459,15 +464,15 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
             if (native is { Length: 1 }) SelectedDll = native[0];
         }
     }
-    public string[] Notes { get => notes; private set { Set(ref notes, value); Notify(nameof(Logs)); } }
-    public string Status
+    public LocalizedText[] Notes { get => notes; private set { Set(ref notes, value); Notify(nameof(Logs)); } }
+    public LocalizedText Status
     {
         get => status;
         private set
         {
             Set(ref status, value);
             if (value.Length != 0)
-                Activity = [.. Activity.TakeLast(179), $"{DateTime.Now:HH:mm:ss}  {value}"];
+                Activity = [.. Activity.TakeLast(179), $"{DateTime.Now:HH:mm:ss}  " + value];
             Notify(nameof(Logs));
         }
     }
@@ -488,13 +493,13 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
             if (rtx is not null) await ApplyDatabaseFramesAsync(token);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
-        { Notes = [.. Notes, $"DLSSdb-Cache konnte nicht gelesen werden. {e.Message}"]; }
+        { Notes = [.. Notes, Message("Library.CouldNotReadTheDLSSdbCache", e.Message)]; }
         try { await LoadCatalogAsync(await Task.Run(catalog.ReadCached, token), token); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
-        { Notes = [.. Notes, $"Gespeicherter DLL-Katalog konnte nicht gelesen werden. {e.Message}"]; }
+        { Notes = [.. Notes, Message("Library.CouldNotReadTheSavedDLLCatalog", e.Message)]; }
         try { await RefreshRecoveryAsync(CancellationToken.None, reportStatus: false); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or System.Text.Json.JsonException)
-        { Notes = [.. Notes, $"Transaktionsjournal konnte nicht gelesen werden: {e.Message}"]; }
+        { Notes = [.. Notes, Message("Library.CouldNotReadTheTransactionJournal", e.Message)]; }
     });
 
     public void RequestCancel()
@@ -505,16 +510,16 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
 
     private async Task RefreshRtxAsync(CancellationToken token)
     {
-        Status = "DLSSdb wird abgerufen …";
+        Status = Message("Library.FetchingDLSSdb");
         Indeterminate = true;
         var (database, offline) = await Task.Run(() => rtxService.RefreshAsync(token), token);
         rtx = database;
         RefreshIniStatus();
         MatchLibraryFeatures();
-        Status = offline ? $"{database.Count} DLSSdb-Spiele aus dem Offline-Cache." :
-            $"{database.Count} DLSSdb-Spiele verfügbar.";
+        Status = offline ? Message("Library.DLSSdbGamesFromTheOfflineCache", database.Count) :
+            Message("Library.DLSSdbGamesAvailable", database.Count);
         var applied = await ApplyDatabaseFramesAsync(token);
-        if (applied > 0) Status += $" · MFG für {applied} Spiele übernommen.";
+        if (applied > 0) Status += Message("Library.AppliedMFGDataToGames", applied);
         Percent = 100;
     }
 
@@ -542,15 +547,15 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         Games = candidates.Select(g => g with { UpdateAvailable = UpdateCandidates(g.Inventory).Any() })
             .Where(g => LibraryFilter switch
             {
-                "Update verfügbar" => !g.Ignored && g.UpdateAvailable,
-                "Modifiziert" => g.Modified,
-                "Mit DLSS" => g.HasDlss,
-                "Mit FrameGen" => g.HasFg,
-                "DLL geändert" => g.HasBackup,
-                "FG & MFG Unlocker" => g.HasUnlocker,
+                "UpdateAvailable" => !g.Ignored && g.UpdateAvailable,
+                "Modified" => g.Modified,
+                "WithDlss" => g.HasDlss,
+                "WithFrameGeneration" => g.HasFg,
+                "ChangedDll" => g.HasBackup,
+                "Unlocker" => g.HasUnlocker,
                 "OptiScaler" => g.HasOptiScaler,
-                "Nur DLSS SR" => g.SrOnly,
-                "Ausgeschlossen" => g.Ignored,
+                "DlssSrOnly" => g.SrOnly,
+                "Excluded" => g.Ignored,
                 "Steam" or "Epic" or "Ubisoft" or "GOG" or "Xbox" or "Lokal" => g.DisplayLauncher == LibraryFilter,
                 _ => true
             }).ToArray();
@@ -572,10 +577,10 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
     private async Task RefreshRecoveryAsync(CancellationToken token, bool reportStatus)
     {
         PendingJournals = await Task.Run(() => CreateTransactions().Pending(), token);
-        if (reportStatus) Status = PendingJournals.Length == 0 ? "Keine ausstehenden Wiederherstellungen." :
-            $"{PendingJournals.Length} ausstehende Wiederherstellungen.";
+        if (reportStatus) Status = PendingJournals.Length == 0 ? Message("Library.NoPendingRecoveries") :
+            Message("Library.PendingRecoveries", PendingJournals.Length);
         else if (PendingJournals.Length > 0)
-            Notes = [.. Notes, "Eine Dateitransaktion wartet auf Wiederherstellung. Öffne den Tab Wiederherstellung."];
+            Notes = [.. Notes, Message("Library.AFileTransactionIsPendingRecoveryOpen")];
     }
 
     private async Task RollbackPendingAsync()
@@ -583,31 +588,31 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         if (SelectedJournal is not { } journal) return;
         var dialog = new OpenFileDialog
         {
-            Title = "Spiel-EXE für die Prozessprüfung auswählen",
+            Title = GetText("Library.SelectTheGameExecutableForTheProcess"),
             InitialDirectory = journal.Root,
-            Filter = "Windows-Programm (*.exe)|*.exe"
+            Filter = GetText("Library.WindowsApplicationExeExe")
         };
         if (dialog.ShowDialog() != true) return;
         if (!SafePaths.Contains(journal.Root, dialog.FileName))
         {
-            Status = "Die ausgewählte EXE liegt außerhalb dieser Installation.";
+            Status = Message("Library.TheSelectedExecutableIsOutsideThisInstallation");
             return;
         }
-        var description = $"Installation: {journal.Root}\nTransaktion: {journal.Id}\nSpiel-EXE: {dialog.FileName}\n\n" +
-            $"Bis zu {journal.Armed} Dateischritte werden auf ihren gesicherten Zustand zurückgesetzt.";
-        if (System.Windows.MessageBox.Show(System.Windows.Application.Current.MainWindow, description,
-                "Dateitransaktion wiederherstellen", System.Windows.MessageBoxButton.OKCancel,
+        var description = GetText("Library.InstallationTransactionGameExecutable", journal.Root, journal.Id, dialog.FileName) +
+            GetText("Library.UpToFileOperationsWillBeReverted", journal.Armed);
+        if (ConfirmationDialog.Show(System.Windows.Application.Current.MainWindow, description,
+                GetText("Library.RecoverFileTransaction"), System.Windows.MessageBoxButton.OKCancel,
                 System.Windows.MessageBoxImage.Warning, System.Windows.MessageBoxResult.Cancel) != System.Windows.MessageBoxResult.OK)
             return;
 
         await RunAsync(async token =>
         {
             Indeterminate = true;
-            Status = "Dateitransaktion wird wiederhergestellt …";
+            Status = Message("Library.RecoveringFileTransaction");
             var installation = new Installation(journal.Root, [Path.GetRelativePath(journal.Root, dialog.FileName)]);
             await Task.Run(() => CreateTransactions().Rollback(installation, journal.Id), token);
             await RefreshRecoveryAsync(CancellationToken.None, reportStatus: false);
-            Status = "Dateitransaktion wiederhergestellt.";
+            Status = Message("Library.FileTransactionRecovered");
             Percent = 100;
         });
     }
@@ -620,12 +625,12 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         var catalogStatus = Status;
         Percent = 0;
         await RefreshRtxAsync(token);
-        Status = $"{catalogStatus} {Status}";
+        Status = catalogStatus + " " + Status;
     });
 
     private async Task RefreshAndCacheCatalogAsync(CancellationToken token)
     {
-        Status = "DLL-Katalog wird abgerufen …";
+        Status = Message("Library.FetchingDLLCatalog");
         Indeterminate = true;
         var result = await Task.Run(() => catalog.RefreshAsync(token), token);
         await LoadCatalogAsync(result.Entries, token);
@@ -636,7 +641,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         var failures = new List<string>();
         foreach (var entry in latest)
         {
-            Status = $"{entry.Kind} {entry.Version} · lokaler Katalog wird geprüft …";
+            Status = Message("Library.CheckingLocalCatalog", entry.Kind, entry.Version);
             try
             {
                 var sha256 = await Task.Run(async () =>
@@ -652,18 +657,18 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         var hashes = cached.ToDictionary(pair => (pair.Key.Kind, pair.Key.DllMd5), pair => pair.Value);
         CatalogEntries = CatalogEntries.Select(entry => entry.LocalPath is null &&
             hashes.TryGetValue((entry.Kind, entry.DllMd5), out var sha256) ? entry with { Sha256 = sha256 } : entry).ToArray();
-        Notes = [.. Notes, .. failures];
-        Status = $"{cached.Count}/{latest.Length} neueste DLLs lokal verfügbar." +
+        Notes = [.. Notes, .. failures.Select(message => (LocalizedText)message)];
+        Status = Message("Library.LatestDLLsAvailableLocally", cached.Count, latest.Length) +
             (result.Notice is null ? "" : $" {result.Notice}");
         Percent = 100;
     }
 
     private Task DownloadModAsync() => RunAsync(async token =>
     {
-        Status = "Unlocker-Release wird geladen und geprüft …";
+        Status = Message("Library.DownloadingAndVerifyingTheUnlockerRelease");
         Indeterminate = true;
         await FetchUnlockerAsync(token);
-        Status = $"Unlocker {modReleaseTag} ist geprüft und zur Installation ausgewählt.";
+        Status = Message("Library.UnlockerIsVerifiedAndSelectedForInstallation", modReleaseTag);
         Percent = 100;
     });
 
@@ -711,8 +716,8 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         var history = await Task.Run(() => ManagedMods().History(game, exe), token);
         ShowModHistory(history);
         Status = history.FirstOrDefault()?.Mod is { Version: { } installed } revision
-            ? $"Unlocker zugeordnet · {installed.Display}" + (revision.UpdatesPaused ? " · Updates pausiert" : "")
-            : "Keine aktive Unlocker-Paketzuordnung für diese Installation.";
+            ? Message("Library.AssociatedUnlocker", installed.Display) + (revision.UpdatesPaused ? Message("Cockpit.UpdatesPaused") : "")
+            : Message("Library.ThisInstallationHasNoActiveUnlockerPackage");
     }
 
     private async Task ResumeModUpdatesAsync(CancellationToken token)
@@ -724,7 +729,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         if (id is not null)
         {
             RefreshModCockpit(force: true);
-            Status = "Unlocker-Updates sind für diese Installation wieder freigegeben.";
+            Status = Message("Library.UnlockerUpdatesResumedForThisInstallation");
         }
     }
 
@@ -753,7 +758,7 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         {
             Indeterminate = true;
             var service = ManagedMods(RecommendedFrames(allGames.FirstOrDefault(row => SamePath(row.Path, game.Root))?.Title ?? finding.Root.Title));
-            Status = "Unlocker-Paketzuordnung wird geprüft …";
+            Status = Message("Library.CheckingTheAssociatedUnlockerPackage");
             var history = await Task.Run(() => service.History(game, exe), token);
             var tracked = history.FirstOrDefault()?.Mod?.Version;
             var usePackage = operation is "install" or "update" || (operation == "remove" && tracked is null);
@@ -761,24 +766,24 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
             if (usePackage)
             {
                 if (source is null || proxy is null)
-                    throw new IOException("Für einen Altbestand zuerst das passende Unlocker-Paket und den Proxy auswählen.");
+                    throw new IOException(GetText("Library.SelectTheMatchingUnlockerPackageAndProxy"));
                 package = await Task.Run(() => ModPackage.Read(source, proxy, token), token);
             }
 
             var action = operation switch
             {
-                "remove" => $"Unlocker entfernen · {tracked?.Display ?? proxy}",
-                "restore" => $"Unlocker-Fallback · {restore!.Display}",
-                "update" => $"Unlocker-Update · {tag} · {proxy}",
-                _ => $"Unlocker installieren oder reparieren · {tag ?? "SM86"} · {proxy}"
+                "remove" => GetText("Library.RemoveUnlocker", tracked?.Display ?? proxy),
+                "restore" => GetText("Library.UnlockerFallback", restore!.Display),
+                "update" => GetText("Library.UnlockerUpdate", tag, proxy),
+                _ => GetText("Library.InstallOrRepairUnlocker", tag ?? "SM86", proxy)
             };
             token.ThrowIfCancellationRequested();
             var description = $"{action}\n\n{finding.Root.Title}\n{Path.Combine(game.Root, exe)}";
-            if (System.Windows.MessageBox.Show(System.Windows.Application.Current.MainWindow, description, UnlockerName,
+            if (ConfirmationDialog.Show(System.Windows.Application.Current.MainWindow, description, UnlockerName,
                     System.Windows.MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.Warning,
                     System.Windows.MessageBoxResult.Cancel) != System.Windows.MessageBoxResult.OK)
             {
-                Status = "Abgebrochen.";
+                Status = Message("Library.Cancelled");
                 return;
             }
 
@@ -796,9 +801,9 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
             if (id is not null) await RefreshGameInventoryAsync(finding, exe);
             ShowModHistory(await Task.Run(() => service.History(game, exe)));
             Status = id is null
-                ? (operation == "update" ? "Kein neueres Update oder Updates für diese Installation pausiert." : "Keine passende SM86-Änderung.")
-                : (operation == "restore" ? "Unlocker-Fallback angewendet. Updates sind für diese Installation pausiert." : "Unlocker-Änderung abgeschlossen.");
-            if (id is not null) Notes = [$"Transaktion {id} · {game.Root}"];
+                ? (operation == "update" ? Message("Library.NoNewerUpdateIsAvailableOrUpdates") : Message("Library.NoApplicableSM86Change"))
+                : (operation == "restore" ? Message("Library.UnlockerFallbackAppliedUpdatesArePausedFor") : Message("Library.UnlockerChangeComplete"));
+            if (id is not null) Notes = [Message("Library.Transaction", id, game.Root)];
             Percent = 100;
         });
     }
@@ -821,28 +826,28 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         return RunAsync(async token =>
         {
             Indeterminate = true;
-            var targetDescription = $"{game.Root.Title}\n{dll.Path}\nSpiel-EXE: {executable}";
+            var targetDescription = GetText("Library.GameExecutable", game.Root.Title, dll.Path, executable);
             string? backupHash = null;
             if (restore)
             {
-                Status = "Original-Backup wird geprüft …";
+                Status = Message("Library.VerifyingTheOriginalBackup");
                 var backup = await Task.Run(() => DllDetectionService.Inspect(dll.Path + ".bak", token), token);
                 if (!backup.IsDll || backup.Machine != System.Reflection.PortableExecutable.Machine.Amd64)
-                    throw new IOException("Das Original-Backup ist keine x64-PE-DLL.");
+                    throw new IOException(GetText("Library.TheOriginalBackupIsNotAnX64"));
                 backupHash = backup.Sha256;
-                targetDescription += $"\n\nWiederherstellen aus {dll.Path}.bak\nVersion {backup.FileVersion}\nSHA-256 {backupHash}";
+                targetDescription += GetText("Library.RestoreFromBakVersionSHA", dll.Path, backup.FileVersion, backupHash);
             }
-            else targetDescription += $"\n\nDateiversion {dll.Version} durch {entry!.Version} ersetzen?";
-            if (System.Windows.MessageBox.Show(System.Windows.Application.Current.MainWindow, targetDescription,
-                    restore ? "Original-DLL wiederherstellen" : "DLL austauschen",
+            else targetDescription += GetText("Library.ReplaceFileVersionWith", dll.Version, entry!.Version);
+            if (ConfirmationDialog.Show(System.Windows.Application.Current.MainWindow, targetDescription,
+                    restore ? GetText("Library.RestoreOriginalDLL") : GetText("Workspace.ReplaceDLL"),
                     System.Windows.MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.Warning,
                     System.Windows.MessageBoxResult.Cancel) != System.Windows.MessageBoxResult.OK)
             {
-                Status = "Abgebrochen.";
+                Status = Message("Library.Cancelled");
                 return;
             }
 
-            Status = restore ? "Original-DLL wird wiederhergestellt …" : "Paket wird geprüft und DLL ausgetauscht …";
+            Status = restore ? Message("Library.RestoringOriginalDLL") : Message("Library.VerifyingPackageAndReplacingDLL");
             var id = await Task.Run(async () =>
             {
                 var guard = new WindowsInstallationGuard();
@@ -857,9 +862,9 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
                 var metadata = DllDownloadService.VerifyCatalogFile(path, entry!, token);
                 return service.Replace(installation, relative, dll.Metadata!.Sha256, path, metadata.Sha256, token);
             }, token);
-            Status = id is null ? "Datei entspricht bereits der Auswahl." :
-                restore ? "Original-DLL wiederhergestellt." : "DLL ausgetauscht.";
-            if (id is not null) Notes = [$"Transaktion {id} · {dll.Path}"];
+            Status = id is null ? Message("Library.TheSelectedFileAlreadyMatches") :
+                restore ? Message("Library.OriginalDLLRestored") : Message("Library.DLLReplaced");
+            if (id is not null) Notes = [Message("Library.Transaction", id, dll.Path)];
             if (id is not null) Toast = Status;
 
             if (id is not null)
@@ -892,12 +897,12 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
 
     private Task ScanAsync(string? folder, LibraryRow? libraryGame = null, bool drives = false, bool quick = false) => RunAsync(async token =>
     {
-        Status = "Scan wird vorbereitet …";
+        Status = Message("Library.PreparingScan");
         var progress = new Progress<ScanProgress>(p =>
         {
             if (active?.Token != token || token.IsCancellationRequested || p.Current.Length == 0) return;
             Percent = p.RootsTotal == 0 ? 0 : 100d * p.RootsCompleted / p.RootsTotal;
-            Status = $"{p.RootsCompleted}/{p.RootsTotal} Installationen · {p.Directories:N0} Ordner · {p.Files:N0} Dateien";
+            Status = Message("Library.InstallationsN0FoldersN0Files", p.RootsCompleted, p.RootsTotal, p.Directories, p.Files);
         });
         var result = await Task.Run(() =>
         {
@@ -969,11 +974,11 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         Notify(nameof(LastScanLabel));
         Notify(nameof(LibraryStorageSummary));
         var m = result.Metrics;
-        Status = $"Scan abgeschlossen: {Findings.Length} Ergebnisse · {added} neue Launcher-Spiele" +
-            (excluded == 0 ? "." : $" · {excluded} mit Anti-Cheat ausgeschlossen.");
+        Status = Message("Library.ScanCompleteResultsNewLauncherGames", Findings.Length, added) +
+            (excluded == 0 ? "." : Message("Library.ExcludedWithAntiCheat", excluded));
         if (quick) Toast = Status;
-        Notes = [$"CPU {m.CpuMs:N0} ms · Arbeitssatz Δ {m.WorkingSetDelta / 1024:N0} KiB · Handles Δ {m.HandleDelta} · Metadaten {m.MetadataReads} gelesen / {m.CacheHits} aus Cache",
-            .. result.Warnings.Take(200), .. result.Warnings.Skip(200).Take(1).Select(_ => $"{result.Warnings.Length - 200} weitere Scan-Hinweise")];
+        Notes = [Message("Library.CPUN0MsWorkingSetN0KiB", m.CpuMs, m.WorkingSetDelta / 1024, m.HandleDelta, m.MetadataReads, m.CacheHits),
+            .. result.Warnings.Take(200).Select(message => (LocalizedText)message), .. result.Warnings.Skip(200).Take(1).Select(_ => Message("Library.AdditionalScanMessages", result.Warnings.Length - 200))];
         Percent = 100;
     }, scanning: true);
 
@@ -989,9 +994,9 @@ public sealed partial class LibraryViewModel : INotifyPropertyChanged
         Percent = 0;
         CommandManager.InvalidateRequerySuggested();
         try { await action(cancellation.Token); }
-        catch (OperationCanceledException) { Status = cancellation.IsCancellationRequested ? "Abgebrochen." : "Zeitlimit erreicht."; }
+        catch (OperationCanceledException) { Status = cancellation.IsCancellationRequested ? Message("Library.Cancelled") : Message("Library.TimeLimitReached"); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or ArgumentException or Win32Exception or HttpRequestException or AggregateException or System.Text.Json.JsonException or System.Security.SecurityException)
-        { Status = $"Vorgang fehlgeschlagen: {e.Message}"; }
+        { Status = Message("Library.OperationFailed", e.Message); }
         finally
         {
             active = null;

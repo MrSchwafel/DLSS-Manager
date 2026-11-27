@@ -14,17 +14,17 @@ public static partial class ModIniSchema
 
     private static readonly Dictionary<string, string[]> Sm86 = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["General|Enabled"] = ["1:1 - Aktiviert (Standard)", "0:0 - Deaktiviert"],
+        ["General|Enabled"] = ["1:@IniOptions.EnabledDefault", "0:@IniOptions.Disabled"],
         ["FrameGeneration|Engine"] = ["DLSS:DLSS (NVIDIA SM86/SM75)", "XeSS:XeSS (Intel XeSS-FG)"],
-        ["FrameGeneration|MaxGeneratedFrames"] = ["1:1 (2X)", "2:2 (3X)", "3:3 (4X - Standard)", "4:4 (5X)", "5:5 (6X - Max)"],
-        ["DLSSG|Optimized"] = ["0:0 - Original (Stock)", "1:1 - Bit-Identisch (Standard)", "2:2 - Optimiert / Leicht verlustbehaftet", "3:3 - Maximal schnell / Verlustbehaftet"],
-        ["DLSSG|Preset"] = ["A:A (Standard)", "B:B (UI-Rekombination)", "C:C (FG Lite - schneller)"],
-        ["XeSSFG|FlowResolution"] = ["Coarse", "Middle:Middle (Standard)", "Fine", "CoarseAt4K"],
-        ["XeSSFG|UseHudless"] = ["Auto:Auto (Standard)", "1:1 - Immer UI-Komposition", "0:0 - Nie"],
-        ["SuperResolution|Mode"] = ["Off:Off (Standard)", "M-INT8", "L-INT8", "M-FP16", "L-FP16"],
-        ["Logging|Level"] = ["0:0 - Aus", "1:1 - Fehler (Standard)", "2:2 - Info / Konfiguration", "3:3 - Debug / Trace"],
+        ["FrameGeneration|MaxGeneratedFrames"] = ["1:1 (2X)", "2:2 (3X)", "3:@IniOptions.XDefault", "4:4 (5X)", "5:@IniOptions.XMax"],
+        ["DLSSG|Optimized"] = ["0:@IniOptions.OriginalStock", "1:@IniOptions.BitIdenticalDefault", "2:@IniOptions.OptimizedSlightlyLossy", "3:@IniOptions.FastestLossy"],
+        ["DLSSG|Preset"] = ["A:@IniOptions.ADefault", "B:@IniOptions.BUIRecomposition", "C:@IniOptions.CFGLiteFaster"],
+        ["XeSSFG|FlowResolution"] = ["Coarse", "Middle:@IniOptions.MiddleDefault", "Fine", "CoarseAt4K"],
+        ["XeSSFG|UseHudless"] = ["Auto:@IniOptions.AutoDefault", "1:@IniOptions.AlwaysComposeUI", "0:@IniOptions.Never"],
+        ["SuperResolution|Mode"] = ["Off:@IniOptions.OffDefault", "M-INT8", "L-INT8", "M-FP16", "L-FP16"],
+        ["Logging|Level"] = ["0:@IniOptions.Off", "1:@IniOptions.ErrorsDefault", "2:@IniOptions.InfoConfiguration", "3:@IniOptions.DebugTrace"],
         ["Logging|Directory"] = [],
-        ["Runtime|Mode"] = ["Bundled:Bundled (Standard)", "External", "Pinned"]
+        ["Runtime|Mode"] = ["Bundled:@IniOptions.BundledDefault", "External", "Pinned"]
     };
 
     private static readonly Dictionary<string, string[]> Opti = new(StringComparer.OrdinalIgnoreCase)
@@ -39,9 +39,9 @@ public static partial class ModIniSchema
         ["FrameGen|FGNvngxReplacement"] = ["auto", "None", "Nukems", "Arturs", "FFX", "Combo"],
         ["OptiFG|HUDFix"] = Booleans,
         ["DLSS|RenderPresetOverride"] = Booleans,
-        ["DLSS|RenderPresetForAll"] = ["auto", "0:0 - Default", "1:1 - A", "2:2 - B", "3:3 - C", "4:4 - D", "5:5 - E", "6:6 - F", "10:10 - J", "11:11 - K", "12:12 - L", "13:13 - M", "14:14 - N", "15:15 - O"],
+        ["DLSS|RenderPresetForAll"] = ["auto", "0:@IniOptions.Default", "1:1 - A", "2:2 - B", "3:3 - C", "4:4 - D", "5:5 - E", "6:6 - F", "10:10 - J", "11:11 - K", "12:12 - L", "13:13 - M", "14:14 - N", "15:15 - O"],
         ["FSR|UpscalerIndex"] = ["auto", "0:0 - FSR 4.0.2", "1:1 - FSR 3.1.5", "2:2 - FSR 2.3.4"],
-        ["FSR|Fsr4GpuSupport"] = ["auto", "0:0 - No override", "1:1 - FP8", "2:2 - INT8", "3:3 - INT8-2", "4:4 - INT8 Lite"],
+        ["FSR|Fsr4GpuSupport"] = ["auto", "0:@IniOptions.NoOverride", "1:1 - FP8", "2:2 - INT8", "3:3 - INT8-2", "4:4 - INT8 Lite"],
         ["Sharpness|Shader"] = ["auto", "rcas", "da", "lcda"],
         ["Sharpness|OverrideSharpness"] = Booleans,
         ["Sharpness|Sharpness"] = [],
@@ -51,11 +51,11 @@ public static partial class ModIniSchema
         ["Spoofing|StreamlineSpoofing"] = Booleans,
         ["Spoofing|SpoofHAGS"] = Booleans,
         ["Menu|OverlayMenu"] = Booleans,
-        ["Menu|ShortcutKey"] = ["auto", "0x2D:0x2D - Insert / Einfg", "0x24:0x24 - Home / Pos1", "0x70:0x70 - F1", "0x7B:0x7B - F12", "-1:-1 - Deaktiviert"],
+        ["Menu|ShortcutKey"] = ["auto", "0x2D:@IniOptions.X2DInsert", "0x24:@IniOptions.X24Home", "0x70:0x70 - F1", "0x7B:0x7B - F12", "-1:@IniOptions.Disabled2"],
         ["Menu|ShowFps"] = Booleans,
         ["Framerate|FramerateLimit"] = [],
         ["fakenvapi|UseFakenvapi"] = Booleans,
-        ["fakenvapi|ForceReflex"] = ["auto", "0:0 - Spiel-Standard", "1:1 - Erzwingen Aus", "2:2 - Erzwingen Ein"],
+        ["fakenvapi|ForceReflex"] = ["auto", "0:@IniOptions.GameDefault", "1:@IniOptions.ForceOff", "2:@IniOptions.ForceOn"],
         ["Log|LogToFile"] = Booleans,
         ["Log|LogLevel"] = ["auto", "0:0 - Trace", "1:1 - Debug", "2:2 - Info", "3:3 - Warning", "4:4 - Error"]
     };
@@ -80,7 +80,7 @@ public static partial class ModIniSchema
             {
                 var (setting, description) = e;
                 var important = catalog.TryGetValue(setting.Section + "|" + setting.Key, out var options);
-                var choices = important ? options!.Select(Choice).ToArray() : InferChoices(setting, description);
+                var choices = important ? options!.Select(SchemaChoice).ToArray() : InferChoices(setting, description);
                 var number = choices.Length == 0 ? InferNumber(setting, description) : null;
                 return new IniField(setting, description, important, choices, number,
                     setting.Matches("Spoofing", "SpoofedGPUName"));
@@ -91,6 +91,12 @@ public static partial class ModIniSchema
     {
         var parts = text.Split(':', 2);
         return new(parts[0], parts[^1]);
+    }
+
+    private static IniChoice SchemaChoice(string text)
+    {
+        var choice = Choice(text);
+        return choice.Label.StartsWith('@') ? choice with { Label = LocalizationService.GetText(choice.Label[1..]) } : choice;
     }
 
     private static IniChoice[] InferChoices(IniSetting setting, string description)
