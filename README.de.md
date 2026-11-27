@@ -12,7 +12,7 @@
 
 [Installation](#installation) · [Erste Schritte](#erste-schritte) · [Funktionen](#funktionen) · [Treiber-Vorschau](#treiber-vorschau) · [Aus dem Quellcode bauen](#aus-dem-quellcode-bauen) · [Credits](#datenquellen-und-credits) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
 
-Der DLSS Manager befindet sich als C#-Vorschau in Entwicklung. Dieses GitHub-Repository enthält die Projektdokumentation und Ressourcen. Gebaut wird die App im separaten C#-Quellcode-Checkout.
+Der DLSS Manager befindet sich als C#-Vorschau in Entwicklung. Dieses GitHub-Repository enthält den C#-Quellcode, die Projektdokumentation und Ressourcen.
 
 Das Logo nimmt künstliche Hardware-Grenzen aufs Korn. DLSS Manager ist ein Community-Projekt, das unabhängig von NVIDIA entwickelt wird.
 
@@ -86,14 +86,14 @@ Wähle den Stil unter **Einstellungen → Treiber & Cache → Treiber-Vorschau (
 
 ## Aus dem Quellcode bauen
 
-Führe die folgenden Befehle mit PowerShell 7 im separaten C#-Checkout mit `DLSSManager.slnx` aus. Installiere ein kompatibles .NET SDK. In `global.json` ist `10.0.100` als Basis festgelegt. Die Skripte verwenden bevorzugt `%LocalAppData%\DLSSManagerDev\dotnet\dotnet.exe` und greifen sonst auf `dotnet` aus dem Suchpfad zurück.
+Führe die folgenden Befehle mit PowerShell 7 im ausgecheckten Repository mit `DLSSManager.slnx` aus. Installiere ein kompatibles .NET SDK. In `global.json` ist `10.0.100` als Basis festgelegt. Die Skripte verwenden bevorzugt `%LocalAppData%\DLSSManagerDev\dotnet\dotnet.exe` und greifen sonst auf `dotnet` aus dem Suchpfad zurück.
 
 ```powershell
 .\build.ps1
 .\src\DLSSManager.App\bin\Release\net10.0-windows\DLSSManager.App.exe
 ```
 
-`build.ps1` baut die Solution und startet das automatisierte Testprogramm. Für ein eigenständiges Windows-x64-Paket verwende eine Version, für die noch kein Paket in `artifacts` liegt.
+`build.ps1` baut die Solution. Für ein eigenständiges Windows-x64-Paket verwende eine Version, für die noch kein Paket in `artifacts` liegt.
 
 ```powershell
 $version = '0.1.0-preview.9'
@@ -103,7 +103,7 @@ $version = '0.1.0-preview.9'
 
 Das Publish-Skript schreibt das ZIP und die zugehörige SHA-256-Datei nach `artifacts` sowie die entpackte App nach `artifacts\win-x64`.
 
-Die Windows-Oberfläche in `src/DLSSManager.App` nutzt WPF, XAML und MVVM sowie WinForms für Tray-Symbol und Menü. `src/DLSSManager.Core` enthält Scan, Kataloge, Mod-Profile und Dateitransaktionen. `tests/DLSSManager.Tests` prüft diese Dienste mit temporären Testdaten.
+Die Windows-Oberfläche in `src/DLSSManager.App` nutzt WPF, XAML und MVVM sowie WinForms für Tray-Symbol und Menü. `src/DLSSManager.Core` enthält Scan, Kataloge, Mod-Profile und Dateitransaktionen.
 
 ## Fehlerbehebung
 

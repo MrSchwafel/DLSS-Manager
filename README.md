@@ -12,7 +12,7 @@
 
 [Installation](#installation) · [Getting started](#getting-started) · [Features](#features) · [Driver previews](#driver-previews) · [Build from source](#build-from-source) · [Credits](#data-sources-and-credits) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
 
-DLSS Manager is currently in C# preview development. This GitHub repository contains project documentation and resources. Build the app from the separate C# source checkout.
+DLSS Manager is currently in C# preview development. This GitHub repository contains the C# source, project documentation, and resources.
 
 The logo pokes fun at artificial hardware restrictions. DLSS Manager is a community project developed independently of NVIDIA.
 
@@ -86,14 +86,14 @@ Choose the style in **Einstellungen → Treiber & Cache → Treiber-Vorschau (Ho
 
 ## Build from source
 
-Run these PowerShell 7 commands from the separate C# source checkout containing `DLSSManager.slnx`. Install a compatible .NET SDK, with `10.0.100` as the `global.json` baseline. The scripts use `%LocalAppData%\DLSSManagerDev\dotnet\dotnet.exe` if present, otherwise `dotnet` on PATH.
+Run these PowerShell 7 commands from the repository checkout containing `DLSSManager.slnx`. Install a compatible .NET SDK, with `10.0.100` as the `global.json` baseline. The scripts use `%LocalAppData%\DLSSManagerDev\dotnet\dotnet.exe` if present, otherwise `dotnet` on PATH.
 
 ```powershell
 .\build.ps1
 .\src\DLSSManager.App\bin\Release\net10.0-windows\DLSSManager.App.exe
 ```
 
-`build.ps1` builds the solution and runs the automated test executable. To create and verify the self-contained Windows x64 package, use a version with no existing package in `artifacts`:
+`build.ps1` builds the solution. To create and verify the self-contained Windows x64 package, use a version with no existing package in `artifacts`:
 
 ```powershell
 $version = '0.1.0-preview.9'
@@ -103,7 +103,7 @@ $version = '0.1.0-preview.9'
 
 The publish script writes the ZIP and its SHA-256 sidecar under `artifacts` and the unpackaged app under `artifacts\win-x64`.
 
-The Windows frontend in `src/DLSSManager.App` uses WPF, XAML and MVVM, with WinForms for the notification icon and menu. `src/DLSSManager.Core` implements scanning, catalogs, mod profiles and file transactions. `tests/DLSSManager.Tests` exercises those services using temporary fixtures.
+The Windows frontend in `src/DLSSManager.App` uses WPF, XAML and MVVM, with WinForms for the notification icon and menu. `src/DLSSManager.Core` implements scanning, catalogs, mod profiles and file transactions.
 
 ## Troubleshooting
 
