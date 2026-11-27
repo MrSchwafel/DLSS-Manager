@@ -1,327 +1,112 @@
-**Language / Sprache:** **English** · [Deutsch](README.de.md)
-
-<sub>Additional languages — not yet available: Español · Français · Português (Brasil) · Italiano · Polski · Русский · 简体中文 · 日本語</sub>
+**English** · [Deutsch](README.de.md)
 
 <p align="center">
-  <img src="resources/logo.png" alt="DLSS Manager logo" width="200">
+  <img src="resources/logo.png" alt="DLSS Manager" width="180">
 </p>
 
 # DLSS Manager
 
-**Development version: 0.9.0-beta.1** · Windows 10/11 x64 · German & English
+**Manage game DLLs, Frame Generation mods and per-game settings in a dark Windows workspace.** DLSS Manager brings NVIDIA DLSS, Frame Generation, Ray Reconstruction, Intel XeSS, AMD FSR, the FrameGen & MFG Unlocker (SM86) and OptiScaler together in one game library.
 
-[Preview](#preview) · [Features](#features) · [Driver previews](#driver-previews) · [Getting started](#running-the-manager) · [Manager updates](#manager-updates-beta-and-stable-releases) · [Releases](https://github.com/MrSchwafel/DLSS-Manager/releases)
+**Windows x64 · C# / .NET 10 · WPF · German interface**
 
-**Manage DLSS DLLs, discover games, and install the SM86 FrameGen mod from a Windows interface.**
+[Installation](#installation) · [Getting started](#getting-started) · [Features](#features) · [Driver previews](#driver-previews) · [Build from source](#build-from-source)
 
-DLSS Manager is a community tool built with AutoHotkey v2. It detects local DLSS files, displays their versions, and lets you replace them with other available versions. It also manages the FrameGen mod from [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86), including updates and per-game rollback options.
+DLSS Manager is currently in C# preview development. This GitHub repository contains project documentation and resources. Build the app from the separate C# source checkout.
 
-The logo pokes fun at artificial hardware restrictions. This is an independent project with no affiliation with NVIDIA.
+## Installation
 
-The application supports German and English through separate language files. This guide uses the English interface labels throughout.
+Use the [build instructions](#build-from-source) to create a self-contained Windows x64 package. The output is named `DLSS-Manager-CSharp-win-x64-<version>.zip`.
+
+1. If a `.zip.sha256` file accompanies the package, compare its hash with the output of `Get-FileHash -Algorithm SHA256 .\package.zip` in PowerShell.
+2. Extract the whole ZIP to a writable folder and run `DLSSManager.App.exe`.
+3. The default data folder is `Documents\DLSS Manager`. Choose a different location in **Einstellungen** and restart, or launch with `--portable` to use the `data` folder next to the executable.
+
+### Requirements
+
+- Windows x64. The C# development build has been tested on Windows 11.
+- The self-contained package includes the .NET Desktop Runtime. Framework-dependent builds require the x64 .NET 10 Desktop Runtime.
+- Write access to the app's data folder and to the game files you choose to change. The global DLSS indicator also needs permission to write to NVIDIA's machine-wide registry key.
+- Internet access for catalog, DLSSdb, mod and release checks or downloads. Local catalog files can be used offline. OptiScaler downloads provided as 7-Zip archives use Windows `tar.exe`.
+- A compatible game, GPU and driver for the selected feature or mod. Consult [SM86](https://github.com/sdli1995/dlssg_for_sm86) and [OptiScaler](https://github.com/optiscaler/OptiScaler) for their compatibility details.
 
 > [!WARNING]
-> **Use only with single-player games.** DLL replacements and proxy mods can trigger anti-cheat systems and lead to bans. A detected DLSS file does not mean a game is safe to modify. Exclude multiplayer and anti-cheat games; game detection does not guarantee a complete anti-cheat check.
+> Use DLL replacements and proxy mods only with single-player games. Anti-cheat detection can miss games. Batch updates skip entries with detected anti-cheat, and cockpit changes for those entries require explicit confirmation.
 
-## Preview
+## Getting started
 
-These screenshots show the English interface of development version **0.9.0-beta.1** in a separate preview. Game paths, version numbers and status values are sample data.
-
-### Game library and DLSS versions
-
-![Game library with search, filters, DLL versions and a combined DLL update action](https://raw.githubusercontent.com/MrSchwafel/DLSS-Manager/main/resources/previews/library-en.png)
-
-*Manage DLSS SR, Frame Generation and Ray Reconstruction for the selected game.*
-
-<details>
-<summary><strong>View the FrameGen mod and rollback controls</strong></summary>
-
-![FrameGen mod controls with installation actions, proxy selection and previous-version restoration](https://raw.githubusercontent.com/MrSchwafel/DLSS-Manager/main/resources/previews/framegen-en.png)
-
-*Mod management and DLL swapping have separate action areas.*
-
-</details>
-
-<details>
-<summary><strong>View manager updates and the Beta channel</strong></summary>
-
-![Update settings showing the installed manager version, Beta channel and release information](https://raw.githubusercontent.com/MrSchwafel/DLSS-Manager/main/resources/previews/updates-en.png)
-
-*Choose an update channel, read release notes and install available manager updates after confirmation.*
-
-</details>
-
-## Driver previews
-
-In the C# development build, choose **Alle Versionen & Übersicht…** from the driver rollback menu. In **Treiber-Übersicht & Rollback**, hover over a WHQL or Hotfix row to see its release notes.
-
-- **Kompakt (Summary)** is the default. It shows game and feature highlights and up to three fixes.
-- **Detailliert (Release-Notes mit Badges)** shows games, features and driver status as badges. It lists up to four fixes and shows how many more are available.
-
-Change the style under **Einstellungen → Treiber & Cache → Treiber-Vorschau (Hover-Card)** or switch between **Kompakt** and **Details** directly in the dialog. Both controls share one preference, which is saved across restarts.
-
-## Language
-
-Under **Settings → General → Language**, choose German, English, or automatic system language detection. By default, the manager uses the Windows display language when a matching language pack is available, and falls back to English otherwise. Your selection is saved.
-
-The separate UTF-8 language files are in [`resources/languages`](resources/languages). See the [language pack guide](resources/languages/README.md) to add translations.
+1. Use **Scan** for Steam, Epic, Ubisoft Connect, GOG, Xbox / Game Pass installations and configured folders. **Alle Laufwerke** adds a search for native upscaling DLLs on local drives. You can also add a game manually.
+2. Select a game, run **DLLs scannen** and confirm the game executable if several candidates appear. Check which DLL path the app proposes before changing it. Double-click a library entry to launch its saved executable.
+3. Refresh the **DLL-Katalog** or import a local x64 DLL. Apply a version from the game cockpit or choose **Alle aktualisieren** to review a batch plan.
+4. For a mod, use its card on the game page to select a proxy, install the package or open its INI editor. Use **Wiederherstellung** to review backups and unfinished file transactions.
 
 ## Features
 
 ### Game library and scanning
 
-- Scan game directories for DLSS Super Resolution, Frame Generation, and Ray Reconstruction.
-- Record exact DLL paths and installed file versions.
-- Add games manually and customize their names, executable paths, and icons.
-- Manage scan folders or scan selected local drives.
-- Review uncertain executable matches after a scan.
-- Block executable filenames globally and exclude game directories with their subdirectories.
-- Search and filter games; access additional actions through the right-click menu.
+- Launcher discovery and optional launch-time scanning, manual paths and game entries, exclusions, an executable blocklist and explicit executable selection.
+- Detection of DLSS Super Resolution (**SR**, `nvngx_dlss.dll`), Frame Generation (**FG**, `nvngx_dlssg.dll`), Ray Reconstruction (**RR**, `nvngx_dlssd.dll`), XeSS and FSR. The scan records DLL paths in subfolders, including copies next to the game binary or under Unreal Engine plugins. Review the exact path when several copies exist.
+- Live search by title and path, a launcher/status filter, colored badges and counted chips for **Alle Spiele**, **Mit DLSS**, **Mit FrameGen**, **DLL geändert**, **FG & MFG Unlocker** and **OptiScaler**. **DLL geändert** reflects a detected original-DLL backup.
 
-### DLSS DLLs
+### DLL catalog and updates
 
-| Type | File |
-| --- | --- |
-| Super Resolution / SR | `nvngx_dlss.dll` |
-| Frame Generation / FG | `nvngx_dlssg.dll` |
-| Ray Reconstruction / RR | `nvngx_dlssd.dll` |
+- Online catalog and local cache, numeric version comparison, SHA-256 for locally verified files and local x64 DLL import. Verification depends on the source and file type.
+- Replace individual files or review multiple games in a batch. **Batch-Ziel** lets you pin a locally available catalog version per DLL type. Running games and other ineligible entries are skipped or deferred.
+- Independently enable optional background updates for DLLs, SM86 and OptiScaler in Settings.
 
-- Load available versions from the public DLSS Swapper manifest.
-- Download DLL versions on demand and keep them in a local repository.
-- Switch individual DLL types to a selected version.
-- Update every existing DLL type in one game to its latest manifest version in a single operation.
-- Update DLLs across eligible games that are not running.
-- Back up original DLLs as `.bak` files before their first replacement and restore them when needed.
+### FrameGen & MFG Unlocker and OptiScaler
 
-The three DLL types are managed independently. Their latest version numbers do not have to match. Manifest entries not marked as having a valid signature, as well as development builds, are excluded. Available manifest checksums are used to check downloaded files.
+- Download upstream packages through the catalog, install or update per game and choose an available proxy such as `version.dll` or `dxgi.dll`, depending on the mod and existing files.
+- SM86 installation requires a detected native `nvngx_dlssg.dll`. Sync DLSSdb for game feature information. When an unambiguous MFG recommendation exists, the manager can use it as an SM86 default. Global and per-game overrides take precedence.
+- Configure `dlssg_sm86.ini` and `OptiScaler.ini` in a data-driven editor with search, key settings, all INI sections and expert entries in `Section|Key=Value` format.
+- Settings inherit in the order **mod defaults → global app template → per-game profile**. The manager stores templates and overrides in its data folder so they survive mod removal and updates.
 
-### FrameGen mod
+### Backups and recovery
 
-- Install and update the SM86 mod from the GitHub release cache.
-- Allow installation only when a native `nvngx_dlssg.dll` has been detected.
-- Automatically update already installed mods to a newer release.
-- Back up existing mod versions for per-game rollback.
-- Pause automatic mod updates for a game after a rollback.
-- Edit the mod INI and manage per-game settings.
-- Apply MFG recommendations to the mod configuration using supported NVIDIA database information.
+- Native DLL replacement saves the original as a sibling `.bak` when needed. Further swaps preserve the original backup.
+- Restore individual DLLs or group eligible backups by game. File changes use a transaction journal with SHA-256 checks, staged originals and rollback for unfinished operations. Conflicting external changes can block rollback.
+- Managed SM86 installs support versioned rollback. Use the relevant mod or DLL action for the files you want to recover.
 
-**Replacing a DLSS DLL and installing the FrameGen mod are separate features.** A game with Super Resolution alone can have its SR DLL updated, but that does not add native FrameGen support.
+### Driver previews
 
-## Requirements
+Choose **Alle Versionen & Übersicht…** from the driver rollback menu. In **Treiber-Übersicht & Rollback**, hover over a WHQL or Hotfix row to see its release notes.
 
-- 64-bit Windows 10/11, with write access to the manager directory and the game directories you modify.
-- To run the source script: **AutoHotkey v2**. AutoHotkey v1 is not compatible.
-- For background DLL downloads: Windows PowerShell with `Expand-Archive`, plus the included `resources/PreloadLatestDlls.ps1` file.
-- For extracting individual DLL downloads: `tar.exe` available on the system path, normally included with current Windows installations.
-- Internet access for manifest, database, mod, and DLL downloads.
-- For the FrameGen mod: a GPU, driver, and game combination supported by the upstream mod project.
+- **Kompakt (Summary)** is the default. It shows game and feature highlights and up to three fixes.
+- **Detailliert (Release-Notes mit Badges)** shows games, features and driver status as badges. It lists up to four fixes and shows how many more are available.
 
-The newest DLL is not necessarily the best version for every game. Compatibility and behavior depend on the game and mod being used.
+Choose the style in **Einstellungen → Treiber & Cache → Treiber-Vorschau (Hover-Card)** or switch between **Kompakt** and **Details** directly in the dialog. Both controls share one preference, which is saved across restarts.
 
-## Running the manager
+### NVIDIA tools and system tray
 
-### Local source script
+- Read or change existing NVIDIA application profiles through **Profi-Tweaks & Presets**. The game-specific DLSS indicator applies when launching directly from the manager. The global indicator uses the NVIDIA registry setting.
+- The dark tray menu opens the app or settings, scans games, syncs the catalog and databases, checks for app updates and opens the data/backup location. Minimize to the tray or launch with `--minimized`. Windows autostart is optional.
+- **Werkzeuge** (Tools) includes a GitHub release check and diagnostic export. Install manager updates from a release package manually.
 
-These steps require the manager source distribution, including `DLSS Manager.ahk` and its accompanying resources. Source publication is being prepared separately from the compiled release.
+## Build from source
 
-1. Extract the project files into a writable directory.
-2. Install AutoHotkey v2.
-3. Run `DLSS Manager.ahk`.
-
-Alternatively, run this from PowerShell in the project directory:
+Run these PowerShell 7 commands from the separate C# source checkout containing `DLSSManager.slnx`. Install a compatible .NET SDK, with `10.0.100` as the `global.json` baseline. The scripts use `%LocalAppData%\DLSSManagerDev\dotnet\dotnet.exe` if present, otherwise `dotnet` on PATH.
 
 ```powershell
-& "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe" ".\DLSS Manager.ahk"
+.\build.ps1
+.\src\DLSSManager.App\bin\Release\net10.0-windows\DLSSManager.App.exe
 ```
 
-Keep the resources folder and its included files alongside the script. Settings, games, logs, cache, and backups are stored under data. Legacy layouts are migrated at startup.
+`build.ps1` builds the solution and runs the automated test executable. To create and verify the self-contained Windows x64 package, use a version with no existing package in `artifacts`:
 
-### Compiled version
-
-Run `DLSS Manager.exe` and keep its resource folders in the same directory. A compiled version does not require a separate AutoHotkey installation to run. PowerShell and the background downloader file are still required.
-
-## Initial setup
-
-1. Open **Settings → Find games → Manage scan folders**.
-2. Add your game library directories, such as your Steam, Epic, or Ubisoft library folders. Adding a scan folder starts a scan.
-3. Review discovered games and uncertain executable matches after scanning. Exclude unsuitable games or directories.
-4. Under **Settings → Updates & data**, sync the NVIDIA database and update the FrameGen mod cache as needed.
-5. Select a game in the list and use the actions in its details panel.
-
-At startup, the manager checks the DLL manifest in the background and prepares the latest available SR, FG, and RR versions in the local repository. **Downloading files into the cache does not replace any game DLLs.**
-
-## Usage
-
-Double-clicking a game launches its saved executable. The right-click menu provides the main game actions regardless of the currently selected details tab.
-
-### DLL versions
-
-- Choose a version from a dropdown, then use **Swap SR**, **Swap FG**, or **Swap RR** to replace that individual DLL type.
-- **Update all DLLs** updates the existing DLL types in the selected game to their latest manifest versions. The individual dropdown selections do not determine the target versions for this bulk operation.
-- **Restore original DLLs** restores the available `.bak` files.
-
-The **Update all DLLs** button at the top of the main window performs a bulk update across all eligible games. Running, ignored, and excluded games are skipped.
-
-### FrameGen mod
-
-This tab provides proxy selection, mod installation, settings, removal, and rollback.
-
-Installation requires a native `nvngx_dlssg.dll` in the game. If only `nvngx_dlss.dll` is present, mod installation remains disabled.
-
-When a rollback backup is available, you can select and restore a previous mod version. Automatic **mod updates** are then paused for that game. A manual mod installation or update clears this pause. The pause does not prevent separate DLSS DLL updates.
-
-### Game & files
-
-Open the game and log directories, locate the executable in Explorer, change the name, path, or icon, or ignore the game during automatic scans. **Remove from list** removes the management entry without uninstalling game files.
-
-## Status and filters
-
-| Displayed status | Meaning |
-| --- | --- |
-| Not installed | a native FG DLL was detected, but no active SM86 mod was found. |
-| Unavailable | no native FG DLL was detected, so the FrameGen mod cannot be installed. Existing SR/RR DLLs can still be managed. |
-| Active (SM86) | the mod directory and selected proxy DLL are present. This status does not verify that the mod works in the running game. |
-| Update available | the detected mod version differs from the local release cache. |
-| Previous version, updates paused | A previous mod version is active, and automatic mod updates are paused for that game. |
-| Path, DLL or folder missing | A path, DLL, or directory is missing. The entry or mod installation is incomplete and should be checked. |
-
-Existing mod and error states remain visible even if a native FG file later goes missing.
-
-Filters include all DLSS games, games with FG, SR games without FG, modified games, active mods, available updates, and problems. **Already modded / modified** also includes games with original DLL backups.
-
-## Settings and automation
-
-| Setting / process | Behavior |
-| --- | --- |
-| Start with Windows (minimized to tray) | creates a startup shortcut for the current user when enabled. The manager starts minimized to the system tray. |
-| Always on top | a saved, optional setting for the main and settings windows. Disabled by default. |
-| Automatic game scanning | When enabled, scans configured folders at startup and every five minutes. |
-| Automatic DLL updates | Optionally checks eligible, closed games every minute against the available manifest and updates them when needed. |
-| Mod update check | Checks the GitHub release at startup and every 30 minutes. Already installed mods that are not paused may be updated. |
-
-Bulk updates identify already current DLL files by checksum and do not replace them again. The one-minute check does not fetch an online manifest separately for every game. New version lists are loaded at startup or through a manual manifest refresh.
-
-Minimizing sends the manager to the system tray. Use the tray menu to reopen the window or quit the application. Closing the main window exits the manager.
-
-## Manager updates: Beta and stable releases
-
-Under **Settings → Manager update**, the manager displays its installed version and available releases. Startup checks can be disabled; installing an update still requires your confirmation.
-
-| Update channel | Included releases |
-| --- | --- |
-| Stable | Stable releases only |
-| Beta | Stable releases plus beta and RC versions |
-
-New beta installations default to the Beta channel. A saved selection is preserved. The updater compares release versions and does not automatically downgrade when you switch channels.
-
-The first planned tag is **`v0.9.0-beta.1`**. Background downloading, SHA-256 verification, backups of affected program files and restarting are prepared. If file replacement fails, the helper attempts to restore the previous files. **Previous version** can also restore an existing program backup manually.
-
-**In AHK script mode, only update checking is enabled.** Program replacement is intended for the compiled `DLSS Manager.exe`. Personal files under `data/`, game DLLs and AHK source files are preserved.
-
-Local compiled update and restoration checks completed successfully (47/47 checks). Actual GitHub/CDN delivery and behavior on other PCs remain unverified.
-
-## Backups and restoration
-
-### Original DLSS DLLs
-
-Before the first replacement, a backup is created beside the game DLL, for example:
-
-```text
-nvngx_dlss.dll
-nvngx_dlss.dll.bak
+```powershell
+$version = '0.1.0-preview.9'
+.\publish.ps1 -Version $version
+.\verify-release.ps1 -Package ".\artifacts\DLSS-Manager-CSharp-win-x64-$version.zip"
 ```
 
-Subsequent updates do not overwrite this original backup. After a successful restore using **Restore original DLLs**, the restored `.bak` files are removed.
+The publish script writes the ZIP and its SHA-256 sidecar under `artifacts` and the unpackaged app under `artifacts\win-x64`.
 
-### Mod rollback backups
+The Windows frontend in `src/DLSSManager.App` uses WPF, XAML and MVVM, with WinForms for the notification icon and menu. `src/DLSSManager.Core` implements scanning, catalogs, mod profiles and file transactions. `tests/DLSSManager.Tests` exercises those services using temporary fixtures.
 
-Mod backups are organized under `data/backups/mods`. Each contains the backed-up mod directory, its INI, and the associated proxy DLL. History is limited to up to five backups per game.
+## Reporting issues and credits
 
-Mod rollback backups and original DLL backups serve different purposes. **Remove mod** does not restore replaced SR/FG/RR DLLs to their original versions. Use the separate original DLL restoration action for those files.
+Include the manager version, Windows build, GPU and driver, game, affected DLL or mod version, steps to reproduce and a relevant diagnostic excerpt. Remove personal paths, user names and other private data before posting.
 
-## Folder structure
+DLSS Manager is an independent community project. Catalog data comes from [DLSS Swapper](https://github.com/beeradmoore/dlss-swapper) and its [manifest builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder), game feature data from [DLSSdb](https://github.com/JZ6/DLSSdb), and mod packages from [dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) and [OptiScaler](https://github.com/optiscaler/OptiScaler).
 
-This overview shows a local installation. The source distribution contains the AHK entry point; the binary package contains the EXE. Personal state under `data/` is generated on first launch and is not included in either distribution.
-
-```text
-DLSS Manager/
-├── DLSS Manager.ahk / DLSS Manager.exe
-├── README.md
-├── README.de.md
-├── resources/                 Artwork, downloader and languages/
-└── data/
-    ├── manager_config.ini
-    ├── games.json
-    ├── logs/
-    ├── cache/                 mod/ and dlls/
-    └── backups/               Mod rollbacks and maintenance archives
-```
-
-Distribute resources alongside the executable. The data folder is created on first launch. Preserve your existing data folder when upgrading; it contains your games and personal settings.
-
-## Files and directories
-
-| Path | Contents |
-| --- | --- |
-| `DLSS Manager.ahk` | AutoHotkey v2 source script. |
-| `resources/logo.png` | GUI logo with DLSS lettering. |
-| `resources/app-icon.png` | Simplified icon source without lettering. |
-| `resources/logo.ico`, `resources/favicon.ico` | Icons in multiple resolutions. |
-| `data/games.json` | Game list, DLL paths, metadata, and per-game settings. |
-| `data/manager_config.ini` | General settings, scan folders, and scan rules. |
-| `data/cache/mod/` | Downloaded FrameGen mod and database cache. |
-| `data/backups/mods/` | Per-game mod backups. |
-| `resources/PreloadLatestDlls.ps1` | Included background downloader. |
-| `data/cache/dlls/manifest.json` | Locally saved DLL manifest. |
-| `data/cache/dlls/dlss/`, `data/cache/dlls/dlssg/`, `data/cache/dlls/dlssd/` | Locally stored DLL versions. |
-| `data/logs/preload.log` | DLL preparation log. |
-| `data/logs/dll_update.log` | Bulk DLL update error log. |
-| `data/logs/scan_debug.log` | Game scan diagnostic log. |
-
-Game paths and local settings belong to your installation. Before uploading to GitHub, review and exclude personal `data/games.json`, INI, log, and backup files. Check the redistribution terms of downloaded DLLs and mod caches before publishing them.
-
-## Troubleshooting
-
-**A game is not detected**
-
-Add its actual installation directory as a scan folder and scan again. Check uncertain matches, excluded folders, and the executable blocklist. This DLL-based scan does not automatically discover games without any of the three supported DLL files. Add the game manually if needed and inspect `data/logs/scan_debug.log`.
-
-**The status says “Unavailable” even though the game supports DLSS**
-
-Super Resolution and Frame Generation use different files. The SM86 mod requires the native `nvngx_dlssg.dll`. An SR DLL alone is not sufficient.
-
-**Downloads or version lists are missing**
-
-Refresh the version list under **Settings → Updates & data**. Check that `resources/PreloadLatestDlls.ps1` is included, PowerShell is available, and the manager directory is writable. See `data/logs/preload.log` for more details.
-
-**A game stops working correctly after a change**
-
-Close the game. After a DLL replacement, restore the original DLLs or choose another available version. After a mod update, use an available mod rollback backup. Restore the mod and original DLLs separately as needed.
-
-**Useful information for bug reports**
-
-Include the game name, GPU, driver version, affected DLL/mod version, the action you performed, and relevant log excerpts. Remove personal paths before publishing them.
-
-## Building an executable
-
-Self-compiling is optional and requires the separately available `DLSS Manager.ahk` source. The manager source is not included in the public repository or binary release. Users of a prepared release can run `DLSS Manager.exe` with its supplied `resources/` folder.
-
-Use the official [Ahk2Exe converter](https://github.com/AutoHotkey/Ahk2Exe) with an installed **AutoHotkey v2 64-bit** runtime:
-
-1. Close any running compiled manager and open **Ahk2Exe**.
-2. Set **Source** to `DLSS Manager.ahk`.
-3. Set **Destination** to `DLSS Manager.exe` in the manager's main folder.
-4. Select the AutoHotkey v2 64-bit base/runtime, usually `AutoHotkey64.exe`.
-5. Optionally select `resources/logo.ico` as the custom icon, then click **Convert**.
-6. Keep the complete `resources/` folder beside the resulting EXE. External resources are not automatically bundled.
-
-Source or embedded icon changes require a rebuild. Ahk2Exe and AutoHotkey must be installed separately; no compiler is bundled with the user release.
-
-## Data sources and credits
-
-- [AutoHotkey](https://www.autohotkey.com/) — scripting language and Windows interface.
-- [sdli1995/dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86) — the managed FrameGen mod.
-- [beeradmoore/dlss-swapper](https://github.com/beeradmoore/dlss-swapper) and [DLSS Swapper Manifest Builder](https://github.com/beeradmoore/dlss-swapper-manifest-builder) — DLL version information and download references. The manager does not require a running DLSS Swapper installation.
-- [JZ6/DLSSdb](https://github.com/JZ6/DLSSdb) — the RTX/DLSS database information used by the manager.
-
-The manager is not an official NVIDIA application. Third-party DLLs, mods, and data sources remain subject to the terms of their respective rights holders and projects.
+[Documentation for the earlier AutoHotkey edition](https://github.com/MrSchwafel/DLSS-Manager/blob/0b5072243014602e5047eb1bcccd747ad0c5d6c7/README.md).
