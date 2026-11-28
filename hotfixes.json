@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAtUtc": "2026-11-27T06:05:54Z",
+  "updatedAtUtc": "2026-11-28T17:30:05Z",
   "hotfixes": [
     {
       "version": "621.35",
@@ -12,6 +12,17 @@
       "summary": "NVIDIA's SSD Write Bug Gets Patched in GeForce Hotfix 621.35 Driver - TechPowerUp",
       "sha256": "",
       "directUrl": "https://international.download.nvidia.com/Windows/621.35hf/621.35-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
+    },
+    {
+      "version": "621.12",
+      "series": "6xx",
+      "releaseDate": "2026-10-28",
+      "title": "GeForce Hotfix Display Driver version 621.12",
+      "pageUrl": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9TSlE0VHd0NGllT2N0dHBQRWw3V3dVQlp1X3BfaFZ5RnhjbUYxaE1oLThqYXN2UGlzZGhnTDZud09QTmxOVEUzc3JlVFBQMWs0ZUJBaTRwWE5sYTNjaXhjMVN3dDZsLWRlb0dKTg?oc=5",
+      "forumUrl": "https://www.nvidia.com/en-us/geforce/forums/game-ready-drivers/13/",
+      "summary": "Nvidia deploys GeForce hotfix driver 621.12 to remedy black screens and freezes on RTX 50 GPUs - Club386",
+      "sha256": "",
+      "directUrl": "https://international.download.nvidia.com/Windows/621.12hf/621.12-desktop-notebook-win10-win11-64bit-international-dch.hf.exe"
     },
     {
       "version": "616.86",
